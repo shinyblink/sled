@@ -19,6 +19,9 @@ struct module {
 	int (*deinit)();
 };
 
+static struct module modules[MAX_MODULES];
+static int modcount;
+
 void* dlookup(void* handle, char* modname, char* name) {
 	void* ptr = dlsym(handle, name);
 	char* error = dlerror();
@@ -32,9 +35,20 @@ void* dlookup(void* handle, char* modname, char* name) {
 
 int deinit() {
 	printf("Cleaning up...");
-	// TODO: Deinit plugins.
+	int i;
+	int ret;
+	printf("Deinitializing %i modules...", modcount);
+	for (i = 0; i < modcount; i++) {
+		ret = modules[i].deinit();
+		if (ret != 0) {
+			printf("\n");
+			eprintf("Deinitializing module %s failed: Returned %i.", modules[i].name, ret);
+			exit(6);
+		}
+	}
+	printf(" Done.\n");
 	matrix_deinit();
-	printf(" Goodbye.\n");
+	printf("Goodbye.\n");
 	return 0;
 }
 
@@ -53,11 +67,7 @@ int main(int argc, char* argv[]) {
 		return ret;
 	}
 
-	// TODO: Load modules.
-	struct module modules[MAX_MODULES];
-
 	char moddir[] = "./modules/";
-	int modcount = 0;
 	DIR *moduledir;
 	struct dirent *file;
 	moduledir = opendir(moddir); // for now.
@@ -86,7 +96,7 @@ int main(int argc, char* argv[]) {
 				modules[modcount].deinit = dlookup(handle, modpath, "plugin_deinit");
 
 				free(modpath);
-				printf(" Done.");
+				printf(" Done.\n");
 				modcount++;
 			}
 		}
@@ -100,7 +110,6 @@ int main(int argc, char* argv[]) {
 	// Set up the interrupt handler.
 	signal(SIGINT, interrupt);
 
-	// TODO: Call modules' init function.
 	int i;
 	printf("Initializing %i modules...", modcount);
 	for (i = 0; i < modcount; i++) {
