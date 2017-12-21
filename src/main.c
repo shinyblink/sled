@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 	// TODO: parse args.
 
 	// Initialize Matrix.
-	int ret = matrix_init();
+	int ret = 0; //matrix_init();
 	if (ret != 0) {
 		// Fail.
 		printf("Matrix failed to initialize.\n");
@@ -56,19 +56,21 @@ int main(int argc, char* argv[]) {
 	// TODO: Load modules.
 	struct module modules[MAX_MODULES];
 
-	char modpath[] = "./modules";
+	char moddir[] = "./modules/";
 	int modcount = 0;
 	DIR *moduledir;
 	struct dirent *file;
-	moduledir = opendir(modpath); // for now.
+	moduledir = opendir(moddir); // for now.
 	printf("Loading modules...\n");
 	if (moduledir) {
 		while ((file = readdir(moduledir)) != NULL) {
 			if (file->d_name[0] != '.') {
 				printf("\tLoading %s...", file->d_name);
-				size_t len = file->d_namlen;
+				size_t len = strlen(file->d_name);
 				strcpy(modules[modcount].name, file->d_name); // could malloc it, but whatever.
-				char* modpath = malloc((sizeof(modpath) + len) * sizeof(char));
+				char* modpath = malloc((sizeof(moddir) + len) * sizeof(char));
+				strcpy(modpath, moddir);
+				strncpy(modpath+sizeof(moddir) - 1, file->d_name, len);
 
 				// Load the module.
 				dlerror();
@@ -80,8 +82,8 @@ int main(int argc, char* argv[]) {
 				modules[modcount].lib = handle;
 
 				modules[modcount].init = dlookup(handle, modpath, "plugin_init");
-				modules[modcount].init = dlookup(handle, modpath, "plugin_draw");
-				modules[modcount].init = dlookup(handle, modpath, "plugin_deinit");
+				modules[modcount].draw = dlookup(handle, modpath, "plugin_draw");
+				modules[modcount].deinit = dlookup(handle, modpath, "plugin_deinit");
 
 				free(modpath);
 				printf(" Done.");
