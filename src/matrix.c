@@ -2,6 +2,7 @@
 // Also contains the buffers.
 
 #include <types.h>
+#include <string.h>
 
 #ifdef MATRIX_ORDER_PLAIN
 #define PIXEL_POS(x, y) (x + y*MATRIX_X)
@@ -19,8 +20,14 @@
 #define BUFFER_SIZE ROW_SIZE * MATRIX_Y
 
 #ifdef PLATFORM_DEBUG
+#include <SDL2/SDL.h>
+
 // SDL-based stuff, we need to create a buffer.
-byte BUFFER[BUFFER_SIZE];
+static byte BUFFER[BUFFER_SIZE];
+
+SDL_Window *window;
+SDL_Renderer *renderer;
+SDL_Texture *texture;
 
 #elif defined(PLATFORM_RPI)
 // TODO: include the many headers, init the struct it wants.
@@ -28,7 +35,14 @@ byte BUFFER[BUFFER_SIZE];
 
 int matrix_init() {
 	#ifdef PLATFORM_DEBUG
-	// TODO: Init SDL here.
+	if (SDL_Init(SDL_INIT_VIDEO))
+		return 2;
+
+	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, MATRIX_X, MATRIX_Y, 0);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
+
+	memset(BUFFER, 0, BUFFER_SIZE);
 	#elif defined(PLATFORM_RPI)
 	// TODO: init the ws281X library here
 	#endif
@@ -37,7 +51,7 @@ int matrix_init() {
 
 int matrix_set(byte x, byte y, RGB *color) {
 	#ifdef PLATFORM_DEBUG
-	memcpy(&BUFFER[PIXEL_POS(x, y) * 3], &color, sizeof RGB);
+	memcpy(&BUFFER[PIXEL_POS(x, y) * 3], &color, sizeof(RGB));
 	#elif PLATFORM_RPI
 	// TODO: write into the DMA framebuffer from the library, similar to the above.
 	#endif
@@ -46,7 +60,10 @@ int matrix_set(byte x, byte y, RGB *color) {
 
 int matrix_render() {
 	#ifdef PLATFORM_DEBUG
-	// TODO: Redraw SDL.
+	SDL_UpdateTexture(texture, NULL, BUFFER, ROW_SIZE);
+	SDL_RenderClear(renderer);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderPresent(renderer);
 	#elif defined(PLATFORM_RPI)
 	// TODO: call ws2811_render()
 	#endif
@@ -55,7 +72,10 @@ int matrix_render() {
 
 int matrix_deinit() {
 	#ifdef PLATFORM_DEBUG
-	// TODO: Destroy SDL window, cleanup.
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
+	SDL_Quit();
 	#elif defined(PLATFORM_RPI)
 	// TODO: call ws2811_fini()
 	#endif
