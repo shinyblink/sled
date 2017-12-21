@@ -8,6 +8,7 @@ typedef unsigned char byte;
 
 // Macros
 #define ARRAY_SIZE(stuff) (sizeof(stuff) / sizeof(stuff[0]))
+#define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
 // Platform, since the below depends on it.
 
@@ -54,6 +55,12 @@ typedef struct RGB {
 
 #ifndef MATRIX_Y
 #error Define MATRIX_Y as the matrixes Y size.
+#endif
+
+// Module and timer stuff.
+
+#ifndef MAX_MODULES
+#define MAX_MODULES 32
 #endif
 
 #endif

@@ -2,7 +2,7 @@
 
 #include <types.h>
 
-int matrix_init();
-int matrix_set(byte x, byte y, RGB *color);
-int matrix_render();
-int matrix_deinit();
+extern int matrix_init();
+extern int matrix_set(byte x, byte y, RGB *color);
+extern int matrix_render();
+extern int matrix_deinit();

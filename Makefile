@@ -1,8 +1,9 @@
 # Makefile for sled.
 PROJECT = sled
+MODULES = test
 
 CC ?= cc
-CFLAGS := -std=gnu99 -O2 -Wall $(CFLAGS)
+CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
 CPPFLAGS += -Isrc
 LIBS =
 
@@ -20,7 +21,7 @@ DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -
 
 OBJECTS = src/matrix.o
 
-all: DEBUG
+all: DEBUG $(MODULES)
 
 # Target specific rules
 
@@ -35,10 +36,15 @@ RPI: $(PROJECT)
 
 # Common rules
 $(PROJECT): $(OBJECTS) src/main.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LIBS) -o $@	$^
+	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) $(LIBS) -o $@	$^
 
-%.o: %.c
+src/%.o: src/%.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	$^	-o $@
 
+# Module rules.
+$(MODULES): src/modules
+	$(MAKE) -C src/modules $@.so DEFINES="$(DEFINES)" CC="$(CC)" CFLAGS="$(CFLAGS)"
+	cp src/modules/$@.so modules
+
 clean:
-	rm -f src/main.o $(OBJECTS)
+	rm -f src/main.o $(OBJECTS) modules/* src/modules/*.o
