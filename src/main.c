@@ -121,6 +121,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	printf(" Done.\n");
+
 	// TODO: Run all timers, if none is available, load random page or something.
 
 	return deinit();

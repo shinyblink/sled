@@ -1,5 +1,8 @@
 sled
 *.o
+*.so
 *.swp
 *.un~
 *~
+/modules
+
