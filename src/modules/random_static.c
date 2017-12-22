@@ -1,17 +1,17 @@
-// Small test module.
+// Small module that randomly sets a static color.
 
 #include <types.h>
 #include <plugin.h>
 #include <matrix.h>
 #include <stdio.h>
+#include <random.h>
 
-int plugin_init() {																	
-	printf("Hello from test plugin!\n");
+int plugin_init() {
 	return 0;
 }
 
 int plugin_draw() {
-	RGB color = { .red = 255, .green = 0, .blue = 0};
+	RGB color = { .red = randn(255), .green = randn(255), .blue = randn(255) };
 
 	int x;
 	int y;
@@ -24,6 +24,5 @@ int plugin_draw() {
 }
 
 int plugin_deinit() {
-	printf("Goodbye, oh testy world.\n");
 	return 0;
 }

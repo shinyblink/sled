@@ -3,6 +3,7 @@
 #include <types.h>
 #include <matrix.h>
 #include <timers.h>
+#include <random.h>
 
 #include <stdio.h>
 #include <dirent.h>
@@ -35,7 +36,7 @@ void* dlookup(void* handle, char* modname, char* name) {
 }
 
 int deinit() {
-	printf("Cleaning up...");
+	printf("Cleaning up...\n");
 	int i;
 	int ret;
 	printf("Deinitializing %i modules...", modcount);
@@ -49,7 +50,7 @@ int deinit() {
 	}
 	printf(" Done.\n");
 	matrix_deinit();
-	printf("Goodbye.\n");
+	printf("Goodbye. :(\n");
 	return 0;
 }
 
@@ -69,6 +70,10 @@ int main(int argc, char* argv[]) {
 		return ret;
 	}
 
+	// Initialize pseudo RNG.
+	random_seed();
+
+	// Load modules
 	char moddir[] = "./modules/";
 	DIR *moduledir;
 	struct dirent *file;
@@ -130,7 +135,7 @@ int main(int argc, char* argv[]) {
 		timer tnext = timer_get();
 		if (tnext.moduleno == -1) {
 			// Queue random.
-			timer_add(utime() + RANDOM_TIME * T_SECOND, rand() % modcount);
+			timer_add(utime() + RANDOM_TIME * T_SECOND, randn(modcount));
 		} else {
 			wait_until(tnext.time);
 			struct module mod = modules[tnext.moduleno];

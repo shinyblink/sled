@@ -27,7 +27,7 @@ Common:
 Platform specific:
 
 * `DEBUG`
- - SDL.
+ - SDL2.
 
 * `RPI`
  - https://github.com/jgarff/rpi_ws281x

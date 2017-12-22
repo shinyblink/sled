@@ -5,6 +5,7 @@
 
 // Types
 typedef unsigned char byte;
+typedef unsigned int uint;
 typedef unsigned long ulong;
 
 #define T_SECOND 1000000ull

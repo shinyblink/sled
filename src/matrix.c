@@ -55,6 +55,11 @@ int matrix_init() {
 }
 
 int matrix_set(byte x, byte y, RGB *color) {
+	if (x > MATRIX_X)
+		return 1;
+	if (y > MATRIX_Y)
+		return 2;
+
 	#ifdef PLATFORM_DEBUG
 	int pos = PIXEL_POS(x, y) * 3;
 	//memcpy(&BUFFER[pos], &color, sizeof(RGB)); // why doesn't this work?
