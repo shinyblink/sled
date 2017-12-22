@@ -7,6 +7,7 @@ CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
 CPPFLAGS += -Isrc
 LIBS =
 
+OS := $(shell call uname -o)
 ifeq ($(OS),Linux)
 	LIBS += -ldl
 endif
