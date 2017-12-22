@@ -6,6 +6,10 @@
 // it must schedule a timer to allocate draw times.
 // Otherwise, it'll just be drawn rather randomly.
 // Keep the module number, it's needed to schedule a timer.
+//
+// Returning 0 indicates success, 1 indicates the module should be ignored.
+// Anything else indicates initialization failure, and this sled will exit.
+// If you just want to load under certain conditions, this is helpful.
 int plugin_init(int moduleno);
 
 // Draw function, gets called as scheduled.
@@ -18,6 +22,11 @@ int plugin_init(int moduleno);
 // which frame is currently being displayed. Simple, but works.
 // Other things can interrupt your redraw times, which is rather
 // important  because a priority notification might happen.
+//
+// Anything other than 0 is considered a failure, but handled differently.
+// Returning 1 is a "soft" failure, sled will just draw another random module instead.
+//  Return this incase you don't wanna draw right now.
+// Returning anything else is a "hard" failure, which sled will act upon and abort.
 int plugin_draw();
 
 // Deinit the plugin.

@@ -8,7 +8,8 @@ typedef unsigned char byte;
 typedef unsigned int uint;
 typedef unsigned long ulong;
 
-#define T_SECOND 1000000ull
+#define T_MILLISECOND 1000ull
+#define T_SECOND      1000000ull
 
 // Macros
 #define ARRAY_SIZE(stuff) (sizeof(stuff) / sizeof(stuff[0]))

@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 	if (moduledir) {
 		while ((file = readdir(moduledir)) != NULL) {
 			if (file->d_name[0] != '.') {
-				printf("\tLoading %s...", file->d_name);
+				printf("\t- %s...", file->d_name);
 				size_t len = strlen(file->d_name);
 				strcpy(modules[modcount].name, file->d_name); // could malloc it, but whatever.
 				char* modpath = malloc((sizeof(moddir) + len) * sizeof(char));
@@ -103,8 +103,20 @@ int main(int argc, char* argv[]) {
 				modules[modcount].deinit = dlookup(handle, modpath, "plugin_deinit");
 
 				free(modpath);
-				printf(" Done.\n");
-				modcount++;
+
+				ret = modules[modcount].init(modcount);
+				if (ret > 0) {
+					if (ret != 1) {
+						printf("\n");
+						eprintf("Initializing module %s failed: Returned %i.", file->d_name, ret);
+					} else {
+						printf(" Ignored by request of plugin.\n");
+					}
+					dlclose(handle);
+				} else {
+					printf(" Done.\n");
+					modcount++;
+				}
 			}
 		}
 		closedir(moduledir);
@@ -123,18 +135,6 @@ int main(int argc, char* argv[]) {
 	// Set up the interrupt handler.
 	signal(SIGINT, interrupt);
 
-	int i;
-	printf("Initializing %i modules...", modcount);
-	for (i = 0; i < modcount; i++) {
-		ret = modules[i].init(i);
-		if (ret != 0) {
-			printf("\n");
-			eprintf("Initializing module %s failed: Returned %i.", modules[i].name, ret);
-			exit(6);
-		}
-	}
-	printf(" Done.\n");
-
 	// TODO: Run all timers, if none is available, load random page or something.
 	int running = 1;
 	while (running) {
@@ -146,7 +146,17 @@ int main(int argc, char* argv[]) {
 			wait_until(tnext.time);
 			struct module mod = modules[tnext.moduleno];
 			printf(">> Now drawing %s\n", mod.name);
-			mod.draw();
+			ret = mod.draw();
+			if (ret != 0) {
+				if (ret == 1) {
+					printf("Module did not want to draw. Is it okay? Repicking.\n");
+					timer_add(utime() + T_MILLISECOND, randn(modcount));
+				} else {
+					 eprintf("Module %s failed to draw: Returned %i", mod.name, ret);
+					 deinit();
+					 exit(7);
+				}
+			}
 		}
 	}
 
