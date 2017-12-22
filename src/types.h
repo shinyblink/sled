@@ -17,11 +17,11 @@ typedef unsigned long ulong;
 
 // Platform, since the below depends on it.
 
-#if !defined(PLATFORM_RPI) && !defined(PLATFORM_DEBUG)
+#if !defined(PLATFORM_RPI) && !defined(PLATFORM_SDL2)
 #error Must define platform: Define one of PLATFORM_{RPI,DEBUG}
 #endif
 
-#ifdef PLATFORM_DEBUG
+#ifdef PLATFORM_SDL2
 // SDL-based platform.
 #define COLOR_ORDER_RGB
 #define MATRIX_ORDER_PLAIN

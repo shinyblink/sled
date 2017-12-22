@@ -13,7 +13,7 @@ ifeq ($(OS),Linux)
 endif
 
 # Defaults
-PLATFORM ?= DEBUG
+PLATFORM ?= SDL2
 MATRIX_X ?= 16
 MATRIX_Y ?= 16
 MATRIX_ORDER ?= SNAKE
@@ -26,7 +26,7 @@ all: DEBUG $(MODULES)
 
 # Target specific rules
 
-DEBUG: PLATFORM = DEBUG
+DEBUG: PLATFORM = SDL2
 DEBUG: LIBS += -lSDL2
 DEBUG: CFLAGS += -Og -ggdb
 DEBUG: $(PROJECT)

@@ -19,7 +19,7 @@
 #define ROW_SIZE MATRIX_X * 3 // 3 for R, G and B.
 #define BUFFER_SIZE ROW_SIZE * MATRIX_Y
 
-#ifdef PLATFORM_DEBUG
+#ifdef PLATFORM_SDL2
 #include <SDL2/SDL.h>
 
 // SDL-based stuff, we need to create a buffer.
@@ -38,7 +38,7 @@ SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 #endif
 
 int matrix_init() {
-	#ifdef PLATFORM_DEBUG
+	#ifdef PLATFORM_SDL2
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
 
@@ -60,7 +60,7 @@ int matrix_set(byte x, byte y, RGB *color) {
 	if (y > MATRIX_Y)
 		return 2;
 
-	#ifdef PLATFORM_DEBUG
+	#ifdef PLATFORM_SDL2
 	int pos = PIXEL_POS(x, y) * 3;
 	//memcpy(&BUFFER[pos], &color, sizeof(RGB)); // why doesn't this work?
 	BUFFER[pos  ] = color->red;
@@ -73,7 +73,7 @@ int matrix_set(byte x, byte y, RGB *color) {
 }
 
 int matrix_render() {
-	#ifdef PLATFORM_DEBUG
+	#ifdef PLATFORM_SDL2
 	SDL_UpdateTexture(texture, NULL, BUFFER, ROW_SIZE);
 	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
@@ -85,7 +85,7 @@ int matrix_render() {
 }
 
 int matrix_deinit() {
-	#ifdef PLATFORM_DEBUG
+	#ifdef PLATFORM_SDL2
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
