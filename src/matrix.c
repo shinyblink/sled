@@ -45,7 +45,7 @@ int matrix_init() {
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, 0);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
 
 	memset(BUFFER, 0, BUFFER_SIZE);
 	#elif defined(PLATFORM_RPI)
@@ -56,7 +56,11 @@ int matrix_init() {
 
 int matrix_set(byte x, byte y, RGB *color) {
 	#ifdef PLATFORM_DEBUG
-	memcpy(&BUFFER[PIXEL_POS(x, y) * 3], &color, sizeof(RGB));
+	int pos = PIXEL_POS(x, y) * 3;
+	//memcpy(&BUFFER[pos], &color, sizeof(RGB)); // why doesn't this work?
+	BUFFER[pos  ] = color->red;
+	BUFFER[pos+1] = color->green;
+	BUFFER[pos+2] = color->blue;
 	#elif PLATFORM_RPI
 	// TODO: write into the DMA framebuffer from the library, similar to the above.
 	#endif
