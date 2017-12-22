@@ -25,6 +25,9 @@ typedef unsigned long ulong;
 #define MATRIX_ORDER_PLAIN
 #undef COLOR_ORDER_GRB
 #undef MATRIX_ORDER_SNAKE
+
+#define SDL_SCALE_FACTOR 8
+
 #endif
 
 // Colors

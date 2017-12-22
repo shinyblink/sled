@@ -25,9 +25,13 @@
 // SDL-based stuff, we need to create a buffer.
 static byte BUFFER[BUFFER_SIZE];
 
+#define WIN_W (MATRIX_X * SDL_SCALE_FACTOR)
+#define WIN_H (MATRIX_Y * SDL_SCALE_FACTOR)
+
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Texture *texture;
+SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 
 #elif defined(PLATFORM_RPI)
 // TODO: include the many headers, init the struct it wants.
@@ -38,7 +42,8 @@ int matrix_init() {
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
 
-	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, MATRIX_X, MATRIX_Y, 0);
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
+	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, 0);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB888, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
 
@@ -62,7 +67,7 @@ int matrix_render() {
 	#ifdef PLATFORM_DEBUG
 	SDL_UpdateTexture(texture, NULL, BUFFER, ROW_SIZE);
 	SDL_RenderClear(renderer);
-	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
 	#elif defined(PLATFORM_RPI)
 	// TODO: call ws2811_render()
