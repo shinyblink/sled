@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <random.h>
 
-int plugin_init() {
+int plugin_init(int moduleno) {
 	return 0;
 }
 
