@@ -2,6 +2,7 @@
 
 #include <types.h>
 #include <matrix.h>
+#include <timers.h>
 
 #include <stdio.h>
 #include <dirent.h>
@@ -14,7 +15,7 @@ struct module {
 	char name[255];
 	void* lib;
 
-	int (*init)();
+	int (*init)(int moduleno);
 	int (*draw)();
 	int (*deinit)();
 };
@@ -54,13 +55,14 @@ int deinit() {
 
 void interrupt(int t) {
 	deinit();
+	exit(1);
 }
 
 int main(int argc, char* argv[]) {
 	// TODO: parse args.
 
 	// Initialize Matrix.
-	int ret = 0; //matrix_init();
+	int ret = matrix_init();
 	if (ret != 0) {
 		// Fail.
 		printf("Matrix failed to initialize.\n");
@@ -113,7 +115,7 @@ int main(int argc, char* argv[]) {
 	int i;
 	printf("Initializing %i modules...", modcount);
 	for (i = 0; i < modcount; i++) {
-		ret = modules[i].init();
+		ret = modules[i].init(i);
 		if (ret != 0) {
 			printf("\n");
 			eprintf("Initializing module %s failed: Returned %i.", modules[i].name, ret);
@@ -123,6 +125,19 @@ int main(int argc, char* argv[]) {
 	printf(" Done.\n");
 
 	// TODO: Run all timers, if none is available, load random page or something.
+	int running = 1;
+	while (running) {
+		timer tnext = timer_get();
+		if (tnext.moduleno == -1) {
+			// Queue random.
+			timer_add(utime() + RANDOM_TIME * T_SECOND, rand() % modcount);
+		} else {
+			wait_until(tnext.time);
+			struct module mod = modules[tnext.moduleno];
+			printf(">> Now drawing %s\n", mod.name);
+			mod.draw();
+		}
+	}
 
 	return deinit();
 }

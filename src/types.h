@@ -5,6 +5,9 @@
 
 // Types
 typedef unsigned char byte;
+typedef unsigned long ulong;
+
+#define T_SECOND 1000000ull
 
 // Macros
 #define ARRAY_SIZE(stuff) (sizeof(stuff) / sizeof(stuff[0]))
@@ -61,6 +64,14 @@ typedef struct RGB {
 
 #ifndef MAX_MODULES
 #define MAX_MODULES 32
+#endif
+
+#ifndef MAX_TIMERS
+#define MAX_TIMERS 256
+#endif
+
+#ifndef RANDOM_TIME // time in seconds until the core queues a random module.
+#define RANDOM_TIME 5
 #endif
 
 #endif

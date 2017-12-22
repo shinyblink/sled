@@ -5,7 +5,8 @@
 // If the plugin wants to get drawn at specific times,
 // it must schedule a timer to allocate draw times.
 // Otherwise, it'll just be drawn rather randomly.
-int plugin_init();
+// Keep the module number, it's needed to schedule a timer.
+int plugin_init(int moduleno);
 
 // Draw function, gets called as scheduled.
 // If the image should be retained for a certain time

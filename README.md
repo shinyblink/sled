@@ -8,6 +8,9 @@ Read the Satanic Bible by Anton Szandor LaVey.
 # Hardware
 
 Matrix consisting of ws2812b pixels.
+Can handle a maximum 256x256 matrix in either plain or snake tiling.
+Plain means every row starts with the left pixel, while snake means it changes starting position every tile.
+Both start upper left, as that is (0, 0) for this code. 
 
 Connected to the ports of the specific board you're using.
 
