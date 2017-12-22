@@ -112,6 +112,12 @@ int main(int argc, char* argv[]) {
 		printf("Error opening modules directory. Nothing to load, nothing to try.\n");
 		return 3;
 	}
+
+	if (modcount == 0) {
+		eprintf("No modules found? Nothing to do, giving up on life and rendering things on matrices.\n");
+		deinit();
+		return 3;
+	}
 	printf("Loaded %i modules.\n", modcount);
 
 	// Set up the interrupt handler.
