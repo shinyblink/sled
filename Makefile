@@ -45,7 +45,8 @@ src/%.o: src/%.c
 # Module rules.
 $(MODULES): src/modules
 	$(MAKE) -C src/modules $@.so DEFINES="$(DEFINES)" CC="$(CC)" CFLAGS="$(CFLAGS)"
-	cp src/modules/$@.so modules
+	mkdir -p modules
+	cp src/modules/$@.so modules/
 
 clean:
 	rm -f src/main.o $(OBJECTS) modules/* src/modules/*.o
