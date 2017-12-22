@@ -59,6 +59,13 @@ void interrupt(int t) {
 	exit(1);
 }
 
+int pick_other(int mymodno, ulong in) {
+	int mod = 0;
+	if (modcount != 1)
+		while ((mod = randn(modcount)) == mymodno);
+	return timer_add(in, mod);
+}
+
 int main(int argc, char* argv[]) {
 	// TODO: parse args.
 
@@ -87,7 +94,7 @@ int main(int argc, char* argv[]) {
 				strcpy(modules[modcount].name, file->d_name); // could malloc it, but whatever.
 				char* modpath = malloc((sizeof(moddir) + len) * sizeof(char));
 				strcpy(modpath, moddir);
-				strncpy(modpath+sizeof(moddir) - 1, file->d_name, len);
+				strcpy(modpath + sizeof(moddir) - 1, file->d_name);
 
 				// Load the module.
 				dlerror();
@@ -135,13 +142,15 @@ int main(int argc, char* argv[]) {
 	// Set up the interrupt handler.
 	signal(SIGINT, interrupt);
 
-	// TODO: Run all timers, if none is available, load random page or something.
+	// Startup.
+	timer_add(utime(), randn(modcount));
+
 	int running = 1;
 	while (running) {
 		timer tnext = timer_get();
 		if (tnext.moduleno == -1) {
 			// Queue random.
-			timer_add(utime() + RANDOM_TIME * T_SECOND, randn(modcount));
+			pick_other(tnext.moduleno, utime() + RANDOM_TIME * T_SECOND);
 		} else {
 			wait_until(tnext.time);
 			struct module mod = modules[tnext.moduleno];
@@ -150,11 +159,11 @@ int main(int argc, char* argv[]) {
 			if (ret != 0) {
 				if (ret == 1) {
 					printf("Module did not want to draw. Is it okay? Repicking.\n");
-					timer_add(utime() + T_MILLISECOND, randn(modcount));
+					pick_other(tnext.moduleno, utime() + T_MILLISECOND);
 				} else {
 					 eprintf("Module %s failed to draw: Returned %i", mod.name, ret);
 					 deinit();
-					 exit(7);
+					 return 7;
 				}
 			}
 		}
