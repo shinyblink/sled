@@ -1,5 +1,5 @@
 # Makefile for sled modules.
-MODULES = test.so
+MODULES = random_static.so
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument
@@ -11,7 +11,7 @@ endif
 
 DEFINES := -DISMODULE $(DEFINES)
 
-all: $(MPATHS)
+all: $(MODULES)
 
 # Common rules
 %.so: %.o
