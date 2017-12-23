@@ -86,7 +86,7 @@ int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) 
 	int y;
 	#ifdef PLATFORM_SDL2
 	for (y=start_y; y <= end_y; y++)
-		for (x=start_x; x <= end_y; x++)
+		for (x=start_x; x <= end_x; x++)
 			memcpy(&BUFFER[PIXEL_POS(x, y) * 3], color, sizeof(RGB));
 	#else
 	for (y=start_y; y <= end_y; y++)
