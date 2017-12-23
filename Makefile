@@ -49,4 +49,4 @@ $(MODULES): src/modules
 	cp src/modules/$@.so modules/
 
 clean:
-	rm -f src/main.o $(OBJECTS) modules/* src/modules/*.o
+	rm -f src/main.o $(OBJECTS) modules/* src/modules/*.o src/modules/*.so
