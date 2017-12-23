@@ -62,13 +62,50 @@ int matrix_set(byte x, byte y, RGB *color) {
 
 	#ifdef PLATFORM_SDL2
 	int pos = PIXEL_POS(x, y) * 3;
-	//memcpy(&BUFFER[pos], &color, sizeof(RGB)); // why doesn't this work?
-	BUFFER[pos  ] = color->red;
-	BUFFER[pos+1] = color->green;
-	BUFFER[pos+2] = color->blue;
+	memcpy(&BUFFER[pos], color, sizeof(RGB));
 	#elif PLATFORM_RPI
 	// TODO: write into the DMA framebuffer from the library, similar to the above.
 	#endif
+	return 0;
+}
+
+// Fills part of the matrix with jo-- a single color.
+int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) {
+	if (end_x > MATRIX_X)
+		return 1;
+	if (end_y > MATRIX_Y)
+		return 2;
+
+	int ret = 0;
+	int x;
+	int y;
+	#ifdef PLATFORM_SDL2
+	for (y=start_y; y <= end_y; y++)
+		for (x=start_x; x <= end_y; x++)
+			memcpy(&BUFFER[PIXEL_POS(x, y) * 3], color, sizeof(RGB));
+	#else
+	for (y=start_y; y <= end_y; y++)
+		for (x=start_x; x <= end_x; x++) {
+			ret = matrix_set(x, y, color);
+			if (ret != 0)
+				return ret;
+		}
+	#endif
+	return ret;
+}
+
+// Zeroes the stuff.
+int matrix_clear(void) {
+	#ifdef PLATFORM_SDL2
+	memset(&BUFFER, 0, BUFFER_SIZE);
+	//#elif PLATFORM_RPI
+	// TODO: Clear the pixels, turning them off/to black, fast as possible.
+	#else
+	int x;
+	int y;
+	RGB color = { .red = 0, .green = 0, .blue = 0 };
+	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, &color);
+#endif
 	return 0;
 }
 

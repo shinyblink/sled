@@ -26,8 +26,11 @@ Common:
 
 Platform specific:
 
+* `SDL2`
+ - ... SDL2.
+
 * `DEBUG`
- - SDL2.
+ - Alias to SDL2 + some debugging-friendly compiler options.
 
 * `RPI`
  - https://github.com/jgarff/rpi_ws281x

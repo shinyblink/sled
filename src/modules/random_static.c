@@ -13,11 +13,7 @@ int plugin_init(int moduleno) {
 int plugin_draw(int argc, char* argv[]) {
 	RGB color = { .red = randn(255), .green = randn(255), .blue = randn(255) };
 
-	int x;
-	int y;
-	for (y = 0; y < MATRIX_Y; y++) 
-		for (x = 0; x < MATRIX_X; x++)
-			matrix_set(x, y, &color);
+	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, &color);
 
 	matrix_render();
 	return 0;

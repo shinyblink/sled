@@ -1,4 +1,5 @@
 // "She sat down on the balcony of her tower, watching the stars sparkle."
+// Contributed by 20kdc. First non-test/stupid module!!
 
 #include <types.h>
 #include <plugin.h>
