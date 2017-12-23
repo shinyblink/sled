@@ -83,6 +83,8 @@ int main(int argc, char* argv[]) {
 			lastmod = tnext.moduleno;
 			if (ret != 0) {
 				if (ret == 1) {
+					if (lastmod != tnext.moduleno) // not an animation.
+						printf("\nModule chose to pass its turn to draw.");
 					pick_other(lastmod, utime() + T_MILLISECOND);
 				} else {
 					 eprintf("Module %s failed to draw: Returned %i", mod->name, ret);

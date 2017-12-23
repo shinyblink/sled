@@ -33,7 +33,7 @@ int plugin_init(int moduleno) {
 	return 0;
 }
 
-int plugin_draw() {
+int plugin_draw(int argc, char* argv[]) {
 	if (twinkle_framecount == 0)
 		twinkle_nexttick = utime();
 
