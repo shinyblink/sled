@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
-int deinit() {
+int deinit(void) {
 	printf("Cleaning up...\n");
 	int ret;
 	if ((ret = modules_deinit()) != 0)
@@ -31,7 +31,7 @@ int pick_other(int mymodno, ulong in) {
 	int mod = 0;
 	if (modcount != 1)
 		while ((mod = randn(modcount)) == mymodno);
-	return timer_add(in, mod);
+	return timer_add(in, mod, 0, NULL);
 }
 
 int main(int argc, char* argv[]) {
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 	signal(SIGINT, interrupt);
 
 	// Startup.
-	timer_add(utime(), randn(modcount));
+	timer_add(utime(), randn(modcount), 0, NULL);
 
 	int running = 1;
 	while (running) {

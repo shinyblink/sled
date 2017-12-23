@@ -37,7 +37,7 @@ SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 // TODO: include the many headers, init the struct it wants.
 #endif
 
-int matrix_init() {
+int matrix_init(void) {
 	#ifdef PLATFORM_SDL2
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
@@ -72,7 +72,7 @@ int matrix_set(byte x, byte y, RGB *color) {
 	return 0;
 }
 
-int matrix_render() {
+int matrix_render(void) {
 	#ifdef PLATFORM_SDL2
 	SDL_UpdateTexture(texture, NULL, BUFFER, ROW_SIZE);
 	SDL_RenderClear(renderer);
@@ -84,7 +84,7 @@ int matrix_render() {
 	return 0;
 }
 
-int matrix_deinit() {
+int matrix_deinit(void) {
 	#ifdef PLATFORM_SDL2
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);

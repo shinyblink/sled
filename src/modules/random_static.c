@@ -10,7 +10,7 @@ int plugin_init(int moduleno) {
 	return 0;
 }
 
-int plugin_draw() {
+int plugin_draw(int argc, char* argv[]) {
 	RGB color = { .red = randn(255), .green = randn(255), .blue = randn(255) };
 
 	int x;
@@ -23,6 +23,6 @@ int plugin_draw() {
 	return 0;
 }
 
-int plugin_deinit() {
+int plugin_deinit(void) {
 	return 0;
 }

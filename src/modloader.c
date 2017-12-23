@@ -13,7 +13,7 @@ typedef struct module {
 	void* lib;
 
 	int (*init)(int moduleno);
-	int (*draw)();
+	int (*draw)(int argc, char* argv[]);
 	int (*deinit)();
 } module;
 
@@ -31,7 +31,7 @@ void* dlookup(void* handle, char* modname, char* name) {
 	return ptr;
 }
 
-int modules_deinit() {
+int modules_deinit(void) {
 	int i;
 	int ret;
 	printf("Deinitializing %i modules...", modcount);

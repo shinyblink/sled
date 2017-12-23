@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <timers.h>
 
-void random_seed() {
+void random_seed(void) {
 	// Dumbass way of seeding the pseudo RNG.
 	srand(utime());
 }

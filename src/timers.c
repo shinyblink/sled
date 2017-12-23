@@ -12,6 +12,9 @@
 typedef struct timer {
 	int moduleno;
 	ulong time; // time in microseconds.
+
+	int argc;
+	char* *argv;
 } timer;
 
 static struct timer TIMERS[MAX_TIMERS];
@@ -19,7 +22,7 @@ static int timer_count = 0;
 
 static pthread_mutex_t tlock;
 
-ulong utime() {
+ulong utime(void) {
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL) == -1) {
 		printf("Failed to get the time???\n");
@@ -37,8 +40,8 @@ ulong wait_until(ulong desired_usec) {
 	return desired_usec;
 }
 
-int timer_add(ulong usec,int moduleno) {
-	struct timer t = { .moduleno = moduleno, .time = usec };
+int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
+	struct timer t = { .moduleno = moduleno, .time = usec, .argc = argc, .argv = argv };
 
 	pthread_mutex_lock(&tlock);
 	TIMERS[timer_count] = t;
@@ -48,7 +51,7 @@ int timer_add(ulong usec,int moduleno) {
 }
 
 // Select the soonest timer, return it and clean up the spot it left.
-timer timer_get() {
+timer timer_get(void) {
 	timer t = { .moduleno = -1, .time = 0};
 	if (timer_count == 0)
 		return t;
