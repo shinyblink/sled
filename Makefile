@@ -20,7 +20,7 @@ MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
 
-OBJECTS = src/matrix.o src/timers.o src/random.o
+OBJECTS = src/modloader.o src/matrix.o src/timers.o src/random.o
 
 all: DEBUG $(MODULES)
 
