@@ -1,6 +1,6 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES = random_static random_rects twinkle
+MODULES = random_static random_rects twinkle text
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
@@ -14,8 +14,8 @@ endif
 
 # Defaults
 PLATFORM ?= SDL2
-MATRIX_X ?= 16
-MATRIX_Y ?= 16
+MATRIX_X ?= 32
+MATRIX_Y ?= 7
 MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
