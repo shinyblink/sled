@@ -63,20 +63,27 @@ int main(int argc, char* argv[]) {
 	timer_add(utime(), randn(modcount), 0, NULL);
 
 	int running = 1;
+	int lastmod = -1;
 	while (running) {
 		timer tnext = timer_get();
 		if (tnext.moduleno == -1) {
 			// Queue random.
-			pick_other(tnext.moduleno, utime() + RANDOM_TIME * T_SECOND);
+			pick_other(lastmod, utime() + RANDOM_TIME * T_SECOND);
 		} else {
 			wait_until(tnext.time);
 			module* mod = modules_get(tnext.moduleno);
-			printf(">> Now drawing %s\n", mod->name);
+			if (tnext.moduleno != lastmod) {
+				printf("\n>> Now drawing %s", mod->name);
+				fflush(stdout);
+			} else {
+				printf(".");
+				fflush(stdout);
+			};
 			ret = mod->draw();
+			lastmod = tnext.moduleno;
 			if (ret != 0) {
 				if (ret == 1) {
-					printf("Module did not want to draw. Is it okay? Repicking.\n");
-					pick_other(tnext.moduleno, utime() + T_MILLISECOND);
+					pick_other(lastmod, utime() + T_MILLISECOND);
 				} else {
 					 eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
 					 deinit();

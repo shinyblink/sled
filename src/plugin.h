@@ -26,6 +26,7 @@ int plugin_init(int moduleno);
 // Anything other than 0 is considered a failure, but handled differently.
 // Returning 1 is a "soft" failure, sled will just draw another random module instead.
 //  Return this incase you don't wanna draw right now.
+//  Also return this at the end of an animation, because it will instantly* repick.
 // Returning anything else is a "hard" failure, which sled will act upon and abort.
 //
 // Sometimes, plugins get called with arguments. It is up to the plugin to interpret them.
