@@ -76,6 +76,11 @@ int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) 
 	if (end_y > MATRIX_Y)
 		return 2;
 
+	if (start_x > end_x)
+		return 3;
+	if (start_y > end_y)
+		return 4;
+
 	int ret = 0;
 	int x;
 	int y;
