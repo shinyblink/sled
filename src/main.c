@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 				printf(".");
 				fflush(stdout);
 			};
-			ret = mod->draw();
+			ret = mod->draw(tnext.argc, tnext.argv);
 			lastmod = tnext.moduleno;
 			if (ret != 0) {
 				if (ret == 1) {
