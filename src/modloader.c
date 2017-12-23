@@ -112,3 +112,7 @@ module* modules_get(int moduleno) {
 		return NULL;
 	return &modules[moduleno];
 }
+
+int modules_count(void) {
+	return modcount;
+}

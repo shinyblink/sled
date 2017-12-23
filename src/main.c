@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <signal.h>
 
+int modcount;
+
 int deinit(void) {
 	printf("Cleaning up...\n");
 	int ret;
@@ -51,6 +53,8 @@ int main(int argc, char* argv[]) {
 	// Load modules
 	if (modules_loaddir("./modules/") != 0)
 		deinit();
+
+	modcount = modules_count();
 
 	// Set up the interrupt handler.
 	signal(SIGINT, interrupt);

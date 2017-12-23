@@ -52,7 +52,7 @@ int plugin_draw() {
 
 	matrix_render();
 	twinkle_nexttick += 100000;
-	timer_add(twinkle_nexttick, twinkle_moduleno);
+	timer_add(twinkle_nexttick, twinkle_moduleno, 0, NULL);
 	return 0;
 }
 
