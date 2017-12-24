@@ -139,7 +139,7 @@ int matrix_clear(void) {
 	#ifdef PLATFORM_SDL2
 	memset(&BUFFER, 0, BUFFER_SIZE);
 	#elif PLATFORM_RPI
-	memset(&leds.channel[0].leds, 0, MATRIX_PIXELS);
+	memset(&leds.channel[0].leds, 0, MATRIX_PIXELS * sizeof(uint32_t));
 	#else
 	int x;
 	int y;
