@@ -138,8 +138,8 @@ int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) 
 int matrix_clear(void) {
 	#ifdef PLATFORM_SDL2
 	memset(&BUFFER, 0, BUFFER_SIZE);
-	#elif PLATFORM_RPI
-	memset(&leds.channel[0].leds, 0, MATRIX_PIXELS * sizeof(uint32_t));
+	//#elif PLATFORM_RPI
+	//memset(&leds.channel[0].leds, 0, MATRIX_PIXELS * sizeof(uint32_t));
 	#else
 	int x;
 	int y;
