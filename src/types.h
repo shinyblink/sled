@@ -32,6 +32,12 @@ typedef unsigned long ulong;
 
 #endif
 
+#ifdef PLATFORM_RPI
+// RPI ws2812b strip on pin 40/gpio 21.
+#define RPI_DMA 10
+#define RPI_PIN 21
+#endif
+
 // Colors
 #if !defined(COLOR_ORDER_RGB) && !defined(COLOR_ORDER_GRB)
 #define COLOR_ORDER_GRB // for now, neopixel/ws2812b style

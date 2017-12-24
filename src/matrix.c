@@ -18,6 +18,7 @@
 
 #define ROW_SIZE MATRIX_X * 3 // 3 for R, G and B.
 #define BUFFER_SIZE ROW_SIZE * MATRIX_Y
+#define MATRIX_PIXELS (MATRIX_X * MATRIX_Y)
 
 #ifdef PLATFORM_SDL2
 #include <SDL2/SDL.h>
@@ -35,6 +36,35 @@ SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 
 #elif defined(PLATFORM_RPI)
 // TODO: include the many headers, init the struct it wants.
+
+#include <stdint.h>
+#include <stdio.h>
+
+#include <clk.h>
+#include <gpio.h>
+#include <dma.h>
+#include <pwm.h>
+#include <ws2811.h>
+
+ws2811_t leds = {
+	.freq = WS2811_TARGET_FREQ,
+	.dmanum = RPI_DMA,
+	.channel = {
+		[0] = {
+			.gpionum = RPI_PIN,
+			.count = MATRIX_PIXELS,
+			.invert = 0,
+			.brightness = 255,
+			.strip_type = WS2811_STRIP_GBR,
+		},
+		[1] = {
+			.gpionum = 0,
+			.count = 0,
+			.invert = 0,
+			.brightness = 0
+		}
+	}
+};
 #endif
 
 int matrix_init(void) {
@@ -49,7 +79,11 @@ int matrix_init(void) {
 
 	memset(BUFFER, 0, BUFFER_SIZE);
 	#elif defined(PLATFORM_RPI)
-	// TODO: init the ws281X library here
+	ws2811_return_t ret;
+	if ((ret = ws2811_init(&leds)) != WS2811_SUCCESS) {
+		eprintf("matrix: ws2811_init failed: %s\n", ws2811_get_return_t_str(ret));
+		return 2;
+	}
 	#endif
 	return 0;
 }
@@ -64,7 +98,8 @@ int matrix_set(byte x, byte y, RGB *color) {
 	int pos = PIXEL_POS(x, y) * 3;
 	memcpy(&BUFFER[pos], color, sizeof(RGB));
 	#elif PLATFORM_RPI
-	// TODO: write into the DMA framebuffer from the library, similar to the above.
+	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;
+	leds.channel[0].leds[PIXEL_POS(x, y)] = led;
 	#endif
 	return 0;
 }
@@ -103,8 +138,8 @@ int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) 
 int matrix_clear(void) {
 	#ifdef PLATFORM_SDL2
 	memset(&BUFFER, 0, BUFFER_SIZE);
-	//#elif PLATFORM_RPI
-	// TODO: Clear the pixels, turning them off/to black, fast as possible.
+	#elif PLATFORM_RPI
+	memset(&leds.channel[0].leds, 0, MATRIX_PIXELS);
 	#else
 	int x;
 	int y;
@@ -121,7 +156,10 @@ int matrix_render(void) {
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
 	#elif defined(PLATFORM_RPI)
-	// TODO: call ws2811_render()
+	ws2811_return_t ret;
+	if ((ret = ws2811_render(&leds)) != WS2811_SUCCESS) {
+		eprintf("matrix: ws2811_render failed: %s\n", ws2811_get_return_t_str(ret));
+	}
 	#endif
 	return 0;
 }
@@ -133,7 +171,7 @@ int matrix_deinit(void) {
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	#elif defined(PLATFORM_RPI)
-	// TODO: call ws2811_fini()
+	ws2811_fini(&leds);
 	#endif
 	return 0;
 }
