@@ -59,7 +59,7 @@ static int pick_other(int mymodno, ulong in) {
 }
 
 void main_force_random(int mnum, int argc, char ** argv) {
-	while (1) {
+	while (!timers_quitting) {
 		pthread_mutex_lock(&rmod_lock);
 		if (main_rmod_override == -1) {
 			main_rmod_override = mnum;
@@ -69,8 +69,10 @@ void main_force_random(int mnum, int argc, char ** argv) {
 			return;
 		}
 		pthread_mutex_unlock(&rmod_lock);
-		usleep(1000);
+		usleep(5000);
 	}
+	// Used to prevent deadlock.
+	timer_free_argv(argc, argv);
 }
 
 int main(int argc, char* argv[]) {
@@ -142,9 +144,10 @@ int main(int argc, char* argv[]) {
 						printf("\nModule chose to pass its turn to draw.");
 					pick_other(lastmod, utime() + T_MILLISECOND);
 				} else {
-					 eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
-					 deinit();
-					 return 7;
+					eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
+					timers_quitting = 1;
+					deinit();
+					return 7;
 				}
 			}
 		}
