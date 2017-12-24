@@ -59,7 +59,7 @@ int modules_loaddir(char* moddir) {
 				printf("\t- %s...", file->d_name);
 				size_t len = strlen(file->d_name);
 				strcpy(modules[modcount].name, file->d_name); // could malloc it, but whatever.
-				char* modpath = malloc((strlen(moddir) + len) * sizeof(char));
+				char* modpath = malloc((strlen(moddir) + len + 1) * sizeof(char));
 				strcpy(modpath, moddir);
 				strcpy(modpath + strlen(moddir), file->d_name);
 

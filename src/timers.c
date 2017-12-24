@@ -20,6 +20,8 @@ typedef struct timer {
 static struct timer TIMERS[MAX_TIMERS];
 static int timer_count = 0;
 
+int timers_quitting = 0;
+
 static pthread_mutex_t tlock;
 
 ulong utime(void) {
@@ -31,7 +33,8 @@ ulong utime(void) {
 	return T_SECOND * tv.tv_sec + tv.tv_usec;
 }
 
-ulong wait_until(ulong desired_usec) {
+// The critical wait_until code
+inline ulong wait_until_core(ulong desired_usec) {
 	ulong tnow = utime();
 	if (tnow >= desired_usec)
 		return tnow;
@@ -39,6 +42,36 @@ ulong wait_until(ulong desired_usec) {
 	usleep(sleeptime);
 	return desired_usec;
 }
+
+#ifndef PLATFORM_SDL2
+
+ulong wait_until(ulong desired_usec) {
+	return wait_until_core(desired_usec);
+}
+
+#else
+
+#include <SDL2/SDL.h>
+
+ulong wait_until(ulong desired_usec) {
+	SDL_Event ev;
+	while (1) {
+		ulong tnow = utime();
+		if (tnow >= desired_usec)
+			return tnow;
+		useconds_t sleeptimems = (desired_usec - tnow) / 1000;
+		if (SDL_WaitEventTimeout(&ev, sleeptimems)) {
+			if (ev.type == SDL_QUIT) {
+				timers_quitting = 1;
+				return utime();
+			}
+		} else {
+			return wait_until_core(desired_usec);
+		}
+	}
+}
+
+#endif
 
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
 	struct timer t = { .moduleno = moduleno, .time = usec, .argc = argc, .argv = argv };

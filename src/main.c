@@ -26,8 +26,7 @@ int deinit(void) {
 
 static int running = 1;
 void interrupt(int t) {
-	printf("Interrupted, finishing..");
-	running = 0;
+	timers_quitting = 1;
 }
 
 int pick_other(int mymodno, ulong in) {
@@ -57,14 +56,17 @@ int main(int argc, char* argv[]) {
 
 	modcount = modules_count();
 
-	// Set up the interrupt handler.
+	#ifndef PLATFORM_SDL2
+	// Set up the interrupt handler. Note that SDL2 has it's own interrupt handler, so it takes precedence.
+	// In both cases, the active sleep is interrupted by some method and timers_quitting is set to 1.
 	signal(SIGINT, interrupt);
+	#endif
 
 	// Startup.
 	timer_add(utime(), randn(modcount), 0, NULL);
 
 	int lastmod = -1;
-	while (running) {
+	while (!timers_quitting) {
 		timer tnext = timer_get();
 		if (tnext.moduleno == -1) {
 			// Queue random.
