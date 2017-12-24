@@ -41,12 +41,16 @@ int plugin_draw(int argc, char* argv[]) {
 	int x;
 	int y;
 	int i = 0;
+	int endnow = twinkle_framecount >= TWINKLE_FRAMES;
 	for (y = 0; y < MATRIX_Y; y++)
 		for (x = 0; x < MATRIX_X; x++) {
 			if (!twinkle_levels[i]) {
-				if (randn(512) == 0)
-					twinkle_levels[i] = 1;
+				// This "curtain" effect is intentional.
+				if (!endnow)
+					if (randn(512) == 0)
+						twinkle_levels[i] = 1;
 			} else {
+				endnow = 0;
 				twinkle_levels[i]++;
 				twinkle_levels[i] %= TWINKLE_LEVELS;
 			}
@@ -57,7 +61,7 @@ int plugin_draw(int argc, char* argv[]) {
 		}
 
 	matrix_render();
-	if (twinkle_framecount >= TWINKLE_FRAMES) {
+	if (endnow) {
 		twinkle_framecount = 0;
 		return 1;
 	}

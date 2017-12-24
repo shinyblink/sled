@@ -7,12 +7,12 @@
 #include <random.h>
 
 #define TEXT_DEFAULT "AVE SATANAS!"
-#define TEXT_FRAMETIME 200000
+#define TEXT_DEFFRAMETIME 200000
 // note that this rounds up in case of, say, 7
 #define TEXT_MINH (((MATRIX_Y + 1) / 2) - 4)
 // "gap" of zeroes after text
 #define TEXT_GAP MATRIX_X
-ulong text_nexttick;
+ulong text_nexttick, text_frametime;
 int text_position, text_queuedrender_len, text_moduleno;
 // Boolean-map. This gets scrolled left, new text gets written on right.
 int text_buffer[MATRIX_X * MATRIX_Y];
@@ -110,6 +110,8 @@ int plugin_draw(int argc, char* argv[]) {
 			if (text_render(TEXT_DEFAULT))
 				return 1;
 		text_nexttick = utime();
+		// Presumably this would be calculated based on an optional parameter or defaulting to TEXT_DEFFRAMETIME.
+		text_frametime = TEXT_DEFFRAMETIME;
 		for (i = 0; i < (MATRIX_X * MATRIX_Y); i++)
 			text_buffer[i] = 0;
 		// Add "center text & quit early" here
@@ -138,7 +140,7 @@ int plugin_draw(int argc, char* argv[]) {
 	}
 	matrix_render();
 	text_position++;
-	text_nexttick += TEXT_FRAMETIME;
+	text_nexttick += text_frametime;
 	timer_add(text_nexttick, text_moduleno, 0, NULL);
 	return 0;
 }
