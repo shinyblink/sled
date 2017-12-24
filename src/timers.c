@@ -36,7 +36,7 @@ ulong utime(void) {
 }
 
 // The critical wait_until code
-inline ulong wait_until_core(ulong desired_usec) {
+ulong wait_until_core(ulong desired_usec) {
 	ulong tnow = utime();
 	if (tnow >= desired_usec)
 		return tnow;

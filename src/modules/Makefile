@@ -5,6 +5,7 @@ CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument
 CPPFLAGS += -I..
 
+OS := $(shell uname)
 ifeq ($(OS),Linux)
 	LIBS += -ldl
 endif
@@ -22,3 +23,6 @@ all: $(MODULES)
 
 # Include files go here
 %.c: font.h ../main.h ../matrix.h ../modloader.h ../plugin.h ../random.h ../timers.h ../types.h
+
+# Module specific stuffs
+fish.so: LDFLAGS += -pthread
