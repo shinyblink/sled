@@ -9,41 +9,93 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
+#include <pthread.h>
 
-int modcount;
+static int modcount;
 
-int deinit(void) {
+static pthread_mutex_t rmod_lock;
+// Usually -1.
+static int main_rmod_override = -1;
+static int main_rmod_override_argc;
+static char ** main_rmod_override_argv;
+
+static int deinit(void) {
 	printf("Cleaning up...\n");
 	int ret;
 	if ((ret = modules_deinit()) != 0)
 		return ret;
 	if ((ret = matrix_deinit()) != 0)
 		return ret;
+	if ((ret = timers_deinit()) != 0)
+		return ret;
+	pthread_mutex_destroy(&rmod_lock);
+	if (main_rmod_override != -1)
+		timer_free_argv(main_rmod_override_argc, main_rmod_override_argv);
 	printf("Goodbye. :(\n");
 	return 0;
 }
 
-
-static int running = 1;
-void interrupt(int t) {
+#ifndef PLATFORM_SDL2
+static void interrupt(int t) {
 	timers_quitting = 1;
 }
+#endif
 
-int pick_other(int mymodno, ulong in) {
+
+static int pick_other(int mymodno, ulong in) {
+	pthread_mutex_lock(&rmod_lock);
+	if (main_rmod_override != -1) {
+		int res = timer_add(in, main_rmod_override, main_rmod_override_argc, main_rmod_override_argv);
+		main_rmod_override = -1;
+		pthread_mutex_unlock(&rmod_lock);
+		return res;
+	}
+	pthread_mutex_unlock(&rmod_lock);
 	int mod = 0;
 	if (modcount != 1)
 		while ((mod = randn(modcount)) == mymodno);
 	return timer_add(in, mod, 0, NULL);
 }
 
+void main_force_random(int mnum, int argc, char ** argv) {
+	while (1) {
+		pthread_mutex_lock(&rmod_lock);
+		if (main_rmod_override == -1) {
+			main_rmod_override = mnum;
+			main_rmod_override_argc = argc;
+			main_rmod_override_argv = argv;
+			pthread_mutex_unlock(&rmod_lock);
+			return;
+		}
+		pthread_mutex_unlock(&rmod_lock);
+		usleep(1000);
+	}
+}
+
 int main(int argc, char* argv[]) {
 	// TODO: parse args.
 
+	int ret;
+	ret = pthread_mutex_init(&rmod_lock, NULL);
+	if (ret) {
+		printf("rmod mutex failed to initialize.\n");
+		return ret;
+	}
+	// Initialize Timers.
+	ret = timers_init();
+	if (ret) {
+		printf("Timers failed to initialize.\n");
+		pthread_mutex_destroy(&rmod_lock);
+		return ret;
+	}
 	// Initialize Matrix.
-	int ret = matrix_init();
-	if (ret != 0) {
+	ret = matrix_init();
+	if (ret) {
 		// Fail.
 		printf("Matrix failed to initialize.\n");
+		timers_deinit();
+		pthread_mutex_destroy(&rmod_lock);
 		return ret;
 	}
 
@@ -82,6 +134,7 @@ int main(int argc, char* argv[]) {
 				fflush(stdout);
 			};
 			ret = mod->draw(tnext.argc, tnext.argv);
+			timer_free_argv(tnext.argc, tnext.argv);
 			lastmod = tnext.moduleno;
 			if (ret != 0) {
 				if (ret == 1) {

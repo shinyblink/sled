@@ -31,6 +31,7 @@ int plugin_init(int moduleno);
 //
 // Sometimes, plugins get called with arguments. It is up to the plugin to interpret them.
 // A generic automated call will not contain any arguments (argc = 0).
+// argv's substrings and argv itself are freed after the call.
 int plugin_draw(int argc, char* argv[]);
 
 // Deinit the plugin.
