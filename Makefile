@@ -14,13 +14,18 @@ endif
 
 # Defaults
 PLATFORM ?= SDL2
-MATRIX_X ?= 32
-MATRIX_Y ?= 7
+MATRIX_X ?= 16
+MATRIX_Y ?= 8
 MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
 
 OBJECTS = src/modloader.o src/matrix.o src/timers.o src/random.o
+
+# Target specific settings
+
+# RPI
+RPI_WS281X_PATH ?= ../rpi_ws281x
 
 all: DEBUG $(MODULES)
 
@@ -32,7 +37,8 @@ DEBUG: CFLAGS += -Og -ggdb
 DEBUG: $(PROJECT)
 
 RPI: PLATFORM = RPI
-RPI: LIBS += -lws281x
+RPI: LIBS += $(RPI_WS281X_PATH)/libws2811.a
+RPI: CFLAGS += -I$(RPI_WS281X_PATH)
 RPI: $(PROJECT)
 
 # Common rules
