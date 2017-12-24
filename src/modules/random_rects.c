@@ -19,6 +19,10 @@ static int frame;
 static ulong nexttick;
 
 int plugin_init(int moduleno) {
+	if (MATRIX_X < (STEPS * 2))
+		return 1;
+	if (MATRIX_Y < (STEPS * 2))
+		return 1; 
 	modno = moduleno;
 	return 0;
 }

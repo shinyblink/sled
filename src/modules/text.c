@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <random.h>
 
-#define TEXT_FRAMETIME 100000
+#define TEXT_DEFAULT "AVE SATANAS!"
+#define TEXT_FRAMETIME 200000
 // note that this rounds up in case of, say, 7
 #define TEXT_MINH (((MATRIX_Y + 1) / 2) - 4)
 // "gap" of zeroes after text
@@ -106,7 +107,7 @@ int plugin_draw(int argc, char* argv[]) {
 	int i;
 	if (text_position == 0) {
 		if (argc == 0)
-			if (text_render("anyway, I'll be ready to push text.so, but I ought to get some sample text first"))
+			if (text_render(TEXT_DEFAULT))
 				return 1;
 		text_nexttick = utime();
 		for (i = 0; i < (MATRIX_X * MATRIX_Y); i++)
