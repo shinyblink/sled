@@ -24,9 +24,10 @@ int deinit(void) {
 }
 
 
+static int running = 1;
 void interrupt(int t) {
-	deinit();
-	exit(1);
+	printf("Interrupted, finishing..");
+	running = 0;
 }
 
 int pick_other(int mymodno, ulong in) {
@@ -62,7 +63,6 @@ int main(int argc, char* argv[]) {
 	// Startup.
 	timer_add(utime(), randn(modcount), 0, NULL);
 
-	int running = 1;
 	int lastmod = -1;
 	while (running) {
 		timer tnext = timer_get();
