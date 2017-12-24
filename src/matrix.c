@@ -141,8 +141,6 @@ int matrix_clear(void) {
 	//#elif PLATFORM_RPI
 	//memset(&leds.channel[0].leds, 0, MATRIX_PIXELS * sizeof(uint32_t));
 	#else
-	int x;
-	int y;
 	RGB color = { .red = 0, .green = 0, .blue = 0 };
 	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, &color);
 #endif
