@@ -8,7 +8,7 @@
 #include <random.h>
 #include <string.h>
 
-#define FRAMETIME (T_SECOND / 4) // 2fps, sounds goodish.
+#define FRAMETIME (T_SECOND / 4) // 4fps, sounds goodish.
 #define FRAMES (RANDOM_TIME * 4)
 
 #define ALIVE 1
@@ -40,13 +40,13 @@ void gol_shuffle_board(void) {
 	int y;
 	for (x=0; x < MATRIX_X; ++x)
 		for (y=0; y < MATRIX_Y; ++y)
-			board[POS(x, y)] = ((randn(4) == 0) ? ALIVE : DEAD);
+			board[POS(x, y)] = ((randn(8) == 0) ? ALIVE : DEAD);
 }
 
 int gol_adj(int x, int y) {
 	int r;
 	int c;
-	int count = 0;
+	int count = -board[POS(x, y)]; // if it's alive, substract one from the count.
 
 	for (r = -1; r <= 1; ++r)
 		for (c = -1; c <= 1; ++c) {
