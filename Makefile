@@ -1,6 +1,6 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES = random_static random_rects twinkle text fish
+MODULES = random_static random_rects twinkle text fish gol
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
@@ -53,4 +53,4 @@ $(MODULES): src/modules
 	cp src/modules/$@.so modules/
 
 clean:
-	rm -f src/main.o $(OBJECTS) modules/* src/modules/*.o src/modules/*.so
+	rm -f $(PROJECT) src/main.o $(OBJECTS) modules/* src/modules/*.o src/modules/*.so
