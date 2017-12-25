@@ -13,6 +13,8 @@
 #include "main.h"
 #include "modloader.h"
 
+#define FISH_SLEEPTIME (T_SECOND / 10)
+
 int fish_fifo;
 pthread_t fish_thread;
 int fish_getch_buffer, fish_shutdown, fish_moduleno;
@@ -115,9 +117,11 @@ char fish_getch() {
 		return fish_getch_bufferval;
 	}
 	char ch = 0;
-	while (read(fish_fifo, &ch, 1) < 1)
+	while (read(fish_fifo, &ch, 1) < 1) {
 		if (fish_shutdown)
 			return 0;
+		usleep(FISH_SLEEPTIME);
+	};
 	return ch;
 }
 void fish_ungetch(char c) {
@@ -250,9 +254,9 @@ void fish_execute(char * module, int argc, char ** argv) {
 void * fish_thread_func(void * arg) {
 	fish_getch_buffer = 0;
 	// If this doesn't work out, it'll eat more CPU than preferable (but nothing more)
-	int fl = fcntl(fish_fifo, F_GETFL);
-	if (fl >= 0)
-		fcntl(fish_fifo, F_SETFL, fl & (~O_NONBLOCK));
+	//int fl = fcntl(fish_fifo, F_GETFL);
+	//if (fl >= 0)
+	//	fcntl(fish_fifo, F_SETFL, fl & (~O_NONBLOCK));
 	while (!fish_shutdown) {
 		fish_skipws();
 		int hitnl = 0;
@@ -316,8 +320,8 @@ int plugin_draw(int argc, char ** argv) {
 
 int plugin_deinit() {
 	fish_shutdown = 1;
+	pthread_join(fish_thread, NULL);
 	close(fish_fifo);
 	unlink("sled.fish");
-	pthread_join(fish_thread, NULL);
 	return 0;
 }
