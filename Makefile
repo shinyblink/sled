@@ -5,7 +5,7 @@ MODULES = random_static random_rects twinkle gol rainbow math_sinpi text fish
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
 CPPFLAGS += -Isrc
-LIBS =
+LIBS = -lm
 
 OS := $(shell uname)
 ifeq ($(OS),Linux)
