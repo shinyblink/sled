@@ -7,11 +7,8 @@
 #include <random.h>
 #include <stddef.h>
 
-#define FRAMETIME (T_SECOND / 30)
 #define FRAMES 255
 #define FRAMETIME ((RANDOM_TIME * T_SECOND) / 255)
-#define STEP_X (MATRIX_X / STEPS / 2)
-#define STEP_Y (MATRIX_Y / STEPS / 2)
 
 static int modno;
 static int pos;
