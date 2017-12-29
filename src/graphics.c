@@ -11,8 +11,8 @@ int graphics_drawline(byte x1, byte y1, byte x2, byte y2, RGB *color)
 {
 	int ret,i,dx,dy,sdx,sdy,dxabs,dyabs,x,y,px,py;
 
-	dx =x2 - x1;ttt/* the horizontal distance of the line */
-	dy =y2 - y1;ttt/* the vertical distance of the line */
+	dx =x2 - x1;	/* the horizontal distance of the line */
+	dy =y2 - y1;	/* the vertical distance of the line */
 	dxabs = abs(dx);
 	dyabs = abs(dy);
 	sdx = sign(dx);
