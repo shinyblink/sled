@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <random.h>
 
-#define TEXT_DEFAULT "AVE SATANAS!"
+#define TEXT_DEFAULT "h@ck me hard github.com/vifino/sled thanks"
 #define TEXT_DEFFRAMETIME 200000
 // note that this rounds up in case of, say, 7
 #define TEXT_MINH (((MATRIX_Y + 1) / 2) - 4)

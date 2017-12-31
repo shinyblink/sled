@@ -4,16 +4,6 @@
 #include <types.h>
 #include <string.h>
 
-#ifdef MATRIX_ORDER_PLAIN
-#define PIXEL_POS(x, y) (x + y*MATRIX_X)
-#elif defined(MATRIX_ORDER_SNAKE)
-// Order is like this
-// 0 1 2
-// 5 4 3
-// 6 7 8
-#define PIXEL_POS(x, y) (((y % 2) == 0 ? x : (MATRIX_X - 1) - x) + MATRIX_X*y)
-#endif
-
 // Calculation for amount of bytes needed.
 
 #define ROW_SIZE MATRIX_X * 3 // 3 for R, G and B.
@@ -88,6 +78,18 @@ int matrix_init(void) {
 	return 0;
 }
 
+byte matrix_ppos(byte x, byte y) {
+#ifdef MATRIX_ORDER_PLAIN
+	return (x + (y * MATRIX_X));
+#elif defined(MATRIX_ORDER_SNAKE)
+	// Order is like this
+	// 0 1 2
+	// 5 4 3
+	// 6 7 8
+	return (((y % 2) == 0 ? x : (MATRIX_X - 1) - x) + MATRIX_X*y);
+#endif
+}
+
 int matrix_set(byte x, byte y, RGB *color) {
 	if (x > MATRIX_X)
 		return 1;
@@ -95,11 +97,11 @@ int matrix_set(byte x, byte y, RGB *color) {
 		return 2;
 
 	#ifdef PLATFORM_SDL2
-	int pos = PIXEL_POS(x, y) * 3;
+	int pos = matrix_ppos(x, y) * 3;
 	memcpy(&BUFFER[pos], color, sizeof(RGB));
 	#elif PLATFORM_RPI
 	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;
-	leds.channel[0].leds[PIXEL_POS(x, y)] = led;
+	leds.channel[0].leds[matrix_ppos(x, y)] = led;
 	#endif
 	return 0;
 }
@@ -122,7 +124,7 @@ int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) 
 	#ifdef PLATFORM_SDL2
 	for (y=start_y; y <= end_y; y++)
 		for (x=start_x; x <= end_x; x++)
-			memcpy(&BUFFER[PIXEL_POS(x, y) * 3], color, sizeof(RGB));
+			memcpy(&BUFFER[matrix_ppos(x, y) * 3], color, sizeof(RGB));
 	#else
 	for (y=start_y; y <= end_y; y++)
 		for (x=start_x; x <= end_x; x++) {
