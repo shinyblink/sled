@@ -78,6 +78,14 @@ int matrix_init(void) {
 	return 0;
 }
 
+
+byte matrix_getx() {
+	return MATRIX_X; // for now.
+}
+byte matrix_gety() {
+	return MATRIX_Y; // for now.
+}
+
 byte matrix_ppos(byte x, byte y) {
 #ifdef MATRIX_ORDER_PLAIN
 	return (x + (y * MATRIX_X));

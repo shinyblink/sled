@@ -1,6 +1,6 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES = random_static random_rects twinkle gol rainbow math_sinpi text fish
+MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)

@@ -3,6 +3,7 @@
 #include <types.h>
 typedef struct module {
 	char name[255];
+	char type[4];
 	void *lib;
 
 	int (*init)(int moduleno);

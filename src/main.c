@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <string.h>
 
 static int modcount;
 
@@ -54,7 +55,15 @@ static int pick_other(int mymodno, ulong in) {
 	pthread_mutex_unlock(&rmod_lock);
 	int mod = 0;
 	if (modcount != 1)
-		while ((mod = randn(modcount)) == mymodno);
+		while (mod == 0) {
+			int random = randn(modcount);
+			mod = random;
+
+			// Checks after.
+			if (mod == mymodno) mod = 0;
+			if (strcmp(modules_get(mod)->type, "gfx") != 0) mod = 0;
+		}
+		//while ((mod = randn(modcount)) == mymodno);
 	return timer_add(in, mod, 0, NULL);
 }
 
@@ -117,7 +126,7 @@ int main(int argc, char* argv[]) {
 	#endif
 
 	// Startup.
-	timer_add(utime(), randn(modcount), 0, NULL);
+	pick_other(-1, utime());
 
 	int lastmod = -1;
 	while (!timers_quitting) {
