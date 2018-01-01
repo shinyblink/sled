@@ -9,7 +9,7 @@
 #include <stdlib.h>
 
 typedef struct module {
-	char name[255];
+	char name[256];
 	char type[4];
 	void* lib;
 
@@ -19,10 +19,12 @@ typedef struct module {
 	int (*out_set)(byte x, byte y, RGB *color);
 	int (*out_clear)(void);
 	int (*out_render)(void);
+	byte (*out_getx)(void);
+	byte (*out_gety)(void);
 } module;
 
 static struct module modules[MAX_MODULES];
-static int modcount;
+static int modcount = 0;
 
 void* dlookup(void* handle, char* modname, char* name) {
 	void* ptr = dlsym(handle, name);
@@ -51,16 +53,16 @@ int modules_deinit(void) {
 	return 0;
 }
 
-int modules_loaddir(char* moddir) {
+int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 	DIR *moduledir;
 	struct dirent *file;
 	moduledir = opendir(moddir); // for now.
 	printf("Loading modules...\n");
 	if (moduledir) {
-		int ret;
 		while ((file = readdir(moduledir)) != NULL) {
 			if (file->d_name[0] != '.') {
 				printf("\t- %s...", file->d_name);
+				fflush(stdin);
 				size_t len = strlen(file->d_name);
 				if (len < 6) {
 					printf("\n");
@@ -75,7 +77,7 @@ int modules_loaddir(char* moddir) {
 				modules[modcount].type[3] = 0;
 				strncpy(modules[modcount].name, &file->d_name[4], len - 7); // could malloc it, but whatever.
 
-				if (strcmp(modules[modcount].type, "out") == 0 && strcmp(modules[modcount].name, "dummy") != 0) {
+				if (strcmp(modules[modcount].type, "out") == 0 && strcmp(modules[modcount].name, outmod) != 0) {
 					printf(" Skipping unused output module.\n");
 					continue;
 				}
@@ -97,28 +99,30 @@ int modules_loaddir(char* moddir) {
 				modules[modcount].deinit = dlookup(handle, modpath, "deinit");
 
 				if (strcmp(modules[modcount].type, "out") == 0) {
+					*outmodno = modcount;
 					modules[modcount].out_set = dlookup(handle, modpath, "set");
 					modules[modcount].out_clear = dlookup(handle, modpath, "clear");
 					modules[modcount].out_render = dlookup(handle, modpath, "render");
+					modules[modcount].out_getx = dlookup(handle, modpath, "getx");
+					modules[modcount].out_gety = dlookup(handle, modpath, "gety");
 				} else {
 					modules[modcount].draw = dlookup(handle, modpath, "draw");
 				}
 
 				free(modpath);
 
-				ret = modules[modcount].init(modcount);
-				if (ret > 0) {
-					if (ret != 1) {
+				if (strcmp(modules[modcount].type, "out") == 0 && strcmp(modules[modcount].name, outmod) == 0) {
+					printf(" Initializing...");
+					int ret = modules[modcount].init(modcount);
+					if (ret) {
 						printf("\n");
-						eprintf("Initializing module %s failed: Returned %i.", file->d_name, ret);
-					} else {
-						printf(" Ignored by request of plugin.\n");
+						eprintf("Failed to initialize output plugin %s", modules[modcount].name);
+						return 3;
 					}
-					dlclose(handle);
-				} else {
-					printf(" Done.\n");
-					modcount++;
 				}
+
+				printf(" Done.\n");
+				modcount++;
 			}
 		}
 		closedir(moduledir);
@@ -131,7 +135,37 @@ int modules_loaddir(char* moddir) {
 		eprintf("No modules found? Nothing to do, giving up on life and rendering things on matrices.\n");
 		return 3;
 	}
+
+	if (*outmodno == -1) {
+		eprintf("Didn't load an output module. This isn't good.");
+		return 3;
+	}
+
 	printf("Loaded %i modules.\n", modcount);
+	return 0;
+}
+
+int modules_init(void) {
+	int mod;
+	int ret;
+	printf("Initializing modules...\n");
+	for (mod=0; mod < modcount; ++mod) {
+		if (strcmp(modules[mod].type, "out") != 0){
+			printf("\t- %s...", modules[mod].name);
+			ret = modules[mod].init(mod);
+			if (ret > 0) {
+				if (ret != 1) {
+					printf("\n");
+					eprintf("Initializing module %s failed: Returned %i.", modules[mod].name, ret);
+				} else {
+					printf(" Ignored by request of plugin.\n");
+				}
+				dlclose(modules[mod].lib);
+			}
+			printf(" Done.\n");
+		}
+	}
+	printf("\nDone.");
 	return 0;
 }
 
@@ -139,6 +173,14 @@ module* modules_get(int moduleno) {
 	if (moduleno > modcount)
 		return NULL;
 	return &modules[moduleno];
+}
+
+module* modules_find(char* name) {
+	int i;
+	for (i = 0; i < modcount; ++i)
+		if (strcmp(modules[i].name, name) == 0)
+			return &modules[i];
+	return NULL;
 }
 
 int modules_count(void) {

@@ -2,9 +2,9 @@
 
 #include <types.h>
 
-extern int matrix_init(void);
-extern byte matrix_getx();
-extern byte matrix_gety();
+extern int matrix_init(int outmodno);
+extern byte matrix_getx(void);
+extern byte matrix_gety(void);
 extern byte matrix_ppos(byte x, byte y);
 extern int matrix_set(byte x, byte y, RGB *color);
 extern int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color);

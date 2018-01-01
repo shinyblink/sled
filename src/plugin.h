@@ -50,6 +50,11 @@ int clear(void);
 // Render the updates, starts displaying the buffer.
 int render(void);
 
+// FOR "out" TYPE PLUGINS
+// Get dimensions and other stuff.
+int getx(void);
+int gety(void);
+
 // Deinit the plugin.
 // Free your shit, we need to go.
 // It's quite sad, but it's alright, though.

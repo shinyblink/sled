@@ -1,6 +1,6 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish
+MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish out_dummy
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
@@ -25,21 +25,16 @@ OBJECTS = src/modloader.o src/matrix.o src/timers.o src/random.o src/mathey.o sr
 all: DEBUG modules
 
 # Target specific rules
-
 SDL2: PLATFORM = SDL2
 SDL2: LIBS += -lSDL2
-SDL2: OUTMOD=sdl2
-SDL2: $(PROJECT) $(OUTMOD)
+SDL2: MODULES += out_sdl2
+SDL2: $(PROJECT) $(MODULES)
 
 DEBUG: CFLAGS += -Og -ggdb
 DEBUG: SDL2
 
-RPI_WS281X_PATH ?= ../rpi_ws281x
 RPI: PLATFORM = RPI
-RPI: EXTRA_OBJECTS += $(RPI_WS281X_PATH)/libws2811.a
-RPI: CFLAGS += -I$(RPI_WS281X_PATH)
-RPI: OUTMOD=rpi_ws2812b
-RPI: $(PROJECT) $(OUTMOD)
+RPI: $(PROJECT) $(MODULES)
 
 # Common rules
 $(PROJECT): $(OBJECTS) src/main.o

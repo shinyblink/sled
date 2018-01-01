@@ -7,7 +7,6 @@
 #include <random.h>
 
 int init(int moduleno) {
-	printf("Matrix size: %i*%i", matrix_getx(), matrix_gety());
 	return 0;
 }
 

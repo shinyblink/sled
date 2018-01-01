@@ -46,13 +46,11 @@ ulong wait_until_core(ulong desired_usec) {
 }
 
 #ifndef PLATFORM_SDL2
-
 ulong wait_until(ulong desired_usec) {
 	return wait_until_core(desired_usec);
 }
 
 #else
-
 #include <SDL2/SDL.h>
 
 ulong wait_until(ulong desired_usec) {
@@ -87,7 +85,6 @@ int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
 
 // Select the soonest timer, return it and clean up the spot it left.
 timer timer_get(void) {
-
 	pthread_mutex_lock(&tlock);
 
 	timer t = { .moduleno = -1, .time = 0};

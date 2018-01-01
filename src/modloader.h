@@ -2,7 +2,7 @@
 
 #include <types.h>
 typedef struct module {
-	char name[255];
+	char name[256];
 	char type[4];
 	void *lib;
 
@@ -12,11 +12,14 @@ typedef struct module {
 	int (*out_set)(byte x, byte y, RGB *color);
 	int (*out_clear)(void);
 	int (*out_render)(void);
+	byte (*out_getx)(void);
+	byte (*out_gety)(void);
 } module;
 
 void* dlookup(void* handle, char* modname, char* name);
 int modules_deinit(void);
-int modules_loaddir(char* moddir);
+int modules_loaddir(char* moddir, char outmod[256], int* outmodno);
+int modules_init(void);
 // After initial init is over, these should be readonly. Correct if incorrect, FISh assumes this. -20kdc
 module* modules_get(int moduleno);
 int modules_count(void);

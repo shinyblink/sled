@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <getopt.h>
 
 static int modcount;
 
@@ -19,7 +20,7 @@ static pthread_mutex_t rmod_lock;
 // Usually -1.
 static int main_rmod_override = -1;
 static int main_rmod_override_argc;
-static char ** main_rmod_override_argv;
+static char* *main_rmod_override_argv;
 
 static int deinit(void) {
 	printf("Cleaning up...\n");
@@ -83,8 +84,39 @@ void main_force_random(int mnum, int argc, char ** argv) {
 	timer_free_argv(argc, argv);
 }
 
+int usage(char* name) {
+	printf("Usage: %s [-o]\n", name);
+	printf("\t-o --output: Set output module. Defaults to dummy.\n");
+	return 1;
+};
+
+static struct option longopts[] = {
+	{ "output", required_argument, NULL, 'o' },
+	{ NULL,     0,                 NULL, 0},
+};
+
 int main(int argc, char* argv[]) {
-	// TODO: parse args.
+	int ch;
+#ifdef PLATFORM_SDL2
+	char outmod[256] = "sdl2";
+#elif defined(PLATFORM_RPI)
+	char outmod[256] = "rpi_ws2812b";
+#else
+	char outmod[256] = "dummy"; // dunno.
+#endif
+
+	while ((ch = getopt_long(argc, argv, "o:", longopts, NULL)) != -1) {
+		switch(ch) {
+		case 'o':
+			strncpy(outmod, optarg, 255);
+			break;
+		case '?':
+		default:
+			return usage(argv[0]);
+		}
+	}
+	argc -= optind;
+	argv += optind;
 
 	int ret;
 	ret = pthread_mutex_init(&rmod_lock, NULL);
@@ -99,22 +131,31 @@ int main(int argc, char* argv[]) {
 		pthread_mutex_destroy(&rmod_lock);
 		return ret;
 	}
-	// Initialize Matrix.
-	ret = matrix_init();
-	if (ret) {
-		// Fail.
-		printf("Matrix failed to initialize.\n");
-		timers_deinit();
-		pthread_mutex_destroy(&rmod_lock);
-		return ret;
-	}
 
 	// Initialize pseudo RNG.
 	random_seed();
 
 	// Load modules
-	if (modules_loaddir("./modules/") != 0)
+	int outmodno;
+	if (modules_loaddir("./modules/", outmod, &outmodno) != 0)
 		deinit();
+
+	// Initialize Matrix.
+	ret = matrix_init(outmodno);
+	if (ret) {
+		// Fail.
+		printf("Matrix: Output plugin failed to initialize.\n");
+		timers_deinit();
+		pthread_mutex_destroy(&rmod_lock);
+		return ret;
+	}
+
+	// Initialize modules.
+	ret = modules_init();
+	if (ret) {
+		printf("Modules: Init failed.\n");
+		return ret;
+	}
 
 	modcount = modules_count();
 

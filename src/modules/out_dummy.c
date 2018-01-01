@@ -7,6 +7,13 @@ int init(void) {
 	return 0;
 }
 
+byte getx(void) {
+	return MATRIX_X;
+}
+byte gety(void) {
+	return MATRIX_Y;
+}
+
 int set(byte x, byte y, RGB *color) {
 	// Setting pixels? Nah, we're good.
 	return 0;
