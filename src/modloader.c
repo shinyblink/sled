@@ -111,16 +111,6 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 
 				free(modpath);
 
-				if (strcmp(modules[modcount].type, "out") == 0 && strcmp(modules[modcount].name, outmod) == 0) {
-					printf(" Initializing...");
-					int ret = modules[modcount].init(modcount);
-					if (ret) {
-						printf("\n");
-						eprintf("Failed to initialize output plugin %s", modules[modcount].name);
-						return 3;
-					}
-				}
-
 				printf(" Done.\n");
 				modcount++;
 			}

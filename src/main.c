@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 	random_seed();
 
 	// Load modules
-	int outmodno;
+	int outmodno = -1;
 	if (modules_loaddir("./modules/", outmod, &outmodno) != 0)
 		deinit();
 

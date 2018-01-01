@@ -29,7 +29,7 @@ int init(int moduleno) {
 	// doesn't look very great with anything less.
 	if (matrix_getx() < 8)
 		return 1;
-	if (matrix_getx() < 8)
+	if (matrix_gety() < 8)
 		return 1;
 
 	board = malloc(matrix_getx() * matrix_gety() * sizeof(int));
@@ -59,7 +59,7 @@ int gol_adj(int x, int y) {
 			if (xp >= matrix_getx()) xp -= matrix_getx();
 			if (yp >= matrix_gety()) yp -= matrix_gety();
 			if (xp < 0) xp += matrix_getx();
-			if (yp < 0) xp += matrix_getx();
+			if (yp < 0) yp += matrix_gety();
 
 			if (board[POS(xp, yp)] == ALIVE)
 				++count;

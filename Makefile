@@ -1,6 +1,7 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish out_dummy
+MODULES_AVAILABLE = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish out_dummy out_sdl2 out_rpi_ws2812b
+MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
@@ -27,14 +28,13 @@ all: DEBUG modules
 # Target specific rules
 SDL2: PLATFORM = SDL2
 SDL2: LIBS += -lSDL2
-SDL2: MODULES += out_sdl2
-SDL2: $(PROJECT) $(MODULES)
+SDL2: $(PROJECT) out_sdl2
 
 DEBUG: CFLAGS += -Og -ggdb
 DEBUG: SDL2
 
 RPI: PLATFORM = RPI
-RPI: $(PROJECT) $(MODULES)
+RPI: $(PROJECT) out_rpi_ws2812b
 
 # Common rules
 $(PROJECT): $(OBJECTS) src/main.o
@@ -46,7 +46,7 @@ src/%.o: src/%.c
 # Module rules.
 modules: $(MODULES)
 
-$(MODULES): src/modules
+$(MODULES_AVAILABLE): src/modules
 	$(MAKE) -C src/modules $@.so DEFINES="$(DEFINES)" CC="$(CC)" CFLAGS="$(CFLAGS)"
 	mkdir -p modules
 	cp src/modules/$@.so modules/
