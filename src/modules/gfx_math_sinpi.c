@@ -9,7 +9,7 @@
 
 #define FRAMETIME (T_SECOND / 30)
 #define FRAMES (RANDOM_TIME * 30)
-#define HALF_Y (MATRIX_Y / 2)
+#define HALF_Y (matrix_gety() / 2)
 
 static int modno;
 static int pos;
@@ -20,7 +20,7 @@ byte lastx;
 byte lasty;
 
 int plugin_init(int moduleno) {
-	if (MATRIX_Y < 3)
+	if (matrix_getx() < 3)
 		return 1;
 	modno = moduleno;
 	return 0;
@@ -35,7 +35,7 @@ int plugin_draw(int argc, char* argv[]) {
 	matrix_clear();
 	int x;
 	int y;
-	for (x = 0; x < MATRIX_X; ++x) {
+	for (x = 0; x < matrix_getx(); ++x) {
 		y = HALF_Y + (HALF_Y * sin((x + pos - 1) / M_PI));
 		matrix_set(x, y, &white);
 		if (x != 0) graphics_drawline(lastx, lasty, x, y, &white);

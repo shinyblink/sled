@@ -304,7 +304,7 @@ int plugin_draw(int argc, char ** argv) {
 		if (!strcmp(argv[0], "/blank")) {
 			// Blank (...forever)
 			RGB col = {.red = 0, .green = 0, .blue = 0};
-			matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, &col);
+			matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, &col);
 			matrix_render();
 			char ** x = malloc(sizeof(char *));
 			*x = strdup("/blank");

@@ -1,6 +1,7 @@
 sled
 *.o
 *.so
+*.core
 *.swp
 *.un~
 *~

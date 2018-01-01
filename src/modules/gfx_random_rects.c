@@ -9,8 +9,8 @@
 #define STEPS 4 // fair to assume most matrices can be divided by 4.
 #define FRAMETIME (T_SECOND / STEPS)
 #define FRAMES (RANDOM_TIME * STEPS)
-#define STEP_X (MATRIX_X / STEPS / 2)
-#define STEP_Y (MATRIX_Y / STEPS / 2)
+#define STEP_X (matrix_getx() / STEPS / 2)
+#define STEP_Y (matrix_gety() / STEPS / 2)
 
 static int modno;
 static int step;
@@ -19,10 +19,11 @@ static int frame;
 static ulong nexttick;
 
 int plugin_init(int moduleno) {
-	if (MATRIX_X < (STEPS * 2))
+	if (matrix_getx() < (STEPS * 2))
 		return 1;
-	if (MATRIX_Y < (STEPS * 2))
-		return 1; 
+	if (matrix_gety() < (STEPS * 2))
+		return 1;
+
 	modno = moduleno;
 	return 0;
 }
@@ -42,8 +43,10 @@ int plugin_draw(int argc, char* argv[]) {
 	byte off_x = step * STEP_X;
 	byte off_y = step * STEP_Y;
 
-	matrix_fill(0 + off_x, 0 + off_y, MATRIX_X - 1 - off_x, MATRIX_Y - 1 - off_y, &color);
-	matrix_fill(1 + off_x, 1 + off_y, MATRIX_X - 2 - off_x, MATRIX_Y - 2 - off_y, &black);
+	int mx = matrix_getx();
+	int my = matrix_gety();
+	matrix_fill(0 + off_x, 0 + off_y, mx - 1 - off_x, my - 1 - off_y, &color);
+	matrix_fill(1 + off_x, 1 + off_y, mx - 2 - off_x, my - 2 - off_y, &black);
 
 	matrix_render();
 	if (frame >= FRAMES) {

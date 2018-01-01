@@ -3,6 +3,7 @@
 
 #include <types.h>
 #include <string.h>
+#include <assert.h>
 
 // Calculation for amount of bytes needed.
 
@@ -79,10 +80,10 @@ int matrix_init(void) {
 }
 
 
-byte matrix_getx() {
+byte matrix_getx(void) {
 	return MATRIX_X; // for now.
 }
-byte matrix_gety() {
+byte matrix_gety(void) {
 	return MATRIX_Y; // for now.
 }
 
@@ -99,10 +100,8 @@ byte matrix_ppos(byte x, byte y) {
 }
 
 int matrix_set(byte x, byte y, RGB *color) {
-	if (x > MATRIX_X)
-		return 1;
-	if (y > MATRIX_Y)
-		return 2;
+	assert(x < matrix_getx());
+	assert(y < matrix_gety());
 
 	#ifdef PLATFORM_SDL2
 	int pos = matrix_ppos(x, y) * 3;
@@ -116,15 +115,13 @@ int matrix_set(byte x, byte y, RGB *color) {
 
 // Fills part of the matrix with jo-- a single color.
 int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) {
-	if (end_x > MATRIX_X)
-		return 1;
-	if (end_y > MATRIX_Y)
-		return 2;
+	assert(end_x < MATRIX_X);
+	assert(end_y < MATRIX_Y);
 
 	if (start_x > end_x)
-		return 3;
+		return 1;
 	if (start_y > end_y)
-		return 4;
+		return 2;
 
 	int ret = 0;
 	int x;

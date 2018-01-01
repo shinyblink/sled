@@ -16,7 +16,7 @@ static int frame;
 static ulong nexttick;
 
 int plugin_init(int moduleno) {
-	if (MATRIX_Y < 3)
+	if (matrix_getx() < 3)
 		return 1;
 	modno = moduleno;
 	return 0;
@@ -24,9 +24,9 @@ int plugin_init(int moduleno) {
 
 int draw_row(int row, byte r, byte g, byte b) {
 	RGB color = { .red = r, .green = g, .blue = b };
-	//return matrix_fill(row, 0, row, MATRIX_Y - 1, &color);
+	//return matrix_fill(row, 0, row, matrix_getx() - 1, &color);
 	int y;
-	for (y=0; y < MATRIX_Y; ++y)
+	for (y=0; y < matrix_gety(); ++y)
 		matrix_set(row, y, &color);
 	return 0;
 }
@@ -53,7 +53,7 @@ int plugin_draw(int argc, char* argv[]) {
 
 	matrix_clear();
 	int x;
-	for (x = 0; x < MATRIX_X; ++x)
+	for (x = 0; x < matrix_getx(); ++x)
 		wheel(x, pos + x);
 	matrix_render();
 

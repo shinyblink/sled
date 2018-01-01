@@ -7,6 +7,8 @@
 #include <timers.h>
 #include <stdio.h>
 #include <random.h>
+#include <stdlib.h>
+#include <assert.h>
 
 #define TWINKLE_LEVELS 8
 #define TWINKLE_FRAMETIME 100 * T_MILLISECOND
@@ -21,14 +23,16 @@ const int twinkle_level_tab[TWINKLE_LEVELS] = {
 	128,
 	64
 };
-static int twinkle_levels[MATRIX_X * MATRIX_Y];
+static int *twinkle_levels;
 static int twinkle_moduleno;
 static ulong twinkle_nexttick;
 int twinkle_framecount;
 
 int plugin_init(int moduleno) {
 	int i;
-	for (i = 0; i < (MATRIX_X * MATRIX_Y); i++)
+	twinkle_levels = malloc(matrix_getx() * matrix_gety() * sizeof(int));
+	assert(twinkle_levels);
+	for (i = 0; i < (matrix_getx() * matrix_gety()); i++)
 		twinkle_levels[i] = 0;
 	twinkle_moduleno = moduleno;
 	return 0;
@@ -42,8 +46,8 @@ int plugin_draw(int argc, char* argv[]) {
 	int y;
 	int i = 0;
 	int endnow = twinkle_framecount >= TWINKLE_FRAMES;
-	for (y = 0; y < MATRIX_Y; y++)
-		for (x = 0; x < MATRIX_X; x++) {
+	for (y = 0; y < matrix_gety(); y++)
+		for (x = 0; x < matrix_getx(); x++) {
 			if (!twinkle_levels[i]) {
 				// This "curtain" effect is intentional.
 				if (!endnow)
@@ -72,5 +76,6 @@ int plugin_draw(int argc, char* argv[]) {
 }
 
 int plugin_deinit() {
+	free(twinkle_levels);
 	return 0;
 }
