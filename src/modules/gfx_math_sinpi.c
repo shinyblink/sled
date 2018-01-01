@@ -19,7 +19,7 @@ static ulong nexttick;
 byte lastx;
 byte lasty;
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	if (matrix_getx() < 3)
 		return 1;
 	modno = moduleno;
@@ -28,7 +28,7 @@ int plugin_init(int moduleno) {
 
 RGB white = { .red = 255, .green = 255, .blue = 255 };
 
-int plugin_draw(int argc, char* argv[]) {
+int draw(int argc, char* argv[]) {
 	if (frame == 0)
 		nexttick = utime();
 
@@ -56,6 +56,6 @@ int plugin_draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int plugin_deinit() {
+int deinit() {
 	return 0;
 }

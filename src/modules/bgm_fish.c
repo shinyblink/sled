@@ -282,7 +282,7 @@ void * fish_thread_func(void * arg) {
 	return NULL;
 }
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	fish_shutdown = 0;
 	fish_moduleno = moduleno;
 
@@ -298,7 +298,7 @@ int plugin_init(int moduleno) {
 	return 0;
 }
 
-int plugin_draw(int argc, char ** argv) {
+int draw(int argc, char ** argv) {
 	if (argc == 1) {
 		// Utilities that shouldn't be part of rotation:
 		if (!strcmp(argv[0], "/blank")) {
@@ -318,7 +318,7 @@ int plugin_draw(int argc, char ** argv) {
 	return 1;
 }
 
-int plugin_deinit() {
+int deinit() {
 	fish_shutdown = 1;
 	pthread_join(fish_thread, NULL);
 	close(fish_fifo);

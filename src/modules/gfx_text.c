@@ -21,7 +21,7 @@ byte * text_queuedrender;
 
 #include "font.h"
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	text_position = 0;
 	text_queuedrender_len = 0;
 	text_queuedrender = 0;
@@ -99,7 +99,7 @@ int text_render(char * txt) {
 	return 0;
 }
 
-int plugin_draw(int argc, char* argv[]) {
+int draw(int argc, char* argv[]) {
 	if (argc != 0) {
 		if (text_queuedrender)
 			free(text_queuedrender);
@@ -149,7 +149,7 @@ int plugin_draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int plugin_deinit() {
+int deinit() {
 	if (text_queuedrender)
 		free(text_queuedrender);
 	free(text_buffer);

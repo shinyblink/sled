@@ -18,7 +18,7 @@ static int dir = 1;
 static int frame;
 static ulong nexttick;
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	if (matrix_getx() < (STEPS * 2))
 		return 1;
 	if (matrix_gety() < (STEPS * 2))
@@ -28,7 +28,7 @@ int plugin_init(int moduleno) {
 	return 0;
 }
 
-int plugin_draw(int argc, char* argv[]) {
+int draw(int argc, char* argv[]) {
 	if (frame == 0)
 		nexttick = utime();
 
@@ -61,6 +61,6 @@ int plugin_draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int plugin_deinit() {
+int deinit() {
 	return 0;
 }

@@ -28,7 +28,7 @@ static int twinkle_moduleno;
 static ulong twinkle_nexttick;
 int twinkle_framecount;
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	int i;
 	twinkle_levels = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	assert(twinkle_levels);
@@ -38,7 +38,7 @@ int plugin_init(int moduleno) {
 	return 0;
 }
 
-int plugin_draw(int argc, char* argv[]) {
+int draw(int argc, char* argv[]) {
 	if (twinkle_framecount == 0)
 		twinkle_nexttick = utime();
 
@@ -75,7 +75,7 @@ int plugin_draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int plugin_deinit() {
+int deinit() {
 	free(twinkle_levels);
 	return 0;
 }

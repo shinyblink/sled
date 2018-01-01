@@ -1,5 +1,7 @@
 // Header defining what plugins should implement.
 
+#include <types.h>
+
 // Function that initializes the plugin.
 // Things like buffers, file loading, etc..
 // If the plugin wants to get drawn at specific times,
@@ -10,8 +12,9 @@
 // Returning 0 indicates success, 1 indicates the module should be ignored.
 // Anything else indicates initialization failure, and this sled will exit.
 // If you just want to load under certain conditions, this is helpful.
-int plugin_init(int moduleno);
+int init(int moduleno);
 
+// FOR "gfx" TYPE PLUGINS:
 // Draw function, gets called as scheduled.
 // If the image should be retained for a certain time
 // and not interrupted, sleep here.
@@ -32,11 +35,24 @@ int plugin_init(int moduleno);
 // Sometimes, plugins get called with arguments. It is up to the plugin to interpret them.
 // A generic automated call will not contain any arguments (argc = 0).
 // argv's substrings and argv itself are freed after the call.
-int plugin_draw(int argc, char* argv[]);
+int draw(int argc, char* argv[]);
+
+// FOR "out" TYPE PLUGINS:
+// Function that sets a pixel, buffered changes.
+// Only update the displayed info after calling render.
+int set(byte x, byte y, RGB *color);
+
+// FOR "out" TYPE PLUGINS:
+// Clears the buffer.
+int clear(void);
+
+// FOR "out" TYPE PLUGINS:
+// Render the updates, starts displaying the buffer.
+int render(void);
 
 // Deinit the plugin.
 // Free your shit, we need to go.
 // It's quite sad, but it's alright, though.
 // Our time has come, we'd rather stay,
 // but we need to run, core said "Begone!".
-int plugin_deinit(void);
+int deinit(void);

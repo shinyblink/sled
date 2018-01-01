@@ -26,16 +26,20 @@ all: DEBUG modules
 
 # Target specific rules
 
-DEBUG: PLATFORM = SDL2
-DEBUG: LIBS += -lSDL2
+SDL2: PLATFORM = SDL2
+SDL2: LIBS += -lSDL2
+SDL2: OUTMOD=sdl2
+SDL2: $(PROJECT) $(OUTMOD)
+
 DEBUG: CFLAGS += -Og -ggdb
-DEBUG: $(PROJECT)
+DEBUG: SDL2
 
 RPI_WS281X_PATH ?= ../rpi_ws281x
 RPI: PLATFORM = RPI
 RPI: EXTRA_OBJECTS += $(RPI_WS281X_PATH)/libws2811.a
 RPI: CFLAGS += -I$(RPI_WS281X_PATH)
-RPI: $(PROJECT)
+RPI: OUTMOD=rpi_ws2812b
+RPI: $(PROJECT) $(OUTMOD)
 
 # Common rules
 $(PROJECT): $(OBJECTS) src/main.o
@@ -51,6 +55,10 @@ $(MODULES): src/modules
 	$(MAKE) -C src/modules $@.so DEFINES="$(DEFINES)" CC="$(CC)" CFLAGS="$(CFLAGS)"
 	mkdir -p modules
 	cp src/modules/$@.so modules/
+
+$(OUTMOD): src/modules/out_$(OUTMOD).c
+	$(MAKE) -C src/modules out_$@.so DEFINES="$(DEFINES)" CC="$(CC)" CFLAGS="$(CFLAGS)"
+	mkdir -p modules
 
 clean:
 	rm -f $(PROJECT) src/main.o $(OBJECTS) modules/* src/modules/*.o src/modules/*.so

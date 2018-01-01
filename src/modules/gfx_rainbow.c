@@ -15,7 +15,7 @@ static int pos;
 static int frame;
 static ulong nexttick;
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	if (matrix_getx() < 3)
 		return 1;
 	modno = moduleno;
@@ -47,7 +47,7 @@ void wheel(byte x, byte wheelpos) {
   }
 }
 
-int plugin_draw(int argc, char* argv[]) {
+int draw(int argc, char* argv[]) {
 	if (frame == 0)
 		nexttick = utime();
 
@@ -69,6 +69,6 @@ int plugin_draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int plugin_deinit() {
+int deinit() {
 	return 0;
 }

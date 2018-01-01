@@ -6,12 +6,12 @@
 #include <stdio.h>
 #include <random.h>
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	printf("Matrix size: %i*%i", matrix_getx(), matrix_gety());
 	return 0;
 }
 
-int plugin_draw(int argc, char* argv[]) {
+int draw(int argc, char* argv[]) {
 	RGB color = { .red = randn(255), .green = randn(255), .blue = randn(255) };
 
 	matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, &color);
@@ -20,6 +20,6 @@ int plugin_draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int plugin_deinit(void) {
+int deinit(void) {
 	return 0;
 }

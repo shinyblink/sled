@@ -25,7 +25,7 @@ static int* board;
 
 RGB white = { .red = 255, .green = 255, .blue = 255 };
 
-int plugin_init(int moduleno) {
+int init(int moduleno) {
 	// doesn't look very great with anything less.
 	if (matrix_getx() < 8)
 		return 1;
@@ -98,7 +98,7 @@ void gol_cycle(void) {
 	free(new);
 }
 
-int plugin_draw(int argc, char* argv[]) {
+int draw(int argc, char* argv[]) {
 	if (frame == 0) {
 		nexttick = utime();
 		gol_shuffle_board();
@@ -124,7 +124,7 @@ int plugin_draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int plugin_deinit() {
+int deinit() {
 	free(board);
 	return 0;
 }

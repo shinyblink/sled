@@ -7,8 +7,11 @@ typedef struct module {
 	void *lib;
 
 	int (*init)(int moduleno);
-	int (*draw)();
-	int (*deinit)();
+	int (*deinit)(void);
+	int (*draw)(int argc, char* argv[]);
+	int (*out_set)(byte x, byte y, RGB *color);
+	int (*out_clear)(void);
+	int (*out_render)(void);
 } module;
 
 void* dlookup(void* handle, char* modname, char* name);

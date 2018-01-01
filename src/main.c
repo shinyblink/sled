@@ -63,7 +63,6 @@ static int pick_other(int mymodno, ulong in) {
 			if (mod == mymodno) mod = 0;
 			if (strcmp(modules_get(mod)->type, "gfx") != 0) mod = 0;
 		}
-		//while ((mod = randn(modcount)) == mymodno);
 	return timer_add(in, mod, 0, NULL);
 }
 
