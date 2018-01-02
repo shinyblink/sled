@@ -99,7 +99,7 @@ ulong wait_until(ulong desired_usec) {
 	return wait_until_core(desired_usec);
 }
 
-int matrix_deinit(void) {
+int deinit(void) {
 	ws2811_fini(&leds);
 	return 0;
 }

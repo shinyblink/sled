@@ -28,7 +28,6 @@ all: DEBUG modules
 # Target specific rules
 SDL_SCALE_FACTOR ?= 8
 SDL2: PLATFORM = SDL2
-SDL2: LIBS += -lSDL2
 SDL2: DEFINES += -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 SDL2: $(PROJECT) out_sdl2
 

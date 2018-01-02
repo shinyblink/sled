@@ -23,6 +23,7 @@ DEFINES := -DISMODULE $(DEFINES)
 
 # Module specific stuffs
 bgm_fish.so: LDFLAGS += -pthread
+
 out_sdl2.so: LDFLAGS += -lSDL2
 
 RPI_WS2812B_PATH ?= ../../../rpi_ws281x
