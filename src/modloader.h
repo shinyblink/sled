@@ -14,12 +14,13 @@ typedef struct module {
 	int (*out_render)(void);
 	byte (*out_getx)(void);
 	byte (*out_gety)(void);
+	ulong (*out_wait_until)(ulong desired_usec);
 } module;
 
-void* dlookup(void* handle, char* modname, char* name);
-int modules_deinit(void);
-int modules_loaddir(char* moddir, char outmod[256], int* outmodno);
-int modules_init(void);
+extern void* dlookup(void* handle, char* modname, char* name);
+extern int modules_deinit(void);
+extern int modules_loaddir(char* moddir, char outmod[256], int* outmodno);
+extern int modules_init(void);
 // After initial init is over, these should be readonly. Correct if incorrect, FISh assumes this. -20kdc
-module* modules_get(int moduleno);
-int modules_count(void);
+extern module* modules_get(int moduleno);
+extern int modules_count(void);

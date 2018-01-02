@@ -50,10 +50,16 @@ int clear(void);
 // Render the updates, starts displaying the buffer.
 int render(void);
 
-// FOR "out" TYPE PLUGINS
+// FOR "out" TYPE PLUGINS:
 // Get dimensions and other stuff.
 int getx(void);
 int gety(void);
+
+// FOR "out" TYPE PLUGINS:
+// Wait until the desired usec hit.
+// If you don't need to do anything special,
+// you can just `return wait_until_core(desired_usec);`.
+ulong wait_until(ulong desired_usec);
 
 // Deinit the plugin.
 // Free your shit, we need to go.

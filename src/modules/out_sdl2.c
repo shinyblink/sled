@@ -3,6 +3,7 @@
 #include <types.h>
 #include <string.h>
 #include <assert.h>
+#include <timers.h>
 
 // Calculation for amount of bytes needed.
 #define ROW_SIZE MATRIX_X * 3 // 3 for R, G and B.
@@ -43,7 +44,7 @@ byte gety(void) {
 	return MATRIX_Y; // for now.
 }
 
-byte matrix_ppos(byte x, byte y) {
+int matrix_ppos(byte x, byte y) {
 #ifdef MATRIX_ORDER_PLAIN
 	return (x + (y * MATRIX_X));
 #elif defined(MATRIX_ORDER_SNAKE)
@@ -78,7 +79,27 @@ int render(void) {
 	return 0;
 }
 
+ulong wait_until(ulong desired_usec) {
+	SDL_Event ev;
+	while (1) {
+		ulong tnow = utime();
+		if (tnow >= desired_usec)
+			return tnow;
+
+		useconds_t sleeptimems = (desired_usec - tnow) / 1000;
+		if (SDL_WaitEventTimeout(&ev, sleeptimems)) {
+			if (ev.type == SDL_QUIT) {
+				timers_doquit();
+				return utime();
+			}
+		} else {
+			return wait_until_core(desired_usec);
+		}
+	}
+}
+
 int deinit(void) {
+	// Destroy everything.
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);

@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <modloader.h>
 
 typedef struct timer {
 	int moduleno;
@@ -23,6 +24,8 @@ static int timer_count = 0;
 int timers_quitting = 0;
 
 static pthread_mutex_t tlock;
+
+module* outmod;
 
 void timer_free_argv(int argc, char ** argv);
 
@@ -45,33 +48,10 @@ ulong wait_until_core(ulong desired_usec) {
 	return desired_usec;
 }
 
-#ifndef PLATFORM_SDL2
+// This code calls into the output module's wait_until impl.
 ulong wait_until(ulong desired_usec) {
-	return wait_until_core(desired_usec);
+	return outmod->out_wait_until(desired_usec);
 }
-
-#else
-#include <SDL2/SDL.h>
-
-ulong wait_until(ulong desired_usec) {
-	SDL_Event ev;
-	while (1) {
-		ulong tnow = utime();
-		if (tnow >= desired_usec)
-			return tnow;
-		useconds_t sleeptimems = (desired_usec - tnow) / 1000;
-		if (SDL_WaitEventTimeout(&ev, sleeptimems)) {
-			if (ev.type == SDL_QUIT) {
-				timers_quitting = 1;
-				return utime();
-			}
-		} else {
-			return wait_until_core(desired_usec);
-		}
-	}
-}
-
-#endif
 
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
 	struct timer t = { .moduleno = moduleno, .time = usec, .argc = argc, .argv = argv };
@@ -133,10 +113,17 @@ void timer_free_argv(int argc, char ** argv) {
 	}
 }
 
-int timers_init(void) {
+int timers_init(int outmodno) {
 	if (pthread_mutex_init(&tlock, NULL))
 		return 1;
+
+	outmod = modules_get(outmodno);
+
 	return 0;
+}
+
+void timers_doquit(void) {
+	timers_quitting = 1;
 }
 
 int timers_deinit(void) {

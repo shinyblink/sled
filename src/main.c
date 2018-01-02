@@ -5,6 +5,7 @@
 #include <modloader.h>
 #include <timers.h>
 #include <random.h>
+#include <util.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -108,7 +109,7 @@ int main(int argc, char* argv[]) {
 	while ((ch = getopt_long(argc, argv, "o:", longopts, NULL)) != -1) {
 		switch(ch) {
 		case 'o':
-			strncpy(outmod, optarg, 255);
+			util_strlcpy(outmod, optarg, 256);
 			break;
 		case '?':
 		default:
@@ -124,13 +125,6 @@ int main(int argc, char* argv[]) {
 		printf("rmod mutex failed to initialize.\n");
 		return ret;
 	}
-	// Initialize Timers.
-	ret = timers_init();
-	if (ret) {
-		printf("Timers failed to initialize.\n");
-		pthread_mutex_destroy(&rmod_lock);
-		return ret;
-	}
 
 	// Initialize pseudo RNG.
 	random_seed();
@@ -139,6 +133,14 @@ int main(int argc, char* argv[]) {
 	int outmodno = -1;
 	if (modules_loaddir("./modules/", outmod, &outmodno) != 0)
 		deinit();
+
+	// Initialize Timers.
+	ret = timers_init(outmodno);
+	if (ret) {
+		printf("Timers failed to initialize.\n");
+		pthread_mutex_destroy(&rmod_lock);
+		return ret;
+	}
 
 	// Initialize Matrix.
 	ret = matrix_init(outmodno);

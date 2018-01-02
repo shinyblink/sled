@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <util.h>
 
 typedef struct module {
 	char name[256];
@@ -21,6 +22,7 @@ typedef struct module {
 	int (*out_render)(void);
 	byte (*out_getx)(void);
 	byte (*out_gety)(void);
+	ulong (*out_wait_until)(ulong desired_usec);
 } module;
 
 static struct module modules[MAX_MODULES];
@@ -73,9 +75,8 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 					eprintf("Module doesn't have a (correct) type declaration in the name\n");
 					continue;
 				}
-				strncpy(modules[modcount].type, file->d_name, 3);
-				modules[modcount].type[3] = 0;
-				strncpy(modules[modcount].name, &file->d_name[4], len - 7); // could malloc it, but whatever.
+				util_strlcpy(modules[modcount].type, file->d_name, 4);
+				util_strlcpy(modules[modcount].name, &file->d_name[4], len - 6); // could malloc it, but whatever.
 
 				if (strcmp(modules[modcount].type, "out") == 0 && strcmp(modules[modcount].name, outmod) != 0) {
 					printf(" Skipping unused output module.\n");
@@ -105,6 +106,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 					modules[modcount].out_render = dlookup(handle, modpath, "render");
 					modules[modcount].out_getx = dlookup(handle, modpath, "getx");
 					modules[modcount].out_gety = dlookup(handle, modpath, "gety");
+					modules[modcount].out_wait_until = dlookup(handle, modpath, "wait_until");
 				} else {
 					modules[modcount].draw = dlookup(handle, modpath, "draw");
 				}

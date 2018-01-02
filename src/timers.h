@@ -13,6 +13,7 @@ typedef struct timer {
 
 extern int timers_quitting;
 extern unsigned long utime(void);
+extern unsigned long wait_until_core(unsigned long desired_usec);
 extern unsigned long wait_until(unsigned long desired_usec);
 // Adds a new timer. If usec is 0, automatically clears the timers *when retrieved with timer_get*.
 // The reason for this behavior is to simplify injecting a timer for an immediate switch.
@@ -27,6 +28,9 @@ extern void timer_free_argv(int argc, char ** argv);
 //  to try and keep naming consistent with the X.h -> X_ scheme.
 
 // Used to create the mutex.
-extern int timers_init(void);
+extern int timers_init(int outmodno);
+
+// Tell timers to quit gracefully.
+extern void timers_doquit(void);
 // Used to ensure all argv's freed and destroy the mutex.
 extern int timers_deinit(void);

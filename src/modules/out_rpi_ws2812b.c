@@ -4,6 +4,7 @@
 #include <types.h>
 #include <string.h>
 #include <assert.h>
+#include <timers.h>
 
 // Calculation for amount of bytes needed.
 
@@ -58,7 +59,7 @@ byte gety(void) {
 	return MATRIX_Y; // for now.
 }
 
-byte ppos(byte x, byte y) {
+int ppos(byte x, byte y) {
 #ifdef MATRIX_ORDER_PLAIN
 	return (x + (y * MATRIX_X));
 #elif defined(MATRIX_ORDER_SNAKE)
@@ -93,6 +94,10 @@ int render(void) {
 		eprintf("matrix: ws2811_render failed: %s\n", ws2811_get_return_t_str(ret));
 	}
 	return 0;
+}
+
+ulong wait_until(ulong desired_usec) {
+	return wait_until_core(desired_usec);
 }
 
 int matrix_deinit(void) {
