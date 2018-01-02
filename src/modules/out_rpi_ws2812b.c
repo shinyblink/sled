@@ -5,6 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <timers.h>
+#include <matrix.h>
 
 // Calculation for amount of bytes needed.
 
@@ -47,7 +48,6 @@ int init(void) {
 		eprintf("matrix: ws2811_init failed: %s\n", ws2811_get_return_t_str(ret));
 		return 2;
 	}
-	#endif
 	return 0;
 }
 
@@ -72,12 +72,11 @@ int ppos(byte x, byte y) {
 }
 
 int set(byte x, byte y, RGB *color) {
-	assert(x < matrix_getx());
-	assert(y < matrix_gety());
+	assert(x < getx());
+	assert(y < gety());
 
 	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;
 	leds.channel[0].leds[ppos(x, y)] = led;
-	#endif
 	return 0;
 }
 

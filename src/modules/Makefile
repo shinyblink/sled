@@ -24,5 +24,7 @@ DEFINES := -DISMODULE $(DEFINES)
 # Module specific stuffs
 bgm_fish.so: LDFLAGS += -pthread
 out_sdl2.so: LDFLAGS += -lSDL2
-out_rpi_ws2812b.so: EXTRA_OBJECTS = ../rpi_ws281x/libws2811.a
-out_rpi_ws2812b.so: CFLAGS += -I../rpi_ws281x/libws2811.a
+
+RPI_WS2812B_PATH ?= ../../../rpi_ws281x
+out_rpi_ws2812b.so: EXTRA_OBJECTS = $(RPI_WS2812B_PATH)/libws2811.a
+out_rpi_ws2812b.so: CPPFLAGS += -I$(RPI_WS2812B_PATH)/
