@@ -49,7 +49,6 @@ typedef struct RGB {
 #endif
 
 // Matrix order and size
-
 #if !defined(MATRIX_ORDER_PLAIN) && !defined(MATRIX_ORDER_SNAKE)
 #define MATRIX_ORDER_SNAKE // cause that's what i have, it's also the easiest to wire, IMO.
 #endif
