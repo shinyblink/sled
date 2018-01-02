@@ -13,10 +13,10 @@ DEFINES := -DISMODULE $(DEFINES)
 
 # Common rules
 %.so: %.o
-	$(CC) -fPIC -shared $(CFLAGS) $(LDFLAGS) $(LIBS) -o $@	$^
+	$(CC) -fPIC -shared $(CFLAGS) $(LDFLAGS) $(LIBS) -o $@	$^ $(EXTRA_OBJECTS)
 
 %.o: %.c
-	$(CC) -c -fPIC $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	$^	-o $@ $(EXTRA_OBJECTS)
+	$(CC) -c -fPIC $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	$^	-o $@
 
 # Include files go here
 %.c: font.h ../main.h ../matrix.h ../modloader.h ../plugin.h ../random.h ../timers.h ../types.h
