@@ -26,14 +26,19 @@ OBJECTS = src/modloader.o src/matrix.o src/timers.o src/random.o src/mathey.o sr
 all: DEBUG modules
 
 # Target specific rules
+SDL_SCALE_FACTOR ?= 8
 SDL2: PLATFORM = SDL2
 SDL2: LIBS += -lSDL2
+SDL2: DEFINES += -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 SDL2: $(PROJECT) out_sdl2
 
 DEBUG: CFLAGS += -Og -ggdb
 DEBUG: SDL2
 
+RPI_DMA ?= 10
+RPI_PIN ?= 21
 RPI: PLATFORM = RPI
+RPI: DEFINES += -DRPI_DMA=$(RPI_DMA) -DRPI_PIN=$(RPI_PIN)
 RPI: $(PROJECT) out_rpi_ws2812b
 
 # Common rules

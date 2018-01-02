@@ -27,15 +27,6 @@ typedef unsigned long ulong;
 #define MATRIX_ORDER_PLAIN
 #undef COLOR_ORDER_GRB
 #undef MATRIX_ORDER_SNAKE
-
-#define SDL_SCALE_FACTOR 8
-
-#endif
-
-#ifdef PLATFORM_RPI
-// RPI ws2812b strip on pin 40/gpio 21.
-#define RPI_DMA 10
-#define RPI_PIN 21
 #endif
 
 // Colors
