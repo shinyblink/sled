@@ -1,7 +1,7 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES_AVAILABLE = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish out_dummy out_sdl2 out_rpi_ws2812b
-MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish
+MODULES_AVAILABLE = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma out_dummy out_sdl2 out_rpi_ws2812b
+MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
@@ -15,8 +15,8 @@ endif
 
 # Defaults
 PLATFORM ?= SDL2
-MATRIX_X ?= 256
-MATRIX_Y ?= 256
+MATRIX_X ?= 16
+MATRIX_Y ?= 8
 MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
@@ -26,7 +26,7 @@ OBJECTS = src/modloader.o src/matrix.o src/timers.o src/random.o src/mathey.o sr
 all: DEBUG modules
 
 # Target specific rules
-SDL_SCALE_FACTOR ?= 2
+SDL_SCALE_FACTOR ?= 8
 SDL2: PLATFORM = SDL2
 SDL2: DEFINES += -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 SDL2: $(PROJECT) out_sdl2
