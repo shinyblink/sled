@@ -14,20 +14,19 @@ int matrix_init(int outmodno) {
 	return outmod->init(outmodno);
 }
 
-
-byte matrix_getx(void) {
+int matrix_getx(void) {
 	return outmod->out_getx();
 }
-byte matrix_gety(void) {
+int matrix_gety(void) {
 	return outmod->out_gety();
 }
 
-int matrix_set(byte x, byte y, RGB *color) {
+int matrix_set(int x, int y, RGB *color) {
 	return outmod->out_set(x, y, color);
 }
 
 // Fills part of the matrix with jo-- a single color.
-int matrix_fill(byte start_x, byte start_y, byte end_x, byte end_y, RGB *color) {
+int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB *color) {
 	if (start_x > end_x)
 		return 1;
 	if (start_y > end_y)

@@ -223,7 +223,7 @@ void fish_execute(char * module, int argc, char ** argv) {
 		if (!argv) {
 			return;
 		} else {
-			module = strdup("fish.so");
+			module = strdup("fish");
 			if (!module) {
 				timer_free_argv(argc, argv);
 				return;

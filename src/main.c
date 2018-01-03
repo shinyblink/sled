@@ -152,8 +152,8 @@ int main(int argc, char* argv[]) {
 		return ret;
 	}
 
-	// Initialize modules.
-	ret = modules_init();
+	// Initialize modules (this can offset outmodno)
+	ret = modules_init(&outmodno);
 	if (ret) {
 		printf("Modules: Init failed.\n");
 		return ret;

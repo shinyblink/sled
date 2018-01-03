@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #define TEXT_DEFAULT "h@ck me hard github.com/vifino/sled thanks"
-#define TEXT_DEFFRAMETIME 200000
+#define TEXT_DEFFRAMETIME (10000000 / matrix_getx())
 // note that this rounds up in case of, say, 7
 #define TEXT_MINH (((matrix_gety() + 1) / 2) - 4)
 // "gap" of zeroes after text
@@ -16,7 +16,8 @@
 ulong text_nexttick, text_frametime;
 int text_position, text_queuedrender_len, text_moduleno;
 // Boolean-map. This gets scrolled left, new text gets written on right.
-int* text_buffer;
+int * text_buffer;
+// Bitfield (if not null) in same format as the font
 byte * text_queuedrender;
 
 #include "font.h"
@@ -103,7 +104,7 @@ int draw(int argc, char* argv[]) {
 	if (argc != 0) {
 		if (text_queuedrender)
 			free(text_queuedrender);
-		// this always sets it to 0
+		// this always sets involved values to 0 or a valid value
 		if (text_render(argv[0]))
 			return 1;
 		text_position = 0;
@@ -113,8 +114,8 @@ int draw(int argc, char* argv[]) {
 		if (argc == 0)
 			if (text_render(TEXT_DEFAULT))
 				return 1;
-		text_nexttick = utime();
 		// Presumably this would be calculated based on an optional parameter or defaulting to TEXT_DEFFRAMETIME.
+		text_nexttick = utime();
 		text_frametime = TEXT_DEFFRAMETIME;
 		for (i = 0; i < (matrix_getx() * matrix_gety()); i++)
 			text_buffer[i] = 0;

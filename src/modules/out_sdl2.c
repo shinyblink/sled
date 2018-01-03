@@ -37,26 +37,20 @@ int init(void) {
 }
 
 
-byte getx(void) {
+int getx(void) {
 	return MATRIX_X; // for now.
 }
-byte gety(void) {
+int gety(void) {
 	return MATRIX_Y; // for now.
 }
 
-int matrix_ppos(byte x, byte y) {
-#ifdef MATRIX_ORDER_PLAIN
+int matrix_ppos(int x, int y) {
 	return (x + (y * MATRIX_X));
-#elif defined(MATRIX_ORDER_SNAKE)
-	// Order is like this
-	// 0 1 2
-	// 5 4 3
-	// 6 7 8
-	return (((y % 2) == 0 ? x : (MATRIX_X - 1) - x) + MATRIX_X*y);
-#endif
 }
 
-int set(byte x, byte y, RGB *color) {
+int set(int x, int y, RGB *color) {
+	assert(x >= 0);
+	assert(y >= 0);
 	assert(x < getx());
 	assert(y < gety());
 
@@ -86,7 +80,7 @@ ulong wait_until(ulong desired_usec) {
 		if (tnow >= desired_usec)
 			return tnow;
 
-		useconds_t sleeptimems = (desired_usec - tnow) / 1000;
+		int sleeptimems = (desired_usec - tnow) / 1000;
 		if (SDL_WaitEventTimeout(&ev, sleeptimems)) {
 			if (ev.type == SDL_QUIT) {
 				timers_doquit();

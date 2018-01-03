@@ -9,6 +9,8 @@
 
 #define FRAMETIME (T_SECOND / 30)
 #define FRAMES (RANDOM_TIME * 30)
+// Size of a full revolution
+#define XSCALE ((float) matrix_getx())
 #define HALF_Y (matrix_gety() / 2)
 
 static int modno;
@@ -36,7 +38,11 @@ int draw(int argc, char* argv[]) {
 	int x;
 	int y;
 	for (x = 0; x < matrix_getx(); ++x) {
-		y = HALF_Y + (HALF_Y * sin((x + pos - 1) / M_PI));
+		y = HALF_Y + (HALF_Y * sin((x + pos - 1) * M_PI * 2.0f / XSCALE));
+		if (y < 0)
+			y = 0;
+		if (y >= matrix_gety())
+			y = matrix_gety() - 1;
 		matrix_set(x, y, &white);
 		if (x != 0) graphics_drawline(lastx, lasty, x, y, &white);
 		lastx = x;
@@ -50,7 +56,7 @@ int draw(int argc, char* argv[]) {
 		return 1;
 	}
 	frame++;
-	pos++;;
+	pos++;
 	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
 	return 0;

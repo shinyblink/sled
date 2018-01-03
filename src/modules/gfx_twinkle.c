@@ -45,15 +45,19 @@ int draw(int argc, char* argv[]) {
 	int x;
 	int y;
 	int i = 0;
-	int endnow = twinkle_framecount >= TWINKLE_FRAMES;
-	for (y = 0; y < matrix_gety(); y++)
-		for (x = 0; x < matrix_getx(); x++) {
+	int endsoon = twinkle_framecount >= TWINKLE_FRAMES;
+	int endnow = endsoon;
+	for (x = 0; x < matrix_getx(); x++) {
+		int lineactivity = 0;
+		for (y = 0; y < matrix_gety(); y++) {
 			if (!twinkle_levels[i]) {
 				// This "curtain" effect is intentional.
-				if (!endnow)
+				// Can't self-sustain because lineactivity only increases as we go through the line.
+				if ((!endsoon) || (lineactivity > (matrix_getx() / 129)))
 					if (randn(512) == 0)
 						twinkle_levels[i] = 1;
 			} else {
+				lineactivity++;
 				endnow = 0;
 				twinkle_levels[i]++;
 				twinkle_levels[i] %= TWINKLE_LEVELS;
@@ -63,6 +67,7 @@ int draw(int argc, char* argv[]) {
 			RGB color = { .red = vG, .green = vG, .blue = vB};
 			matrix_set(x, y, &color);
 		}
+	}
 
 	matrix_render();
 	if (endnow) {

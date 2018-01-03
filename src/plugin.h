@@ -40,7 +40,7 @@ int draw(int argc, char* argv[]);
 // FOR "out" TYPE PLUGINS:
 // Function that sets a pixel, buffered changes.
 // Only update the displayed info after calling render.
-int set(byte x, byte y, RGB *color);
+int set(int x, int y, RGB *color);
 
 // FOR "out" TYPE PLUGINS:
 // Clears the buffer.

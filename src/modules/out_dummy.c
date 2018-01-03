@@ -8,14 +8,14 @@ int init(void) {
 	return 0;
 }
 
-byte getx(void) {
+int getx(void) {
 	return MATRIX_X;
 }
-byte gety(void) {
+int gety(void) {
 	return MATRIX_Y;
 }
 
-int set(byte x, byte y, RGB *color) {
+int set(int x, int y, RGB *color) {
 	// Setting pixels? Nah, we're good.
 	return 0;
 }

@@ -52,14 +52,14 @@ int init(void) {
 }
 
 
-byte getx(void) {
+int getx(void) {
 	return MATRIX_X; // for now.
 }
-byte gety(void) {
+int gety(void) {
 	return MATRIX_Y; // for now.
 }
 
-int ppos(byte x, byte y) {
+int ppos(int x, int y) {
 #ifdef MATRIX_ORDER_PLAIN
 	return (x + (y * MATRIX_X));
 #elif defined(MATRIX_ORDER_SNAKE)
@@ -71,7 +71,9 @@ int ppos(byte x, byte y) {
 #endif
 }
 
-int set(byte x, byte y, RGB *color) {
+int set(int x, int y, RGB *color) {
+	assert(x >= 0);
+	assert(y >= 0);
 	assert(x < getx());
 	assert(y < gety());
 

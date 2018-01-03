@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <util.h>
+#include <pthread.h>
 
 typedef struct module {
 	char name[256];
@@ -17,16 +18,17 @@ typedef struct module {
 	int (*init)(int moduleno);
 	int (*deinit)(void);
 	int (*draw)(int argc, char* argv[]);
-	int (*out_set)(byte x, byte y, RGB *color);
+	int (*out_set)(int x, int y, RGB *color);
 	int (*out_clear)(void);
 	int (*out_render)(void);
-	byte (*out_getx)(void);
-	byte (*out_gety)(void);
+	int (*out_getx)(void);
+	int (*out_gety)(void);
 	ulong (*out_wait_until)(ulong desired_usec);
 } module;
 
 static struct module modules[MAX_MODULES];
 static int modcount = 0;
+static pthread_mutex_t lock;
 
 void* dlookup(void* handle, char* modname, char* name) {
 	void* ptr = dlsym(handle, name);
@@ -43,6 +45,7 @@ int modules_deinit(void) {
 	int i;
 	int ret;
 	printf("Deinitializing %i modules...", modcount);
+	pthread_mutex_lock(&lock);
 	for (i = 0; i < modcount; i++) {
 		ret = modules[i].deinit();
 		if (ret != 0) {
@@ -51,7 +54,12 @@ int modules_deinit(void) {
 			return 6;
 		}
 	}
+	pthread_mutex_unlock(&lock);
 	printf(" Done.\n");
+	if (pthread_mutex_destroy(&lock)) {
+		printf("Couldn't destroy modules mutex now no pesky background threads are around.\n");
+		return 1;
+	}
 	return 0;
 }
 
@@ -137,26 +145,52 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 	return 0;
 }
 
-int modules_init(void) {
+int modules_init(int * outmodno) {
+	if (pthread_mutex_init(&lock, 0)) {
+		printf("Couldn't begin to initialize modules as the background thread safety mutex couldn't be initialized.\n");
+		return 1;
+	}
 	int mod;
 	int ret;
 	printf("Initializing modules...\n");
-	for (mod=0; mod < modcount; ++mod) {
-		if (strcmp(modules[mod].type, "out") != 0){
-			printf("\t- %s...", modules[mod].name);
-			ret = modules[mod].init(mod);
-			if (ret > 0) {
-				if (ret != 1) {
-					printf("\n");
-					eprintf("Initializing module %s failed: Returned %i.", modules[mod].name, ret);
+	pthread_mutex_lock(&lock);
+	for (mod = 0; mod < modcount; ++mod) {
+		int rerun = 1;
+		while (rerun) {
+			rerun = 0;
+			if (strcmp(modules[mod].type, "out") != 0){
+				printf("\t- %s...", modules[mod].name);
+				ret = modules[mod].init(mod);
+				if (ret > 0) {
+					if (ret != 1) {
+						printf("\n");
+						eprintf("Initializing module %s failed: Returned %i.", modules[mod].name, ret);
+					} else {
+						printf(" Ignored by request of plugin.\n");
+					}
+					dlclose(modules[mod].lib);
+					// Since this failed to init, just nuke it from orbit
+					modcount--;
+					if (*outmodno == mod) {
+						// just in case
+						eprintf("How did THIS end up the output module? Stopping.\n");
+						modcount = mod;
+						pthread_mutex_unlock(&lock);
+						return 1;
+					} else if (*outmodno > mod) {
+						(*outmodno)--;
+					}
+					if (mod != modcount) {
+						memmove(&modules[mod], &modules[mod + 1], sizeof(struct module) * (modcount - mod));
+						rerun = 1;
+					}
 				} else {
-					printf(" Ignored by request of plugin.\n");
+					printf(" Done.\n");
 				}
-				dlclose(modules[mod].lib);
 			}
-			printf(" Done.\n");
 		}
 	}
+	pthread_mutex_unlock(&lock);
 	printf("\nDone.");
 	return 0;
 }

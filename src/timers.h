@@ -27,7 +27,7 @@ extern void timer_free_argv(int argc, char ** argv);
 // Regarding these, I'm drawing a distinction between "timer" as in an individual, and timers, the service,
 //  to try and keep naming consistent with the X.h -> X_ scheme.
 
-// Used to create the mutex.
+// Used to create the mutex. outmodno may be changed after (the module data is copied)
 extern int timers_init(int outmodno);
 
 // Tell timers to quit gracefully.

@@ -9,18 +9,18 @@ typedef struct module {
 	int (*init)(int moduleno);
 	int (*deinit)(void);
 	int (*draw)(int argc, char* argv[]);
-	int (*out_set)(byte x, byte y, RGB *color);
+	int (*out_set)(int x, int y, RGB *color);
 	int (*out_clear)(void);
 	int (*out_render)(void);
-	byte (*out_getx)(void);
-	byte (*out_gety)(void);
+	int (*out_getx)(void);
+	int (*out_gety)(void);
 	ulong (*out_wait_until)(ulong desired_usec);
 } module;
 
 extern void* dlookup(void* handle, char* modname, char* name);
 extern int modules_deinit(void);
 extern int modules_loaddir(char* moddir, char outmod[256], int* outmodno);
-extern int modules_init(void);
-// After initial init is over, these should be readonly. Correct if incorrect, FISh assumes this. -20kdc
+extern int modules_init(int* outmodno);
+// These are not readonly during modules_init. So a mutex is held for the entirety of modules_init. - 20kdc
 extern module* modules_get(int moduleno);
 extern int modules_count(void);
