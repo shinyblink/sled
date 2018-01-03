@@ -38,19 +38,11 @@ typedef unsigned long ulong;
 #define COLOR_ORDER_GRB // for now, neopixel/ws2812b style
 #endif
 
-#ifdef COLOR_ORDER_RGB
 typedef struct RGB {
 	byte red;
 	byte green;
 	byte blue;
 } RGB;
-#elif defined(COLOR_ORDER_GRB)
-typedef struct RGB {
-	byte green;
-	byte red;
-	byte blue;
-} RGB;
-#endif
 
 // Matrix order and size
 #if !defined(MATRIX_ORDER_PLAIN) && !defined(MATRIX_ORDER_SNAKE)

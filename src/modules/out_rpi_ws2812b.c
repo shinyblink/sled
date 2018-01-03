@@ -77,7 +77,11 @@ int set(int x, int y, RGB *color) {
 	assert(x < getx());
 	assert(y < gety());
 
+#ifdef COLOR_ORDER_RGB
 	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;
+#elif defined(COLOR_ORDER_GRB)
+	ws2811_led_t led = (color->green << 16) | (color->red << 8) | color->blue;
+#endif
 	leds.channel[0].leds[ppos(x, y)] = led;
 	return 0;
 }
