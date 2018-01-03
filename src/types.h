@@ -17,8 +17,12 @@ typedef unsigned long ulong;
 
 // Platform, since the below depends on it.
 
+#ifdef PLATFORM_DEBUG // It's just an alias.
+#define PLATFORM_SDL2
+#endif
+
 #if !defined(PLATFORM_RPI) && !defined(PLATFORM_SDL2)
-#error Must define platform: Define one of PLATFORM_{RPI,DEBUG}
+#error Must define platform: Define one of PLATFORM_{RPI,SDL2}
 #endif
 
 #ifdef PLATFORM_SDL2

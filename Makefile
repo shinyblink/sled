@@ -14,20 +14,20 @@ ifeq ($(OS),Linux)
 endif
 
 # Defaults
-PLATFORM ?= SDL2
+PLATFORM ?= DEBUG
 MATRIX_X ?= 16
 MATRIX_Y ?= 8
 MATRIX_ORDER ?= SNAKE
 
-DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
+DEFINES := -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRiX_ORDER)
 
 OBJECTS = src/modloader.o src/matrix.o src/timers.o src/random.o src/mathey.o src/graphics.o src/util.o
 
-all: DEBUG modules
+all: $(PLATFORM) modules
 
 # Target specific rules
 SDL_SCALE_FACTOR ?= 8
-SDL2: PLATFORM = SDL2
+SDL2: PLATFORM := SDL2
 SDL2: DEFINES += -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 SDL2: $(PROJECT) out_sdl2
 
@@ -36,7 +36,7 @@ DEBUG: SDL2
 
 RPI_DMA ?= 10
 RPI_PIN ?= 21
-RPI: PLATFORM = RPI
+RPI: PLATFORM := RPI
 RPI: DEFINES += -DRPI_DMA=$(RPI_DMA) -DRPI_PIN=$(RPI_PIN)
 RPI: $(PROJECT) out_rpi_ws2812b
 

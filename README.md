@@ -28,17 +28,17 @@ Common:
 
 Platform specific:
 
-* `SDL2`
+1) `SDL2`
  - ... SDL2.
 
-* `DEBUG`
+2) `DEBUG`
  - Alias to SDL2 + some debugging-friendly compiler options.
 
-* `RPI`
+3) `RPI`
  - https://github.com/jgarff/rpi_ws281x
 
 
-Compile with `make <PLATFORM> MATRIX_X=<X size> MATRIX_Y=<Y size>`
+Compile with `make PLATFORM=<PLATFORM> MATRIX_X=<X size> MATRIX_Y=<Y size>`
 
 # Modules
 
@@ -56,6 +56,12 @@ They are the following:
 5) `fish`: FIfo Shell. A small FIFO-based queue manipulator. Uses a little background CPU usage. Creates `sled.fish` FIFO in the sled tree. Made by 20kdc.
 
 6) `gol`: A Conway's Game of Life clone.
+
+7) `rainbow`: A simple rainbow animation.
+
+8) `math_sinpi`: A sinus curve of Pi.
+
+9) `plasma`: A plasma animation, ported from borgware.
 
 If you want to only build a specific set of modules, pass a `MODULES="myfavouritemodule bestmodule"` to the `make` line.
 
