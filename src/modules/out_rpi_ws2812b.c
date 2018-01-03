@@ -31,11 +31,7 @@ ws2811_t leds = {
 			.count = MATRIX_PIXELS,
 			.invert = 0,
 			.brightness = 255,
-#ifdef COLOR_ORDER_GBR
-			.strip_type = WS2811_STRIP_GBR,
-#elif defined(COLOR_ORDER_RGB)
 			.strip_type = WS2811_STRIP_RGB
-#endif
 		},
 		[1] = {
 			.gpionum = 0,
@@ -81,7 +77,15 @@ int set(int x, int y, RGB *color) {
 	assert(x < getx());
 	assert(y < gety());
 
+#ifdef COLOR_ORDER_RGB
 	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;
+#elif defined(COLOR_ORDER_GBR)
+	ws2811_led_t led = (color->green << 16) | (color->blue << 8) | color->red;
+#elif defined(COLOR_ORDER_GRB)
+	ws2811_led_t led = (color->green << 16) | (color->red << 8) | color->blue;
+#else
+#error Must define color order.
+#endif
 	leds.channel[0].leds[ppos(x, y)] = led;
 	return 0;
 }
