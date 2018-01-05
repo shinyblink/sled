@@ -63,6 +63,36 @@ int modules_deinit(void) {
 	return 0;
 }
 
+int modules_loadmod(module* mod, char name[256], char* modpath) {
+	size_t len = strlen(name);
+	util_strlcpy(mod->type, name, 4);
+	util_strlcpy(mod->name, name, len - 6); // could malloc it, but whatever.
+
+	// Load the module.
+	dlerror();
+	void* handle = dlopen(modpath, RTLD_LAZY | RTLD_GLOBAL);
+	if (!handle) {
+		eprintf("\nFailed to load %s: %s", name, dlerror());
+		return 4;
+	}
+	mod->lib = handle;
+
+	mod->init = dlookup(handle, modpath, "init");
+	mod->deinit = dlookup(handle, modpath, "deinit");
+
+	if (strcmp(mod->type, "out") == 0) {
+		mod->out_set = dlookup(handle, modpath, "set");
+		mod->out_clear = dlookup(handle, modpath, "clear");
+		mod->out_render = dlookup(handle, modpath, "render");
+		mod->out_getx = dlookup(handle, modpath, "getx");
+		mod->out_gety = dlookup(handle, modpath, "gety");
+		mod->out_wait_until = dlookup(handle, modpath, "wait_until");
+	} else {
+		mod->draw = dlookup(handle, modpath, "draw");
+	}
+	return 0;
+}
+
 int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 	DIR *moduledir;
 	struct dirent *file;
@@ -74,7 +104,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 				printf("\t- %s...", file->d_name);
 				fflush(stdin);
 				size_t len = strlen(file->d_name);
-				if (len < 6) {
+				if (len < 8) {
 					printf("\n");
 					eprintf("Module's name is too short to be correct.\n");
 					continue;
@@ -83,10 +113,8 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 					eprintf("Module doesn't have a (correct) type declaration in the name\n");
 					continue;
 				}
-				util_strlcpy(modules[modcount].type, file->d_name, 4);
-				util_strlcpy(modules[modcount].name, &file->d_name[4], len - 6); // could malloc it, but whatever.
 
-				if (strcmp(modules[modcount].type, "out") == 0 && strcmp(modules[modcount].name, outmod) != 0) {
+				if (strcmp(file->d_name, "out") > 0 && strncmp(&file->d_name[4], outmod, len - 4 - 3) != 0) { // 4 for the type, 3 for `.so`
 					printf(" Skipping unused output module.\n");
 					continue;
 				}
@@ -95,28 +123,9 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 				strcpy(modpath, moddir);
 				strcpy(modpath + strlen(moddir), file->d_name);
 
-				// Load the module.
-				dlerror();
-				void* handle = dlopen(modpath, RTLD_LAZY | RTLD_GLOBAL);
-				if (!handle) {
-					eprintf("\nFailed to load %s: %s", file->d_name, dlerror());
-					return 4;
-				}
-				modules[modcount].lib = handle;
-
-				modules[modcount].init = dlookup(handle, modpath, "init");
-				modules[modcount].deinit = dlookup(handle, modpath, "deinit");
-
+				modules_loadmod(&modules[modcount], file->d_name, modpath);
 				if (strcmp(modules[modcount].type, "out") == 0) {
 					*outmodno = modcount;
-					modules[modcount].out_set = dlookup(handle, modpath, "set");
-					modules[modcount].out_clear = dlookup(handle, modpath, "clear");
-					modules[modcount].out_render = dlookup(handle, modpath, "render");
-					modules[modcount].out_getx = dlookup(handle, modpath, "getx");
-					modules[modcount].out_gety = dlookup(handle, modpath, "gety");
-					modules[modcount].out_wait_until = dlookup(handle, modpath, "wait_until");
-				} else {
-					modules[modcount].draw = dlookup(handle, modpath, "draw");
 				}
 
 				free(modpath);
