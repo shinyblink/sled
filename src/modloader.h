@@ -23,7 +23,8 @@ typedef struct module {
 extern void* dlookup(void* handle, char* modname, char* name);
 extern int modules_deinit(void);
 extern int modules_loadmod(module* mod, char name[256], char* modpath);
-extern int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtnames, int* filtno, module** filters);
+extern int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtnames, 
+int* filtno, int* filters);
 extern int modules_init(int* outmodno);
 // These are not readonly during modules_init. So a mutex is held for the entirety of modules_init. - 20kdc
 extern module* modules_get(int moduleno);

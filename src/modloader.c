@@ -93,7 +93,7 @@ int modules_loadmod(module* mod, char name[256], char* modpath) {
 	return 0;
 }
 
-int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtnames, int* filtno, module** filters) {
+int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtnames, int* filtno, int* filters) {
 	DIR *moduledir;
 	struct dirent *file;
 	moduledir = opendir(moddir); // for now.
@@ -124,14 +124,22 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 				}
 
 				if (strcmp(type, "flt") == 0) {
+					if (*filtno == 0) {
+						printf(" Skipping unused filter modules.\n");
+						continue;
+					}
 					char* name = &file->d_name[4];
+					len = strlen(name);
+					name[len - 3] = '\0';
+					fflush(stdin);
 					int i;
 					int found = 0;
 					for (i = 0; i < *filtno; ++i)
-						if (strcmp(name, filtnames[i]) == 0) {
+						if (strcmp(name, filtnames[i]) == 0) { // offset for .so
 							found = 1;
 							break;
 						}
+					name[len - 3] = '.';
 					if (found == 0) {
 						printf(" Skipping unused filter module.\n");
 						continue;
@@ -147,7 +155,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					*outmodno = modcount;
 				}
 				if (strcmp(modules[modcount].type, "flt") == 0) {
-					*filters[++found_filters] = modules[modcount];
+					filters[found_filters++] = modcount;
 				}
 
 				free(modpath);
@@ -190,7 +198,7 @@ int modules_init(int * outmodno) {
 		int rerun = 1;
 		while (rerun) {
 			rerun = 0;
-			if (strcmp(modules[mod].type, "out") != 0){
+			if (strcmp(modules[mod].type, "out") != 0 && strcmp(modules[mod].type, "flt") != 0){
 				printf("\t- %s...", modules[mod].name);
 				ret = modules[mod].init(mod);
 				if (ret > 0) {

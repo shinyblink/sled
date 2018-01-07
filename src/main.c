@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 			int len = strlen(optarg);
 			char* str = malloc((len + 1) * sizeof(char));
 			util_strlcpy(str, optarg, len + 1);
-			filternames[++filterno] = str;
+			filternames[filterno++] = str;
 			break;
 		}
 		case '?':
@@ -148,7 +148,13 @@ int main(int argc, char* argv[]) {
 	random_seed();
 
 	// Load modules
-	module** filters = malloc(filterno * sizeof(module*));
+	int* filters = NULL;
+	if (filterno > 0) {
+		filters = malloc(filterno * sizeof(int));
+		int i;
+		for (i = 0; i < filterno; ++i)
+			filters[i] = -1;
+	}
 	int outmodno = -1;
 	if (modules_loaddir("./modules/", outmod, &outmodno, filternames, &filterno, filters) != 0)
 		deinit();
