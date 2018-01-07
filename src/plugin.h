@@ -12,6 +12,9 @@
 // Returning 0 indicates success, 1 indicates the module should be ignored.
 // Anything else indicates initialization failure, and this sled will exit.
 // If you just want to load under certain conditions, this is helpful.
+//
+// NOTE: For "flt" type filter plugins, moduleno is the next filter or
+// the output module. In other cases, it is the moduleno of oneself.
 int init(int moduleno);
 
 // FOR "gfx" TYPE PLUGINS:
@@ -37,25 +40,25 @@ int init(int moduleno);
 // argv's substrings and argv itself are freed after the call.
 int draw(int argc, char* argv[]);
 
-// FOR "out" TYPE PLUGINS:
+// FOR "out" and "flt" TYPE PLUGINS:
 // Function that sets a pixel, buffered changes.
 // Only update the displayed info after calling render.
 int set(int x, int y, RGB *color);
 
-// FOR "out" TYPE PLUGINS:
+// FOR "out" and "flt" TYPE PLUGINS:
 // Clears the buffer.
 int clear(void);
 
-// FOR "out" TYPE PLUGINS:
+// FOR "out" and "flt" TYPE PLUGINS:
 // Render the updates, starts displaying the buffer.
 int render(void);
 
-// FOR "out" TYPE PLUGINS:
+// FOR "out" and "flt" TYPE PLUGINS:
 // Get dimensions and other stuff.
 int getx(void);
 int gety(void);
 
-// FOR "out" TYPE PLUGINS:
+// FOR "out" and "flt" TYPE PLUGINS:
 // Wait until the desired usec hit.
 // If you don't need to do anything special,
 // you can just `return wait_until_core(desired_usec);`.

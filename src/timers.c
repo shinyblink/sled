@@ -50,7 +50,7 @@ ulong wait_until_core(ulong desired_usec) {
 
 // This code calls into the output module's wait_until impl.
 ulong wait_until(ulong desired_usec) {
-	return outmod->out_wait_until(desired_usec);
+	return outmod->wait_until(desired_usec);
 }
 
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {

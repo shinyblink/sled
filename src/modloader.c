@@ -18,12 +18,12 @@ typedef struct module {
 	int (*init)(int moduleno);
 	int (*deinit)(void);
 	int (*draw)(int argc, char* argv[]);
-	int (*out_set)(int x, int y, RGB *color);
-	int (*out_clear)(void);
-	int (*out_render)(void);
-	int (*out_getx)(void);
-	int (*out_gety)(void);
-	ulong (*out_wait_until)(ulong desired_usec);
+	int (*set)(int x, int y, RGB *color);
+	int (*clear)(void);
+	int (*render)(void);
+	int (*getx)(void);
+	int (*gety)(void);
+	ulong (*wait_until)(ulong desired_usec);
 } module;
 
 static struct module modules[MAX_MODULES];
@@ -66,7 +66,7 @@ int modules_deinit(void) {
 int modules_loadmod(module* mod, char name[256], char* modpath) {
 	size_t len = strlen(name);
 	util_strlcpy(mod->type, name, 4);
-	util_strlcpy(mod->name, name, len - 6); // could malloc it, but whatever.
+	util_strlcpy(mod->name, &name[4], len - 6); // could malloc it, but whatever.
 
 	// Load the module.
 	dlerror();
@@ -80,23 +80,24 @@ int modules_loadmod(module* mod, char name[256], char* modpath) {
 	mod->init = dlookup(handle, modpath, "init");
 	mod->deinit = dlookup(handle, modpath, "deinit");
 
-	if (strcmp(mod->type, "out") == 0) {
-		mod->out_set = dlookup(handle, modpath, "set");
-		mod->out_clear = dlookup(handle, modpath, "clear");
-		mod->out_render = dlookup(handle, modpath, "render");
-		mod->out_getx = dlookup(handle, modpath, "getx");
-		mod->out_gety = dlookup(handle, modpath, "gety");
-		mod->out_wait_until = dlookup(handle, modpath, "wait_until");
+	if (strcmp(mod->type, "out") == 0 || strcmp(mod->type, "flt") == 0) {
+		mod->set = dlookup(handle, modpath, "set");
+		mod->clear = dlookup(handle, modpath, "clear");
+		mod->render = dlookup(handle, modpath, "render");
+		mod->getx = dlookup(handle, modpath, "getx");
+		mod->gety = dlookup(handle, modpath, "gety");
+		mod->wait_until = dlookup(handle, modpath, "wait_until");
 	} else {
 		mod->draw = dlookup(handle, modpath, "draw");
 	}
 	return 0;
 }
 
-int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
+int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtnames, int* filtno, module** filters) {
 	DIR *moduledir;
 	struct dirent *file;
 	moduledir = opendir(moddir); // for now.
+	int found_filters = 0;
 	printf("Loading modules...\n");
 	if (moduledir) {
 		while ((file = readdir(moduledir)) != NULL) {
@@ -114,9 +115,27 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 					continue;
 				}
 
-				if (strcmp(file->d_name, "out") > 0 && strncmp(&file->d_name[4], outmod, len - 4 - 3) != 0) { // 4 for the type, 3 for `.so`
+				char type[4];
+				util_strlcpy(type, file->d_name, 4);
+
+				if (strcmp(type, "out") == 0 && strncmp(&file->d_name[4], outmod, len - 4 - 3) != 0) { // 4 for the type, 3 for `.so`
 					printf(" Skipping unused output module.\n");
 					continue;
+				}
+
+				if (strcmp(type, "flt") == 0) {
+					char* name = &file->d_name[4];
+					int i;
+					int found = 0;
+					for (i = 0; i < *filtno; ++i)
+						if (strcmp(name, filtnames[i]) == 0) {
+							found = 1;
+							break;
+						}
+					if (found == 0) {
+						printf(" Skipping unused filter module.\n");
+						continue;
+					}
 				}
 
 				char* modpath = malloc((strlen(moddir) + len + 1) * sizeof(char));
@@ -127,6 +146,9 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 				if (strcmp(modules[modcount].type, "out") == 0) {
 					*outmodno = modcount;
 				}
+				if (strcmp(modules[modcount].type, "flt") == 0) {
+					*filters[++found_filters] = modules[modcount];
+				}
 
 				free(modpath);
 
@@ -135,6 +157,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 			}
 		}
 		closedir(moduledir);
+		*filtno = found_filters;
 	} else {
 		printf("Error opening modules directory. Nothing to load, nothing to try.\n");
 		return 3;
@@ -146,7 +169,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno) {
 	}
 
 	if (*outmodno == -1) {
-		eprintf("Didn't load an output module. This isn't good.");
+		eprintf("Didn't load an output module. This isn't good. ");
 		return 3;
 	}
 

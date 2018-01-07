@@ -9,20 +9,26 @@
 
 module* outmod;
 
-int matrix_init(int outmodno) {
+module** filters;
+int filter_amount = 0;
+
+int matrix_init(int outmodno, module** filter_list, int filtno) {
+	filters = filter_list;
+	filter_amount = filtno;
+
 	outmod = modules_get(outmodno);
 	return outmod->init(outmodno);
 }
 
 int matrix_getx(void) {
-	return outmod->out_getx();
+	return outmod->getx();
 }
 int matrix_gety(void) {
-	return outmod->out_gety();
+	return outmod->gety();
 }
 
 int matrix_set(int x, int y, RGB *color) {
-	return outmod->out_set(x, y, color);
+	return outmod->set(x, y, color);
 }
 
 // Fills part of the matrix with jo-- a single color.
@@ -53,7 +59,7 @@ int matrix_clear(void) {
 }
 
 int matrix_render(void) {
-	return outmod->out_render();
+	return outmod->render();
 }
 
 int matrix_deinit(void) {

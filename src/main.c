@@ -92,13 +92,15 @@ void main_force_random(int mnum, int argc, char ** argv) {
 }
 
 int usage(char* name) {
-	printf("Usage: %s [-o]\n", name);
+	printf("Usage: %s [-of]\n", name);
 	printf("\t-o --output: Set output module. Defaults to dummy.\n");
+	printf("\t-f --filter: Add a filter, can be used multiple times.\n");
 	return 1;
 };
 
 static struct option longopts[] = {
 	{ "output", required_argument, NULL, 'o' },
+	{ "filter", optional_argument, NULL, 'f' },
 	{ NULL,     0,                 NULL, 0},
 };
 
@@ -112,11 +114,21 @@ int main(int argc, char* argv[]) {
 	char outmod[256] = "dummy"; // dunno.
 #endif
 
-	while ((ch = getopt_long(argc, argv, "o:", longopts, NULL)) != -1) {
+	char* filternames[MAX_MODULES];
+	int filterno = 0;
+	while ((ch = getopt_long(argc, argv, "o:f:", longopts, NULL)) != -1) {
 		switch(ch) {
-		case 'o':
+		case 'o': {
 			util_strlcpy(outmod, optarg, 256);
 			break;
+		}
+		case 'f': {
+			int len = strlen(optarg);
+			char* str = malloc((len + 1) * sizeof(char));
+			util_strlcpy(str, optarg, len + 1);
+			filternames[++filterno] = str;
+			break;
+		}
 		case '?':
 		default:
 			return usage(argv[0]);
@@ -136,8 +148,9 @@ int main(int argc, char* argv[]) {
 	random_seed();
 
 	// Load modules
+	module** filters = malloc(filterno * sizeof(module*));
 	int outmodno = -1;
-	if (modules_loaddir("./modules/", outmod, &outmodno) != 0)
+	if (modules_loaddir("./modules/", outmod, &outmodno, filternames, &filterno, filters) != 0)
 		deinit();
 
 	// Initialize Timers.
@@ -149,7 +162,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Initialize Matrix.
-	ret = matrix_init(outmodno);
+	ret = matrix_init(outmodno, filters, filterno);
 	if (ret) {
 		// Fail.
 		printf("Matrix: Output plugin failed to initialize.\n");

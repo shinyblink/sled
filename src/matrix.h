@@ -1,8 +1,12 @@
 // Helper definitions that will allow one to manipulate the matrix.
 
-#include <types.h>
+#ifndef __INCLUDED_MATRIX__
+#define __INCLUDED_MATRIX__
 
-extern int matrix_init(int outmodno);
+#include <types.h>
+#include <modloader.h>
+
+extern int matrix_init(int outmodno, module** filter_list, int filterno);
 extern int matrix_getx(void);
 extern int matrix_gety(void);
 extern int matrix_set(int x, int y, RGB *color);
@@ -10,3 +14,5 @@ extern int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB *colo
 extern int matrix_clear(void);
 extern int matrix_render(void);
 extern int matrix_deinit(void);
+
+#endif
