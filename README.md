@@ -10,7 +10,7 @@ Read the Satanic Bible by Anton Szandor LaVey.
 Matrix consisting of ws2812b pixels.
 Minimum recommended size is 8x8, anything less and you won't see much of the effects.
 
-Can handle a maximum 256x256 matrix in either plain or snake tiling.
+Can handle a ~~maximum 256x256~~ pretty ridiculous matrix (switched to ints) in either plain or snake tiling.
 Plain means every row starts with the left pixel, while snake means it changes starting position every tile.
 Both start upper left, as that is (0, 0) for this code. 
 
