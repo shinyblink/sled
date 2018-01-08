@@ -156,8 +156,10 @@ int main(int argc, char* argv[]) {
 			filters[i] = -1;
 	}
 	int outmodno = -1;
-	if (modules_loaddir("./modules/", outmod, &outmodno, filternames, &filterno, filters) != 0)
+	if ((ret = modules_loaddir("./modules/", outmod, &outmodno, filternames, &filterno, filters)) != 0) {
 		deinit();
+		return ret;
+	}
 
 	// Initialize Timers.
 	ret = timers_init(outmodno);

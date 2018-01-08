@@ -76,7 +76,10 @@ int matrix_render(void) {
 }
 
 int matrix_deinit(void) {
-	int ret = outmod->deinit();
-	dlclose(outmod->lib);
+	int ret = 0;
+	if (outmod != NULL) {
+		ret = outmod->deinit();
+		dlclose(outmod->lib);
+	}
 	return ret;
 }

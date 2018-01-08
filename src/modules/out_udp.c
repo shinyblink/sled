@@ -1,5 +1,6 @@
 // UDP output.
 // Follows the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip code.
+// Quite a big mess. It works, however.
 
 #include <types.h>
 #include <timers.h>

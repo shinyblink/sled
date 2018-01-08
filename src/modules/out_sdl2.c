@@ -55,7 +55,9 @@ int set(int x, int y, RGB *color) {
 	assert(y < gety());
 
 	int pos = matrix_ppos(x, y) * 3;
-	memcpy(&BUFFER[pos], color, sizeof(RGB));
+	BUFFER[pos + 0] = color->red;
+	BUFFER[pos + 1] = color->green;
+	BUFFER[pos + 2] = color->blue;
 	return 0;
 }
 
