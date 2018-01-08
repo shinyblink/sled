@@ -21,10 +21,6 @@ typedef unsigned long ulong;
 #define PLATFORM_SDL2
 #endif
 
-#if !defined(PLATFORM_RPI) && !defined(PLATFORM_SDL2)
-#error Must define platform: Define one of PLATFORM_{RPI,SDL2}
-#endif
-
 #ifdef PLATFORM_SDL2
 // SDL-based platform.
 #define COLOR_ORDER_RGB
