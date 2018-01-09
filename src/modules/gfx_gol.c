@@ -22,6 +22,7 @@ static int modno;
 static int frame;
 static ulong nexttick;
 static int* board;
+static int* new;
 
 RGB white = { .red = 255, .green = 255, .blue = 255 };
 
@@ -34,6 +35,8 @@ int init(int moduleno) {
 
 	board = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	assert(board);
+	new = malloc(matrix_gety() * matrix_getx() * sizeof(int));
+	assert(new);
 
 	modno = moduleno;
 	return 0;
@@ -74,7 +77,6 @@ void gol_cycle(void) {
 	// 2) If a cell's neighbours are three, it'll be alive, regardless of state.
 	// 3) Any other count of neighbours will cause cells to die.;
 
-	int *new = malloc(matrix_gety() * matrix_getx() * sizeof(int));
 	int x;
 	int y;
 	for (x = 0; x < matrix_getx(); ++x)
@@ -90,12 +92,7 @@ void gol_cycle(void) {
 			}
 		}
 
-	// TODO: replace with memcpy once not 5 am.
-	for (x = 0; x < matrix_getx(); ++x)
-		for (y = 0; y < matrix_gety(); ++y)
-			board[POS(x, y)] = new[POS(x, y)];
-
-	free(new);
+	memcpy(board, new, matrix_getx() * matrix_gety() * sizeof(int));
 }
 
 int draw(int argc, char* argv[]) {
@@ -126,5 +123,6 @@ int draw(int argc, char* argv[]) {
 
 int deinit() {
 	free(board);
+	free(new);
 	return 0;
 }
