@@ -5,9 +5,9 @@
 #include <timers.h>
 #include <random.h>
 #include <stddef.h>
+#include <stdlib.h>
 
-#define FPS 15
-#define NUMBALLS 5
+#define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (RANDOM_TIME * FPS)
 
@@ -23,13 +23,18 @@ typedef struct ball {
 	int vel_y;
 } ball;
 
-static ball balls[NUMBALLS];
+static int numballs;
+ball* balls;
 
 int init(int moduleno) {
-	if (matrix_getx() < 2)
+	int mx = matrix_getx();
+	int my = matrix_gety();
+
+	if ((mx * my) > 16)
 		return 1;
-	if (matrix_gety() < 2)
-		return 1;
+
+	numballs = (mx * my) / 16; // not sure if this is the best thing to do, but meh.
+	balls = malloc(numballs * sizeof(ball));
 
 	modno = moduleno;
 	return 0;
@@ -39,7 +44,7 @@ void randomize_balls() {
 	int ball;
 	int mx = matrix_getx();
 	int my = matrix_gety();
-	for (ball = 0; ball < NUMBALLS; ++ball) {
+	for (ball = 0; ball < numballs; ++ball) {
 		balls[ball].color = RGB(randn(255), randn(255), randn(255));
 
 		balls[ball].pos_x = randn(mx - 1);
@@ -57,7 +62,7 @@ void update_balls() {
 	int ball;
 	int x;
 	int y;
-	for (ball = 0; ball < NUMBALLS; ++ball) {
+	for (ball = 0; ball < numballs; ++ball) {
 		x = balls[ball].pos_x + balls[ball].vel_x;
 		y = balls[ball].pos_y + balls[ball].vel_y;
 
@@ -93,7 +98,7 @@ int draw(int argc, char* argv[]) {
 	matrix_clear();
 
 	int ball;
-	for (ball = 0; ball < NUMBALLS; ++ball)
+	for (ball = 0; ball < numballs; ++ball)
 		matrix_set(balls[ball].pos_x, balls[ball].pos_y, &balls[ball].color);
 
 	matrix_render();
@@ -110,5 +115,6 @@ int draw(int argc, char* argv[]) {
 }
 
 int deinit() {
+	free(balls);
 	return 0;
 }
