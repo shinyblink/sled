@@ -80,7 +80,7 @@ void gol_cycle(void) {
 	int x;
 	int y;
 	for (x = 0; x < matrix_getx(); ++x)
-		for (y = 0; y < matrix_getx(); ++y) {
+		for (y = 0; y < matrix_gety(); ++y) {
 			int neighbours = gol_adj(x, y);
 
 			if (neighbours == 2) {
