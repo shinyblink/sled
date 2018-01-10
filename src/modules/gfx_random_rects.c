@@ -38,8 +38,8 @@ int draw(int argc, char* argv[]) {
 		dir = -1;
 
 	matrix_clear();
-	RGB color = { .red = randn(255), .green = randn(255), .blue = randn(255) };
-	RGB black = { .red = 0, .green = 0, .blue = 0 };
+	RGB color = RGB(randn(255), randn(255), randn(255));
+	RGB black = RGB(0, 0, 0);
 	byte off_x = step * STEP_X;
 	byte off_y = step * STEP_Y;
 

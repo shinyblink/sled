@@ -139,7 +139,7 @@ int draw(int argc, char* argv[]) {
 		text_buffer[(y * matrix_getx()) + (matrix_getx() - 1)] = text_point(y);
 		for (x = 0; x < matrix_getx(); x++) {
 			int v = text_buffer[x + (y * matrix_getx())] ? 255 : 0;
-			RGB color = { .red = v, .green = v, .blue = v};
+			RGB color = RGB(v, v, v);
 			matrix_set(x, y, &color);
 		}
 	}

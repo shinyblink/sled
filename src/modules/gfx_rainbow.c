@@ -23,7 +23,7 @@ int init(int moduleno) {
 }
 
 int draw_row(int row, byte r, byte g, byte b) {
-	RGB color = { .red = r, .green = g, .blue = b };
+	RGB color = RGB(r, g, b);
 	//return matrix_fill(row, 0, row, matrix_getx() - 1, &color);
 	int y;
 	for (y=0; y < matrix_gety(); ++y)

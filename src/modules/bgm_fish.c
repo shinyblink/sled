@@ -303,8 +303,7 @@ int draw(int argc, char ** argv) {
 		// Utilities that shouldn't be part of rotation:
 		if (!strcmp(argv[0], "/blank")) {
 			// Blank (...forever)
-			RGB col = {.red = 0, .green = 0, .blue = 0};
-			matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, &col);
+			matrix_clear();
 			matrix_render();
 			char ** x = malloc(sizeof(char *));
 			*x = strdup("/blank");

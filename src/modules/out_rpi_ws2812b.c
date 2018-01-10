@@ -91,9 +91,9 @@ int set(int x, int y, RGB *color) {
 }
 
 // Zeroes the stuff.
+RGB black = RGB(0, 0, 0);
 int clear(void) {
-	RGB color = { .red = 0, .green = 0, .blue = 0 };
-	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, &color);
+	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, &black);
 	return 0;
 }
 

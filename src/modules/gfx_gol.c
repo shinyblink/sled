@@ -24,7 +24,7 @@ static ulong nexttick;
 static int* board;
 static int* new;
 
-RGB white = { .red = 255, .green = 255, .blue = 255 };
+RGB white = RGB(255, 255, 255);
 
 int init(int moduleno) {
 	// doesn't look very great with anything less.

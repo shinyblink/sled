@@ -24,8 +24,7 @@ int init(int moduleno) {
 	return 0;
 }
 
-RGB black = { .red = 0, .green = 0, .blue = 0 };
-RGB white = { .red = 255, .green = 255, .blue = 255 };
+RGB white = RGB(255, 255, 255);
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0)

@@ -41,7 +41,7 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
-	RGB corrected = { .red = LUT_R[color->red], .green = LUT_G[color->green], .blue = LUT_B[color->blue] };
+	RGB corrected = RGB(LUT_R[color->red], LUT_G[color->green], LUT_B[color->blue]);
 	return next->set(x, y, &corrected);
 }
 

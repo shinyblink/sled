@@ -1,4 +1,5 @@
 sled
+sled.fish
 *.o
 *.so
 *.core

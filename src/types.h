@@ -30,15 +30,14 @@ typedef unsigned long ulong;
 #endif
 
 // Colors
-#if !defined(COLOR_ORDER_RGB) && !defined(COLOR_ORDER_GRB)
-#define COLOR_ORDER_GRB // for now, neopixel/ws2812b style
-#endif
-
 typedef struct RGB {
 	byte red;
 	byte green;
 	byte blue;
 } RGB;
+
+// Macro for painless colors.
+#define RGB(r, g, b) ((RGB) { .red = (r), .green = (g), .blue = (b) })
 
 // Matrix order and size
 #if !defined(MATRIX_ORDER_PLAIN) && !defined(MATRIX_ORDER_SNAKE)
