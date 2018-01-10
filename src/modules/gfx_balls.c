@@ -30,7 +30,7 @@ int init(int moduleno) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
 
-	if ((mx * my) > 16)
+	if ((mx * my) < 16)
 		return 1;
 
 	numballs = (mx * my) / 16; // not sure if this is the best thing to do, but meh.
