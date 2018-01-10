@@ -43,7 +43,7 @@ int draw(int argc, char* argv[]) {
 
 	matrix_clear();
 
-	float plasma = 1.0f / 3.7f;
+	float plasma = 1.0f / 3.6f;
 	float ccols = cosf(matrix_getx());
 	float srows = sinf(matrix_gety());
 

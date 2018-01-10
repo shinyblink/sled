@@ -1,7 +1,10 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES_AVAILABLE = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma out_dummy out_sdl2 out_rpi_ws2812b out_udp flt_debug flt_gamma_correct
-MODULES = gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma flt_debug flt_gamma_correct
+MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma gfx_checkerboard
+MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp
+MODULES_AVAILABLE += flt_debug flt_gamma_correct
+MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma gfx_checkerboard
+MODULES += flt_debug flt_gamma_correct
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
