@@ -11,7 +11,7 @@ int init(int moduleno) {
 }
 
 int draw(int argc, char* argv[]) {
-	RGB color = RGB(randn(255), randn(255), randn(255));
+	RGB color = RGB(randn(220), randn(220), randn(220));
 
 	matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, &color);
 
