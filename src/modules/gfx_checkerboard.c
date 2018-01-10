@@ -3,7 +3,6 @@
 #include <types.h>
 #include <matrix.h>
 #include <timers.h>
-#include <random.h>
 #include <stddef.h>
 
 #define FPS 2
