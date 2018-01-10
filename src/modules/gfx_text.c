@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #define TEXT_DEFAULT "h@ck me hard github.com/vifino/sled thanks"
-#define TEXT_DEFFRAMETIME (10000000 / matrix_getx())
+#define TEXT_DEFFRAMETIME (5000000 / matrix_getx())
 // note that this rounds up in case of, say, 7
 #define TEXT_MINH (((matrix_gety() + 1) / 2) - 4)
 // "gap" of zeroes after text
