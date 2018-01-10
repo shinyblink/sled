@@ -96,7 +96,7 @@ int usage(char* name) {
 	printf("\t-o --output: Set output module. Defaults to dummy.\n");
 	printf("\t-f --filter: Add a filter, can be used multiple times.\n");
 	return 1;
-};
+}
 
 static struct option longopts[] = {
 	{ "output", required_argument, NULL, 'o' },

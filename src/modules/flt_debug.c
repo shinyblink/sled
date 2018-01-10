@@ -42,7 +42,7 @@ int clear(void) {
 	fflush(stdin);
 	assert(next != NULL);
 	return next->clear();
-};
+}
 
 int render(void) {
 	printf("render\n");

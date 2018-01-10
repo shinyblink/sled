@@ -19,4 +19,4 @@ byte bmin(byte a, byte b) {
 
 byte bmax(byte a, byte b) {
 	return (a < b) ? a : b;
-};
+}

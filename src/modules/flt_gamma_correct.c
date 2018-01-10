@@ -47,7 +47,7 @@ int set(int x, int y, RGB *color) {
 
 int clear(void) {
 	return next->clear();
-};
+}
 
 int render(void) {
 	return next->render();
