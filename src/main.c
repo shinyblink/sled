@@ -23,6 +23,9 @@ static int main_rmod_override = -1;
 static int main_rmod_override_argc;
 static char* *main_rmod_override_argv;
 
+const char default_moduledir[] = "./modules/";
+static char* modpath = NULL;
+
 static int deinit(void) {
 	printf("Cleaning up...\n");
 	int ret;
@@ -35,6 +38,9 @@ static int deinit(void) {
 	pthread_mutex_destroy(&rmod_lock);
 	if (main_rmod_override != -1)
 		timer_free_argv(main_rmod_override_argc, main_rmod_override_argv);
+
+	free(modpath);
+
 	printf("Goodbye. :(\n");
 	return 0;
 }
@@ -44,7 +50,6 @@ static void interrupt(int t) {
 	timers_quitting = 1;
 }
 #endif
-
 
 static int pick_other(int mymodno, ulong in) {
 	pthread_mutex_lock(&rmod_lock);
@@ -93,15 +98,17 @@ void main_force_random(int mnum, int argc, char ** argv) {
 
 int usage(char* name) {
 	printf("Usage: %s [-of]\n", name);
-	printf("\t-o --output: Set output module. Defaults to dummy.\n");
-	printf("\t-f --filter: Add a filter, can be used multiple times.\n");
+	printf("\t-m --modpath: Set directory that contains the modules to load.\n");
+	printf("\t-o --output:  Set output module. Defaults to dummy.\n");
+	printf("\t-f --filter:  Add a filter, can be used multiple times.\n");
 	return 1;
 }
 
 static struct option longopts[] = {
-	{ "output", required_argument, NULL, 'o' },
-	{ "filter", optional_argument, NULL, 'f' },
-	{ NULL,     0,                 NULL, 0},
+	{ "modpath", required_argument, NULL, 'm' },
+	{ "output",  required_argument, NULL, 'o' },
+	{ "filter",  optional_argument, NULL, 'f' },
+	{ NULL,      0,                 NULL, 0},
 };
 
 int main(int argc, char* argv[]) {
@@ -116,8 +123,15 @@ int main(int argc, char* argv[]) {
 
 	char* filternames[MAX_MODULES];
 	int filterno = 0;
-	while ((ch = getopt_long(argc, argv, "o:f:", longopts, NULL)) != -1) {
+	while ((ch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
 		switch(ch) {
+		case 'm': {
+			int len = strlen(optarg);
+			char* str = calloc(len + 1, sizeof(char));
+			util_strlcpy(str, optarg, len + 1);
+			modpath = str;
+			break;
+		}
 		case 'o': {
 			util_strlcpy(outmod, optarg, 256);
 			break;
@@ -148,6 +162,8 @@ int main(int argc, char* argv[]) {
 	random_seed();
 
 	// Load modules
+	if (modpath == NULL)
+		modpath = strdup(default_moduledir);
 	int* filters = NULL;
 	if (filterno > 0) {
 		filters = malloc(filterno * sizeof(int));
@@ -156,7 +172,7 @@ int main(int argc, char* argv[]) {
 			filters[i] = -1;
 	}
 	int outmodno = -1;
-	if ((ret = modules_loaddir("./modules/", outmod, &outmodno, filternames, &filterno, filters)) != 0) {
+	if ((ret = modules_loaddir(modpath, outmod, &outmodno, filternames, &filterno, filters)) != 0) {
 		deinit();
 		return ret;
 	}

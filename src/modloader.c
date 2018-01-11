@@ -101,10 +101,11 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 	printf("Loading modules...\n");
 	if (moduledir) {
 		while ((file = readdir(moduledir)) != NULL) {
-			if (file->d_name[0] != '.') {
+			size_t len = strlen(file->d_name);
+			if (file->d_name[0] != '.' && (strcmp(&file->d_name[len - 3], ".so") == 0)) {
 				printf("\t- %s...", file->d_name);
 				fflush(stdin);
-				size_t len = strlen(file->d_name);
+
 				if (len < 8) {
 					printf("\n");
 					eprintf("Module's name is too short to be correct.\n");
@@ -147,8 +148,10 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 				}
 
 				char* modpath = malloc((strlen(moddir) + len + 1) * sizeof(char));
+				int moddirlen = strlen(moddir);
 				strcpy(modpath, moddir);
-				strcpy(modpath + strlen(moddir), file->d_name);
+				modpath[moddirlen] = '/';
+				strcpy(modpath + moddirlen + 1, file->d_name);
 
 				modules_loadmod(&modules[modcount], file->d_name, modpath);
 				if (strcmp(modules[modcount].type, "out") == 0) {
