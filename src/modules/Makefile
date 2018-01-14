@@ -26,6 +26,7 @@ bgm_fish.so: LDFLAGS += -pthread
 gfx_math_sinpi.so: LDFLAGS += -lm
 gfx_plasma.so: LDFLAGS += -lm
 flt_gamma_correct.so: LDFLAGS += -lm
+gfx_text.so: text.o
 
 out_sdl2.so: LDFLAGS += -lSDL2
 
