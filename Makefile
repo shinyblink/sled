@@ -24,7 +24,7 @@ MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
 
-OBJECTS = src/modloader.o src/matrix.o src/timers.o src/random.o src/mathey.o src/graphics.o src/util.o
+OBJECTS = src/asl.o src/modloader.o src/matrix.o src/timers.o src/random.o src/mathey.o src/graphics.o src/util.o
 
 all: $(PLATFORM) modules
 

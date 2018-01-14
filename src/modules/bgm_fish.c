@@ -12,6 +12,7 @@
 #include "matrix.h"
 #include "main.h"
 #include "modloader.h"
+#include "asl.h"
 
 #define FISH_SLEEPTIME (T_SECOND / 10)
 
@@ -23,92 +24,6 @@ char fish_getch_bufferval;
 void fish_panic(char * reason) {
 	printf("FISh died: %s\n", reason);
 	pthread_exit(0);
-}
-
-// Adds a character to a string, and disposes of the old one, unless it's NULL (in which case this creates a new one-char string)
-// Can return NULL itself on malloc failure.
-char * fish_growstr(char * str, char nxt) {
-	char * nstr = 0;
-	size_t sl = 0;
-	if (str) {
-		sl = strlen(str);
-		nstr = malloc(sl + 2);
-	} else {
-		nstr = malloc(2);
-	}
-	if (!nstr) {
-		if (str)
-			free(str);
-		return NULL;
-	}
-	if (str) {
-		strcpy(nstr, str);
-		free(str);
-	}
-	nstr[sl] = nxt;
-	nstr[sl + 1] = 0;
-	return nstr;
-}
-// Adds an argument to an argv, and disposes of the old one, unless it's NULL.
-// Element pointers are copied (no strdups).
-// Can return NULL itself on malloc failure.
-char ** fish_growav(int argc, char ** argv, char * nxt) {
-	char ** nav;
-	if (argv) {
-		nav = malloc(sizeof(char*) * (argc + 1));
-	} else {
-		nav = malloc(sizeof(char*));
-	}
-	if (!nav) {
-		timer_free_argv(argc, argv);
-		free(nxt);
-		return NULL;
-	}
-	if (argv) {
-		memcpy(nav, argv, sizeof(char*) * argc);
-		free(argv);
-	}
-	nav[argc] = nxt;
-	return nav;
-}
-// Like the previous, but prepending.
-char ** fish_pgrowav(int argc, char ** argv, char * nxt) {
-	char ** nav;
-	if (argv) {
-		nav = malloc(sizeof(char*) * (argc + 1));
-	} else {
-		nav = malloc(sizeof(char*));
-	}
-	if (!nav) {
-		timer_free_argv(argc, argv);
-		free(nxt);
-		return NULL;
-	}
-	if (argv) {
-		memcpy(nav + 1, argv, sizeof(char*) * argc);
-		free(argv);
-	}
-	nav[0] = nxt;
-	return nav;
-}
-// Like the previous, but removing the first, not adding to it.
-// It's assumed you've "collected" it elsewhere.
-char ** fish_pnabav(int argc, char ** argv) {
-	char ** nav;
-	if (argv) {
-		if (argc == 0)
-			return NULL;
-		nav = malloc(sizeof(char*) * (argc - 1));
-	} else {
-		return NULL;
-	}
-	if (!nav) {
-		timer_free_argv(argc - 1, argv + 1);
-		return NULL;
-	}
-	memcpy(nav, argv + 1, sizeof(char*) * (argc - 1));
-	free(argv);
-	return nav;
 }
 
 char fish_getch() {
@@ -182,7 +97,7 @@ char * fish_word(int * hitnl) {
 			} else {
 				escape = 0;
 			}
-			str = fish_growstr(str, c);
+			str = asl_growstr(str, c);
 			if (!str)
 				return NULL;
 		} else {
@@ -206,7 +121,7 @@ void fish_execute(char * module, int argc, char ** argv) {
 		free(module);
 		if (argc != 0) {
 			module = argv[0];
-			argv = fish_pnabav(argc--, argv);
+			argv = asl_pnabav(argc--, argv);
 			if (!argv) {
 				free(module);
 				return;
@@ -219,7 +134,7 @@ void fish_execute(char * module, int argc, char ** argv) {
 	// "/then /blank" is a useful tool
 	if (module[0] == '/') {
 		// "/blank" for example results in "fish.so /blank"
-		argv = fish_pgrowav(argc++, argv, module);
+		argv = asl_pgrowav(argc++, argv, module);
 		if (!argv) {
 			return;
 		} else {
@@ -270,7 +185,7 @@ void * fish_thread_func(void * arg) {
 			char * arg = fish_word(&hitnl);
 			if (!arg)
 				break;
-			argv = fish_growav(argc++, argv, arg);
+			argv = asl_growav(argc++, argv, arg);
 			if (!argv)
 				free(argv);
 		}
