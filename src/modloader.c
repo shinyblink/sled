@@ -44,18 +44,20 @@ void* dlookup(void* handle, char* modname, char* name) {
 int modules_deinit(void) {
 	int i;
 	int ret;
-	printf("Deinitializing %i modules...", modcount);
+	printf("Deinitializing %i modules...\n", modcount);
 	pthread_mutex_lock(&lock);
 	for (i = 0; i < modcount; i++) {
+		printf("\t- %s...", modules[i].name);
 		ret = modules[i].deinit();
 		if (ret != 0) {
 			printf("\n");
 			eprintf("Deinitializing module %s failed: Returned %i.", modules[i].name, ret);
 			return 6;
 		}
+		printf(" Done.\n");
 	}
+	printf("Done.\n");
 	pthread_mutex_unlock(&lock);
-	printf(" Done.\n");
 	if (pthread_mutex_destroy(&lock)) {
 		printf("Couldn't destroy modules mutex now no pesky background threads are around.\n");
 		return 1;

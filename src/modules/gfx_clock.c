@@ -9,16 +9,13 @@
 
 #define FRAMETIME (T_SECOND)
 #define FRAMES (RANDOM_TIME)
-#define PADX ((matrix_getx() - chars - 2) / 2)
-#define CHARS_FULL 8 // 20:15:09
-#define CHARS_SMALL 6 // 20:15
+#define CHARS_FULL 8 // 20:15:09, must also hold 20:15 (small)
 
-ulong nexttick, frametime;
-int frame;
+ulong nexttick;
+int frame = 0;
 int moduleno;
-// Boolean-map. This gets scrolled left, new text gets written on right.
-int * text_buffer;
-char clockstr[CHARS_FULL];
+int usesmall;
+char clockstr[CHARS_FULL + 1];
 text* rendered = NULL;
 
 int init(int modno) {
@@ -28,30 +25,46 @@ int init(int modno) {
 		return 1; // not enough X to be usable
 	if (matrix_gety() < 7)
 		return 1; // not enough Y to be usable
-
-	text_buffer = malloc(matrix_getx() * matrix_gety() * sizeof(int));
+	// max digit size is 4, plus 3 for :, so 4 + 4 + 3 + 4 + 4 + 3 + 4 + 4 = 24 + 6 = 30
+	usesmall = matrix_getx() < 30;
 	return 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
+	if (frame == 0)
 		nexttick = utime();
-	}
 
 	time_t rawtime;
-  struct tm * timeinfo;
+	struct tm * timeinfo;
+	const char * format = "%T";
+	if (usesmall)
+		format = "%R";
 	time (&rawtime);
-  timeinfo = localtime (&rawtime);
-	strftime(clockstr, CHARS_FULL, "%T", timeinfo);
+	timeinfo = localtime (&rawtime);
+	if (!strftime(clockstr, CHARS_FULL + 1, format, timeinfo)) {
+		// Empty string OR undefined, so change it
+		if (usesmall) {
+			strcpy(clockstr, "??:??");
+		} else {
+			strcpy(clockstr, "??:??:??");
+		}
+	}
+
+	if (rendered)
+		text_free(rendered);
 	rendered = text_render(clockstr);
 	if (!rendered)
 		return 2;
 
 	int x;
 	int y;
+	int padX = 0;
+	if (rendered)
+		padX = (matrix_getx() - rendered->len) / 2;
+	int padY = (matrix_gety() - 7) / 2;
 	for (y = 0; y < matrix_gety(); y++)
-				for (x = 0; x < matrix_getx(); x++) {
-			int v = text_point(rendered, x, y) ? 255 : 0;
+		for (x = 0; x < matrix_getx(); x++) {
+			int v = text_point(rendered, x - padX, y - padY) ? 255 : 0;
 			RGB color = RGB(v, v, v);
 			matrix_set(x, y, &color);
 		}
@@ -67,7 +80,7 @@ int draw(int argc, char* argv[]) {
 }
 
 int deinit() {
+	// This acts conditionally on rendered being non-NULL.
 	text_free(rendered);
-	free(text_buffer);
 	return 0;
 }

@@ -13,11 +13,15 @@ typedef struct text {
 } text;
 
 int text_point(text* rendered, int x, int y) {
+	if (x < 0)
+		return 0;
 	if (y < 0)
 		return 0;
 	if (y > 7)
 		return 0;
 	if (x >= rendered->len)
+		return 0;
+	if (!rendered)
 		return 0;
 	if (!rendered->buffer)
 		return 0;
@@ -66,13 +70,22 @@ int text_render_core(char * txt, byte* outp) {
 	}
 	return columns;
 }
+
 text* text_render(char * txt) {
 	text* rendered = malloc(sizeof(text));
-	rendered->len = text_render_core(txt, 0);
-  rendered->buffer = malloc(rendered->len);
-	if (!rendered->buffer)
+	if (!rendered)
 		return NULL;
-	text_render_core(txt, rendered->buffer);
+	rendered->len = text_render_core(txt, NULL);
+	rendered->buffer = NULL;
+	// pretty sure malloc(0) is undefined or something, don't do it
+	if (rendered->len != 0) {
+		rendered->buffer = malloc(rendered->len);
+		if (!rendered->buffer) {
+			free(rendered);
+			return NULL;
+		}
+		text_render_core(txt, rendered->buffer);
+	}
 	return rendered;
 }
 

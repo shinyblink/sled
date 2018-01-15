@@ -15,10 +15,9 @@
 #define TEXT_MINH (((matrix_gety() + 1) / 2) - 4)
 // "gap" of zeroes after text
 #define TEXT_GAP matrix_getx()
+
 ulong text_nexttick, text_frametime;
 int text_position, text_moduleno;
-// Boolean-map. This gets scrolled left, new text gets written on right.
-int * text_buffer;
 
 text* rendered = NULL;
 
@@ -31,19 +30,18 @@ int init(int moduleno) {
 	if (matrix_gety() < 7)
 		return 1; // not enough Y to be usable
 
-	text_buffer = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	return 0;
 }
 
 int draw(int argc, char* argv[]) {
 	if (argc != 0) {
 		text_free(rendered);
-		// this always sets involved values to 0 or a valid value
-		if (text_render(argv[0]))
-			return 1;
+		// this always sets involved values to 0 or a valid value.
 		text_position = 0;
+		rendered = text_render(argv[0]);
+		if (!rendered)
+			return 1;
 	}
-	int i;
 	if (text_position == 0) {
 		if (argc == 0) {
 			rendered = text_render(TEXT_DEFAULT);
@@ -53,25 +51,19 @@ int draw(int argc, char* argv[]) {
 		// Presumably this would be calculated based on an optional parameter or defaulting to TEXT_DEFFRAMETIME.
 		text_nexttick = utime();
 		text_frametime = TEXT_DEFFRAMETIME;
-		for (i = 0; i < (matrix_getx() * matrix_gety()); i++)
-			text_buffer[i] = 0;
 		// Add "center text & quit early" here
 	} else if (text_position == (rendered->len + TEXT_GAP)) {
 		text_position = 0;
 		text_free(rendered);
+		rendered = NULL;
 		return 1;
 	}
-	// advance buffer
-	for (i = 0; i < ((matrix_getx() * matrix_gety()) - 1); i++)
-		text_buffer[i] = text_buffer[i + 1];
 
 	int x;
 	int y;
 	for (y = 0; y < matrix_gety(); y++) {
-		// setup rightmost pixel
-		text_buffer[(y * matrix_getx()) + (matrix_getx() - 1)] = text_point(rendered, text_position, y);
 		for (x = 0; x < matrix_getx(); x++) {
-			int v = text_buffer[x + (y * matrix_getx())] ? 255 : 0;
+			int v = text_point(rendered, (x + text_position) - matrix_getx(), y) ? 255 : 0;
 			RGB color = RGB(v, v, v);
 			matrix_set(x, y, &color);
 		}
@@ -84,7 +76,7 @@ int draw(int argc, char* argv[]) {
 }
 
 int deinit() {
+	// This acts conditionally on rendered being non-NULL.
 	text_free(rendered);
-	free(text_buffer);
 	return 0;
 }
