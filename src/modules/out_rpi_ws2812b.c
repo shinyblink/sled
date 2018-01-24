@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <timers.h>
 #include <matrix.h>
+#include <signal.h>
 
 // Calculation for amount of bytes needed.
 
@@ -42,12 +43,22 @@ ws2811_t leds = {
 	}
 };
 
+// Interrupt things.
+static void interrupt(int t) {
+	timers_doquit();
+}
+
 int init(void) {
 	ws2811_return_t ret;
 	if ((ret = ws2811_init(&leds)) != WS2811_SUCCESS) {
 		eprintf("matrix: ws2811_init failed: %s\n", ws2811_get_return_t_str(ret));
 		return 2;
 	}
+
+	// Set up the interrupt handler.
+	// Graceful exit, wee.
+	signal(SIGINT, interrupt);
+
 	return 0;
 }
 

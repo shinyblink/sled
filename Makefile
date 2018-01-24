@@ -24,7 +24,9 @@ MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
 
-OBJECTS = src/asl.o src/modloader.o src/matrix.o src/timers.o src/random.o src/mathey.o src/graphics.o src/util.o
+SOURCES := src/asl.c src/modloader.c src/matrix.c src/timers.c src/random.c src/mathey.c src/graphics.c src/util.c
+OBJECTS := $(SOURCES:.c=.o)
+HEADERS := $(SOURCES:.c=.h)
 
 all: $(PLATFORM) modules
 
@@ -52,6 +54,10 @@ $(PROJECT): $(OBJECTS) src/main.o
 src/%.o: src/%.c
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	$^	-o $@
 
+# Generate tags
+tags: $(SOURCES) $(HEADERS)
+	exctags $^
+
 # Module rules.
 modules: $(MODULES)
 
@@ -64,5 +70,6 @@ $(OUTMOD): src/modules/out_$(OUTMOD).c
 	$(MAKE) -C src/modules out_$@.so DEFINES="$(DEFINES)" CC="$(CC)" CFLAGS="$(CFLAGS)"
 	mkdir -p modules
 
+# Cleanup
 clean:
 	rm -f $(PROJECT) src/main.o $(OBJECTS) modules/* src/modules/*.o src/modules/*.so

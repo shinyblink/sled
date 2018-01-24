@@ -16,6 +16,7 @@
 #include <netinet/in.h>
 #include <util.h>
 #include <assert.h>
+#include <signal.h>
 
 #define BUFLEN 1024
 #define TILE_PLAIN 1
@@ -34,6 +35,11 @@ static char* envdup;
 // Message will be:
 // 0xAA <R,G,B bytes..> <2 bytes checksum, unsigned short, hi, low>
 byte* message;
+
+// Interrupt shenanigans.
+static void interrupt(int t) {
+	timers_doquit();
+}
 
 int init(void) {
 	// Partially initialize the socket.
@@ -114,6 +120,9 @@ int init(void) {
   message = calloc((NUMPIX * 3) + 3, 1);
 	assert(message); // 2lazy to handle it properly.
 	message[0] = 0xAA;
+
+	// Attach signal handler.
+	signal(SIGINT, interrupt);
 
 	return 0;
 }

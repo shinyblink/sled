@@ -1,5 +1,6 @@
 sled
 sled.fish
+tags
 *.o
 *.so
 *.core

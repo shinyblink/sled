@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
@@ -44,12 +43,6 @@ static int deinit(void) {
 	printf("Goodbye. :(\n");
 	return 0;
 }
-
-#ifndef PLATFORM_SDL2
-static void interrupt(int t) {
-	timers_quitting = 1;
-}
-#endif
 
 static int pick_other(int mymodno, ulong in) {
 	pthread_mutex_lock(&rmod_lock);
@@ -117,6 +110,8 @@ int main(int argc, char* argv[]) {
 	char outmod[256] = "sdl2";
 #elif defined(PLATFORM_RPI)
 	char outmod[256] = "rpi_ws2812b";
+#elif defined(PLATFORM_UDP)
+	char outmod[256] = "udp";
 #else
 	char outmod[256] = "dummy"; // dunno.
 #endif
@@ -203,12 +198,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	modcount = modules_count();
-
-	#ifndef PLATFORM_SDL2
-	// Set up the interrupt handler. Note that SDL2 has it's own interrupt handler, so it takes precedence.
-	// In both cases, the active sleep is interrupted by some method and timers_quitting is set to 1.
-	signal(SIGINT, interrupt);
-	#endif
 
 	// Startup.
 	pick_other(-1, utime());
