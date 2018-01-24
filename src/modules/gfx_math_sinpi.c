@@ -6,6 +6,7 @@
 #include <math.h>
 #include <stddef.h>
 #include <graphics.h>
+#include <stdlib.h>
 
 #define FRAMETIME (T_SECOND / 30)
 #define FRAMES (RANDOM_TIME * 30)
@@ -17,9 +18,6 @@ static int modno;
 static int pos;
 static int frame;
 static ulong nexttick;
-
-byte lastx;
-byte lasty;
 
 int init(int moduleno) {
 	if (matrix_getx() < 3)
@@ -35,16 +33,30 @@ int draw(int argc, char* argv[]) {
 		nexttick = utime();
 
 	matrix_clear();
+	int mx = matrix_getx();
+	int my = matrix_gety();
 	int x;
 	int y;
-	for (x = 0; x < matrix_getx(); ++x) {
+	int lastx = 0;
+	int lasty = 0;
+	for (x = 0; x < mx; ++x) {
 		y = HALF_Y + (HALF_Y * sin((x + pos - 1) * M_PI * 2.0f / XSCALE));
 		if (y < 0)
 			y = 0;
-		if (y >= matrix_gety())
-			y = matrix_gety() - 1;
+		if (y >= my)
+			y = my - 1;
 		matrix_set(x, y, &white);
-		if (x != 0) graphics_drawline(lastx, lasty, x, y, &white);
+		if (x != 0) {
+			matrix_set(x, lasty, &white);
+			// fill gaps, slightly less ugly than invoking the line thing every call.
+			if (abs(y - lasty) > 1) {
+				int up = (lasty < y);
+				int px = lastx + 1;
+				int py = lasty + (up ? 1 : -1);
+				matrix_set(px, py, &white);
+				if ((px + 1) < mx) matrix_set(px + 1, py, &white);
+			}
+		};
 		lastx = x;
 		lasty = y;
 	}
