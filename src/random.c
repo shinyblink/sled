@@ -2,9 +2,9 @@
 // Not safe, but at least it avoids the modulo bias.
 // Definitly stolen from StackOverflow, because that's how programming works nowadays.
 
-#include <types.h>
+#include "types.h"
 #include <stdlib.h>
-#include <timers.h>
+#include "timers.h"
 
 void random_seed(void) {
 	// Dumbass way of seeding the pseudo RNG.

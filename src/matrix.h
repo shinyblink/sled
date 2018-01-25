@@ -3,8 +3,8 @@
 #ifndef __INCLUDED_MATRIX__
 #define __INCLUDED_MATRIX__
 
-#include <types.h>
-#include <modloader.h>
+#include "types.h"
+#include "modloader.h"
 
 extern int matrix_init(int outmodno, int* filter_list, int filterno);
 extern int matrix_getx(void);

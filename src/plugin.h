@@ -1,6 +1,6 @@
 // Header defining what plugins should implement.
 
-#include <types.h>
+#include "types.h"
 
 // Function that initializes the plugin.
 // Things like buffers, file loading, etc..

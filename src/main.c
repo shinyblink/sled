@@ -1,11 +1,11 @@
 // Main loader.
 
-#include <types.h>
-#include <matrix.h>
-#include <modloader.h>
-#include <timers.h>
-#include <random.h>
-#include <util.h>
+#include "types.h"
+#include "matrix.h"
+#include "modloader.h"
+#include "timers.h"
+#include "random.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,9 +1,9 @@
 // "graphics", some helpers for matrix stuff.
 
-#include <types.h>
-#include <matrix.h>
+#include "types.h"
+#include "matrix.h"
 #include <math.h>
-#include <mathey.h>
+#include "mathey.h"
 #include <stdlib.h>
 
 // PREV: replace this. 20kdc, looking at you.

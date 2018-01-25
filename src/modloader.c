@@ -1,13 +1,13 @@
 // Module stuff.
 
-#include <types.h>
+#include "types.h"
 //#include <timers.h>
 #include <dlfcn.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <util.h>
+#include "util.h"
 #include <pthread.h>
 
 typedef struct module {

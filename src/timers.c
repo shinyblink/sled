@@ -1,14 +1,14 @@
 // Timers.
 // Very basic, but enough for this.
 
-#include <types.h>
+#include "types.h"
 #include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
-#include <modloader.h>
+#include "modloader.h"
 
 typedef struct timer {
 	int moduleno;

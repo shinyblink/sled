@@ -1,10 +1,10 @@
 // The things actually doing the matrix manipulation.
 // Also contains the buffers.
 
-#include <types.h>
+#include "types.h"
 #include <string.h>
 #include <assert.h>
-#include <modloader.h>
+#include "modloader.h"
 #include <dlfcn.h>
 
 static module* outmod;
