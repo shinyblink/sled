@@ -8,6 +8,7 @@
 #include "text.h"
 
 #define FRAMETIME (T_SECOND)
+#define FRAMES (RANDOM_TIME)
 #define PADX ((matrix_getx() - chars - 2) / 2)
 #define CHARS_FULL 8 // 20:15:09
 #define CHARS_SMALL 6 // 20:15
@@ -23,7 +24,7 @@ text* rendered = NULL;
 int init(int modno) {
 	moduleno = modno;
 
-	if (matrix_getx() < 8)
+	if (matrix_getx() < 15)
 		return 1; // not enough X to be usable
 	if (matrix_gety() < 7)
 		return 1; // not enough Y to be usable
@@ -55,6 +56,11 @@ int draw(int argc, char* argv[]) {
 			matrix_set(x, y, &color);
 		}
 	matrix_render();
+	if (frame == FRAMES) {
+		frame = 0;
+		return 1;
+	}
+	frame++;
 	nexttick += FRAMETIME;
 	timer_add(nexttick, moduleno, 0, NULL);
 	return 0;
