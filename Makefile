@@ -1,7 +1,7 @@
 # Makefile for sled.
 PROJECT = sled
 MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma gfx_checkerboard gfx_balls gfx_clock
-MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp
+MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb
 MODULES_AVAILABLE += flt_debug flt_gamma_correct
 MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma gfx_checkerboard gfx_balls gfx_clock
 MODULES += flt_debug flt_gamma_correct
@@ -46,6 +46,8 @@ RPI: DEFINES += -DRPI_DMA=$(RPI_DMA) -DRPI_PIN=$(RPI_PIN)
 RPI: $(PROJECT) out_rpi_ws2812b
 
 UDP: $(PROJECT) out_udp
+
+FB: $(PROJECT) out_fb
 
 # Common rules
 $(PROJECT): $(OBJECTS) src/main.o

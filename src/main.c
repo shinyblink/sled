@@ -53,8 +53,17 @@ static int pick_other(int mymodno, ulong in) {
 		return res;
 	}
 	pthread_mutex_unlock(&rmod_lock);
-	int mod = -1;
-	if (modcount != 1) {
+	int mod;
+	int lastvalidmod = 0;
+	int usablemodcount = 0;
+	for (mod = 0; mod < modcount; mod++) {
+		if (strcmp(modules_get(mod)->type, "gfx") != 0)
+			continue;
+		usablemodcount++;
+		lastvalidmod = mod;
+	}
+	if (usablemodcount > 1) {
+		mod = -1;
 		while (mod == -1) {
 			int random = randn(modcount);
 			mod = random;
@@ -64,10 +73,7 @@ static int pick_other(int mymodno, ulong in) {
 			if (strcmp(modules_get(mod)->type, "gfx") != 0) mod = -1;
 		}
 	} else {
-		mod = 0;
-		// Technically, probably always the case
-		if (strcmp(modules_get(mod)->type, "gfx") != 0)
-			return 1;
+		mod = lastvalidmod;
 	}
 	return timer_add(in, mod, 0, NULL);
 }
