@@ -39,21 +39,7 @@ typedef struct RGB {
 // Macro for painless colors.
 #define RGB(r, g, b) ((RGB) { .red = (r), .green = (g), .blue = (b) })
 
-// Matrix order and size
-#if !defined(MATRIX_ORDER_PLAIN) && !defined(MATRIX_ORDER_SNAKE)
-#define MATRIX_ORDER_SNAKE // cause that's what i have, it's also the easiest to wire, IMO.
-#endif
-
-#ifndef MATRIX_X
-#error Define MATRIX_X as the matrixes X size.
-#endif
-
-#ifndef MATRIX_Y
-#error Define MATRIX_Y as the matrixes Y size.
-#endif
-
 // Module and timer stuff.
-
 #ifndef MAX_MODULES
 #define MAX_MODULES 32
 #endif

@@ -3,6 +3,16 @@
 #include <types.h>
 #include <timers.h>
 
+// Matrix size
+#ifdef MATRIX_X
+#error Define MATRIX_X as the matrixes X size.
+#endif
+
+#ifndef MATRIX_Y
+#error Define MATRIX_Y as the matrixes Y size.
+#endif
+
+
 int init(void) {
 	// Dummy!
 	return 0;

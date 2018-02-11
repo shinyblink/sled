@@ -4,14 +4,15 @@
 
 #include <types.h>
 #include <timers.h>
+#include <sys/param.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <stropts.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-static char * buf;
+static byte* buf;
 
 // 32bpp
 #define SLEDFB_P4EN 1
@@ -28,32 +29,76 @@ static int fbdev_w, fbdev_h, fbdev_fd;
 static int fbdev_flags;
 
 // Hardware Detection Routine - platform specific
+#if defined(__linux__)
 #include <linux/fb.h>
+#endif
+
+#ifdef __FreeBSD__
+#include <machine/param.h>
+#include <sys/consio.h>
+#include <sys/fbio.h>
+#include <sys/kbio.h>
+#include <sys/types.h>
+#endif
+
+#if !defined(__linux__) && !defined(__FreeBSD__)
+#error out_fb does not support this OS. Linux and FreeBSD only.
+#endif
+
 static int query_device(void) {
 	// Framebuffer access
 	char * env = getenv("FRAMEBUFFER");
 	if (!env)
 		env = "/dev/fb0";
 	fbdev_fd = open(env, O_RDWR);
-	if (fbdev_fd < 0)
+	if (fbdev_fd < 0) {
+		eprintf("FB: Failed to open framebuffer.\n");
 		return 1;
+	}
 	// 20kdc's config (PITCAIRN over HDMI)
 	// fbdev_w = 1920;
 	// fbdev_h = 1080;
 	// fbdev_flags = SLEDFB_P4EN | SLEDFB_BGR; // 0x9
+#ifdef __linux__
 	struct fb_var_screeninfo ifo;
 	struct fb_fix_screeninfo xifo;
 	if (ioctl(fbdev_fd, FBIOGET_VSCREENINFO, &ifo) == -1) {
+		eprintf("FB: Couldn't get var screen info.\n");
 		close(fbdev_fd);
 		return 1;
 	}
 	if (ioctl(fbdev_fd, FBIOGET_FSCREENINFO, &xifo) == -1) {
+		eprintf("FB: Couldn't get fix screen info.\n");
 		close(fbdev_fd);
 		return 1;
 	}
 	fbdev_w = ifo.xres;
 	fbdev_h = ifo.yres;
+#elif defined(__FreeBSD__)
+	/*
+	video_adapter_info_t ainfo;
+	video_info_t vinfo;
+	if (ioctl(fbdev_fd, FBIO_ADPINFO, &ainfo)) {
+		eprintf("FB: Couldn't get adapter info.\n");
+		close(fbdev_fd);
+		return 1;
+	}
+	if (ioctl(fbdev_fd, FBIO_GETMODE, &vinfo) < 0) {
+		eprintf("FB: Couldn't get mode.\n");
+		close(fbdev_fd);
+		return 1;
+	}
+	fbdev_w = vinfo.vi_width;
+	fbdev_h = vinfo.vi_height;
+	*/
+	// since the above is broken, hardcoding, yay.
+	fbdev_w = 1366;
+	fbdev_h = 768;
+	fbdev_flags = SLEDFB_P4EN;
+#endif
 	fbdev_flags = 0;
+
+#ifdef __linux__
 	// Guess details
 	if (xifo.type != FB_TYPE_PACKED_PIXELS) {
 		if (xifo.type != FB_TYPE_PLANES) {
@@ -62,22 +107,32 @@ static int query_device(void) {
 		}
 		fbdev_flags |= SLEDFB_PLANAR;
 	}
-	if (ifo.bits_per_pixel != 24) {
-		if (ifo.bits_per_pixel != 32) {
-			fprintf(stderr, "FB: Expected 24/32-bit display, got %i\n", ifo.bits_per_pixel);
+	int bpp = ifo.bits_per_pixel;
+#endif
+#ifdef __FreeBSD__
+int bpp = 24; //vinfo.bpp;
+#endif
+	if (bpp != 24) {
+		if (bpp != 32) {
+			fprintf(stderr, "FB: Expected 24/32-bit display, got %i\n", bpp);
 			return 1;
 		}
 		fbdev_flags |= SLEDFB_P4EN;
+#ifdef __linux__
 		if (ifo.transp.length) {
 			fbdev_flags |= SLEDFB_P4AI;
 			if (ifo.transp.offset < ifo.red.offset)
 				fbdev_flags |= SLEDFB_P4AF;
 		}
-	}
+#endif
+}
+
+#ifdef __linux__
 	if (ifo.red.offset > ifo.blue.offset)
 		fbdev_flags |= SLEDFB_BGR;
+#endif
 	// Final debug print
-	fprintf(stderr, "FB: \"%s\" -> %i x %i, flags %02x\n", xifo.id, fbdev_w, fbdev_h, fbdev_flags);
+	fprintf(stderr, "FB: \"%s\" -> %i x %i, flags %02x\n", env, fbdev_w, fbdev_h, fbdev_flags);
 	return 0;
 }
 
@@ -132,7 +187,7 @@ int set(int x, int y, RGB *color) {
 			i += p;
 		buf[i] = (fbdev_flags & SLEDFB_BGR) ? color->blue : color->red;
 		buf[i + p] = color->green;
-		buf[i + (p * 2)] = (fbdev_flags & SLEDFB_BGR) ? color->red : color->blue;		
+		buf[i + (p * 2)] = (fbdev_flags & SLEDFB_BGR) ? color->red : color->blue;
 	}
 	return 0;
 }

@@ -1,5 +1,18 @@
-// The things actually doing the matrix manipulation.
-// Also contains the buffers.
+// Raspberry Pi ws2812b output module.
+
+// Matrix order and size
+#if !defined(MATRIX_ORDER_PLAIN) && !defined(MATRIX_ORDER_SNAKE)
+#define MATRIX_ORDER_SNAKE // cause that's what i have, it's also the easiest to wire, IMO.
+#endif
+
+#ifndef MATRIX_X
+#error Define MATRIX_X as the matrixes X size.
+#endif
+
+#ifndef MATRIX_Y
+#error Define MATRIX_Y as the matrixes Y size.
+#endif
+
 
 #include <types.h>
 #include <string.h>
