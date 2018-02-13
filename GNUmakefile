@@ -2,7 +2,7 @@
 PROJECT = sled
 MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma gfx_checkerboard gfx_balls gfx_clock
 MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb
-MODULES_AVAILABLE += flt_debug flt_gamma_correct
+MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y
 MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma gfx_checkerboard gfx_balls gfx_clock
 MODULES += flt_debug flt_gamma_correct
 
