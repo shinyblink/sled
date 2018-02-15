@@ -13,6 +13,9 @@
 #error Define MATRIX_Y as the matrixes Y size.
 #endif
 
+#if !defined(COLOR_ORDER_RGB) && !defined(COLOR_ORDER_GRB)
+#define COLOR_ORDER_GRB // for now, neopixel/ws2812b style
+#endif
 
 #include <types.h>
 #include <string.h>
