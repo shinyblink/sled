@@ -12,7 +12,7 @@ typedef struct timer {
 } timer;
 
 extern int timers_quitting;
-extern unsigned long utime(void);
+extern unsigned long udate(void);
 extern unsigned long wait_until_core(unsigned long desired_usec);
 extern unsigned long wait_until(unsigned long desired_usec);
 // Adds a new timer. If usec is 0, automatically clears the timers *when retrieved with timer_get*.

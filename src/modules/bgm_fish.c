@@ -222,7 +222,7 @@ int draw(int argc, char ** argv) {
 			matrix_render();
 			char ** x = malloc(sizeof(char *));
 			*x = strdup("/blank");
-			timer_add(utime() + SECOND, fish_moduleno, 1, x);
+			timer_add(udate() + SECOND, fish_moduleno, 1, x);
 			return 0;
 		} else if (!strcmp(argv[0], "/error42")) {
 			// Trigger error 42 as a quick escape.

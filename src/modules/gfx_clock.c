@@ -33,7 +33,7 @@ int init(int modno) {
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0)
-		nexttick = utime();
+		nexttick = udate();
 
 	time_t rawtime;
 	struct tm * timeinfo;

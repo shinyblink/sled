@@ -30,7 +30,7 @@ RGB white = { .red = 255, .green = 255, .blue = 255 };
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0)
-		nexttick = utime();
+		nexttick = udate();
 
 	matrix_clear();
 	int mx = matrix_getx();

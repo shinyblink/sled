@@ -92,7 +92,7 @@ int render(void) {
 ulong wait_until(ulong desired_usec) {
 	SDL_Event ev;
 	while (1) {
-		ulong tnow = utime();
+		ulong tnow = udate();
 		if (tnow >= desired_usec)
 			return tnow;
 
@@ -100,7 +100,7 @@ ulong wait_until(ulong desired_usec) {
 		if (SDL_WaitEventTimeout(&ev, sleeptimems)) {
 			if (ev.type == SDL_QUIT) {
 				timers_doquit();
-				return utime();
+				return udate();
 			}
 		} else {
 			return wait_until_core(desired_usec);

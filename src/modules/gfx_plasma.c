@@ -37,7 +37,7 @@ float dist(float x0, float y0, float x1, float y1) {
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0) {
-		nexttick = utime();
+		nexttick = udate();
 		pos = randn(255);
 	}
 

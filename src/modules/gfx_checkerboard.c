@@ -27,7 +27,7 @@ RGB white = RGB(255, 255, 255);
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0)
-		nexttick = utime();
+		nexttick = udate();
 
 	matrix_clear();
 

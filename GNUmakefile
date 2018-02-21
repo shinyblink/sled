@@ -15,6 +15,9 @@ OS := $(shell uname)
 ifeq ($(OS),Linux)
 	LIBS += -ldl
 endif
+ifeq ($(OS),Darwin)
+	CFLAGS += -undefined dynamic_lookup
+endif
 
 # Defaults
 PLATFORM ?= DEBUG

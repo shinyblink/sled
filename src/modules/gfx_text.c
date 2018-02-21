@@ -49,7 +49,7 @@ int draw(int argc, char* argv[]) {
 				return 1;
 		}
 		// Presumably this would be calculated based on an optional parameter or defaulting to TEXT_DEFFRAMETIME.
-		text_nexttick = utime();
+		text_nexttick = udate();
 		text_frametime = TEXT_DEFFRAMETIME;
 		// Add "center text & quit early" here
 	} else if (text_position == (rendered->len + TEXT_GAP)) {

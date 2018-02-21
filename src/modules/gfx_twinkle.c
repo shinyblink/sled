@@ -40,7 +40,7 @@ int init(int moduleno) {
 
 int draw(int argc, char* argv[]) {
 	if (twinkle_framecount == 0)
-		twinkle_nexttick = utime();
+		twinkle_nexttick = udate();
 
 	int x;
 	int y;

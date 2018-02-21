@@ -206,14 +206,14 @@ int main(int argc, char* argv[]) {
 	modcount = modules_count();
 
 	// Startup.
-	pick_other(-1, utime());
+	pick_other(-1, udate());
 
 	int lastmod = -1;
 	while (!timers_quitting) {
 		timer tnext = timer_get();
 		if (tnext.moduleno == -1) {
 			// Queue random.
-			pick_other(lastmod, utime() + RANDOM_TIME * T_SECOND);
+			pick_other(lastmod, udate() + RANDOM_TIME * T_SECOND);
 		} else {
 			wait_until(tnext.time);
 			module* mod = modules_get(tnext.moduleno);
@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
 				if (ret == 1) {
 					if (lastmod != tnext.moduleno) // not an animation.
 						printf("\nModule chose to pass its turn to draw.");
-					pick_other(lastmod, utime() + T_MILLISECOND);
+					pick_other(lastmod, udate() + T_MILLISECOND);
 				} else {
 					eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
 					timers_quitting = 1;

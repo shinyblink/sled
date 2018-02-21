@@ -29,7 +29,7 @@ module* outmod;
 
 void timer_free_argv(int argc, char ** argv);
 
-ulong utime(void) {
+ulong udate(void) {
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL) == -1) {
 		printf("Failed to get the time???\n");
@@ -40,7 +40,7 @@ ulong utime(void) {
 
 // The critical wait_until code
 ulong wait_until_core(ulong desired_usec) {
-	ulong tnow = utime();
+	ulong tnow = udate();
 	if (tnow >= desired_usec)
 		return tnow;
 	useconds_t sleeptime = desired_usec - tnow;

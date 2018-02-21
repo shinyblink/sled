@@ -49,7 +49,7 @@ void wheel(byte x, byte wheelpos) {
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0)
-		nexttick = utime();
+		nexttick = udate();
 
 	matrix_clear();
 	int x;
