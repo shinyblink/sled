@@ -54,10 +54,10 @@ FB: $(PROJECT) out_fb
 
 # Common rules
 $(PROJECT): $(OBJECTS) src/main.o
-	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) $(LIBS) -o $@	$^ $(EXTRA_OBJECTS)
+	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS)	-o $@	$^ $(EXTRA_OBJECTS) $(LIBS)
 
 src/%.o: src/%.c
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	$^	-o $@
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	-o $@	$^
 
 # Generate tags
 tags: $(SOURCES) $(HEADERS)

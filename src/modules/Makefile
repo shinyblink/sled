@@ -13,10 +13,10 @@ DEFINES := -DISMODULE $(DEFINES)
 
 # Common rules
 %.so: %.o
-	$(CC) -fPIC -shared $(CFLAGS) $(LDFLAGS) $(LIBS) -o $@	$^ $(EXTRA_OBJECTS)
+	$(CC) -fPIC -shared $(CFLAGS) $(LDFLAGS)	-o $@	$^ $(EXTRA_OBJECTS) $(LIBS)
 
 %.o: %.c
-	$(CC) -c -fPIC $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	$^	-o $@
+	$(CC) -c -fPIC $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	-o $@	$^
 
 # Include files go here
 %.c: font.h ../main.h ../matrix.h ../modloader.h ../plugin.h ../random.h ../timers.h ../types.h
@@ -28,6 +28,7 @@ gfx_plasma.so: LDFLAGS += -lm
 flt_gamma_correct.so: LDFLAGS += -lm
 gfx_text.so: text.o
 gfx_clock.so: text.o
+gfx_sinematrix.so: LDFLAGS += -lm
 
 out_sdl2.so: LDFLAGS += -lSDL2
 
