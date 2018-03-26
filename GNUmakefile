@@ -1,10 +1,20 @@
 # Makefile for sled.
 PROJECT = sled
-MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_text bgm_fish gfx_plasma gfx_checkerboard gfx_balls gfx_clock gfx_sinematrix
+
+MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
+MODULES_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerboard
+MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix
+
 MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb
+MODULES_AVAILABLE += bgm_fish bgm_opc
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y
-MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi bgm_fish gfx_plasma gfx_checkerboard gfx_balls gfx_clock gfx_sinematrix
-MODULES += flt_debug flt_gamma_correct
+
+MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
+MODULES += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerboard
+MODULES += gfx_balls gfx_clock gfx_sinematrix
+
+MODULES += bgm_fish bgm_opc
+MODULES += flt_debug flt_gamma_correct flt_flip_x flt_flip_y
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
@@ -21,8 +31,9 @@ endif
 
 # Defaults
 PLATFORM ?= DEBUG
-MATRIX_X ?= 16
-MATRIX_Y ?= 8
+# For those who want to emulate layouts/wall.json from OPC, use 25x50 here.
+MATRIX_X ?= 25
+MATRIX_Y ?= 50
 MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
