@@ -239,5 +239,7 @@ int deinit() {
 	opc_shutdown_flag = 1;
 	write(opc_shutdown_fd_mt, &opc_shutdown_flag, sizeof(opc_shutdown_flag));
 	pthread_join(opc_thread, NULL);
+    close(opc_shutdown_fd_mt);
+    close(opc_shutdown_fd_ot);
 	return 0;
 }
