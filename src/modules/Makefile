@@ -23,14 +23,14 @@ DEFINES := -DISMODULE $(DEFINES)
 
 # Module specific stuffs
 bgm_fish.so: LDFLAGS += -pthread
-gfx_math_sinpi.so: LDFLAGS += -lm
-gfx_plasma.so: LDFLAGS += -lm
-flt_gamma_correct.so: LDFLAGS += -lm
+gfx_math_sinpi.so: LIBS += -lm
+gfx_plasma.so: LIBS += -lm
+flt_gamma_correct.so: LIBS += -lm
 gfx_text.so: text.o
 gfx_clock.so: text.o
-gfx_sinematrix.so: LDFLAGS += -lm
+gfx_sinematrix.so: LIBS += -lm
 
-out_sdl2.so: LDFLAGS += -lSDL2
+out_sdl2.so: LIBS += -lSDL2
 
 RPI_WS2812B_PATH ?= ../../../rpi_ws281x
 out_rpi_ws2812b.so: EXTRA_OBJECTS = $(RPI_WS2812B_PATH)/libws2811.a
