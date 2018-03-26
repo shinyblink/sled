@@ -76,41 +76,39 @@ int draw(int argc, char* argv[]) {
 
 	matrix_clear();
 
-	int mx = matrix_getx();
-	int my = matrix_gety();
+	const int mx = matrix_getx();
+	const int my = matrix_gety();
+	const float size_factor = M_PI;
+	const float fx = mx / size_factor;
+	const float fy = my / size_factor;
 
-	pangle = addmodpi( pangle, 0.0133 + (angle/256) );
-  angle = cosf(pangle) * M_PI;
-  sx = addmodpi( sx, 0.00673 );
-  sy = addmodpi( sy, 0.00437 );
-  tx = addmodpi( tx, 0.00239 );
-  ty = addmodpi( ty, 0.00293 );
-  cx = addmodpi( cx, 0.00197 );
-  cy = addmodpi( cy, 0.00227 );
-  rcx = (mx/2) + (sinf(cx) * mx);
-  rcy = (my/2) + (sinf(cy) * my);
-  angle2 = addmodpi( angle2, 0.0029 );
-  sx2 = addmodpi( sx2, 0.0041);
-  sy2 = addmodpi( sy2, 0.0031);
-  tx2 = addmodpi( tx2, 0.0011 );
-  ty2 = addmodpi( ty2, 0.0023 );
-  basecol = addmod( basecol, 1.0, 0.007 );
+	pangle = addmodpi( pangle, (0.00937) + (angle/256) );
+	angle = cosf(pangle) * M_PI;
+	sx = addmodpi( sx, 0.00673 );
+	sy = addmodpi( sy, 0.00437 );
+	tx = addmodpi( tx, 0.0239/mx );
+	ty = addmodpi( ty, 0.0293/my );
+	cx = addmodpi( cx, 0.00197 );
+	cy = addmodpi( cy, 0.00227 );
+	rcx = (mx/2) + (sinf(cx) * mx);
+	rcy = (my/2) + (sinf(cy) * my);
+	basecol = addmod( basecol, 1.0, 0.007 );
 
-  matrix rotate = {
-    .v1_1 = cosf(angle),
-    .v1_2 = -sinf(angle),
-    .v2_1 = sinf(angle),
-    .v2_2 = cosf(angle),
-  };
-  matrix scale = {
-    .v1_1 = sinf(sx)/4.0 + 0.15,
-    .v1_2 = 0,
-    .v2_1 = 0,
-    .v2_2 = cosf(sy)/4.0 + 0.15,
-  };
-  vector translate = {
-    .x = sinf(tx) * mx,
-    .y = sinf(ty) * my,
+	matrix rotate = {
+	  .v1_1 = cosf(angle),
+	  .v1_2 = -sinf(angle),
+	  .v2_1 = sinf(angle),
+	  .v2_2 = cosf(angle),
+	};
+	matrix scale = {
+	  .v1_1 = (sinf(sx) + 0.35)/fx,
+	  .v1_2 = 0,
+	  .v2_1 = 0,
+	  .v2_2 = (cosf(sy) + 0.35)/fy,
+	};
+	vector translate = {
+	  .x = sinf(tx) * mx,
+	  .y = sinf(ty) * my,
 	};
 
 	int x;
