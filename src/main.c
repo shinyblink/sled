@@ -149,7 +149,8 @@ int main(int argc, char* argv[]) {
 			} else
 				modname = optarg;
 			util_strlcpy(outmod, modname, 256);
-			free(modname);
+			if (arg)
+				free(arg);
 			break;
 		}
 		case 'f': {
