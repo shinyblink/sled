@@ -41,7 +41,7 @@ static void interrupt(int t) {
 	timers_doquit();
 }
 
-int init(void) {
+int init(int modno, char* argstr) {
 	// Partially initialize the socket.
 	if ((sock=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
 		perror("out_udp: Failed to initialize socket");
@@ -50,14 +50,12 @@ int init(void) {
 	memset((char *) &sio, 0, sizeof(struct sockaddr_in));
 	sio.sin_family = AF_INET;
 
-	// Parse env. This sucks.
-	char* var = getenv("MATRIX");
-	if (var == NULL) {
+	// Parse string. This sucks.
+	if (argstr == NULL) {
 		eprintf("MATRIX environment variable not set. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
 		return 3;
 	}
-	char* data = malloc((strlen(var) + 1) * sizeof(char));
-	util_strlcpy(data, var, strlen(var) + 1);
+	char* data = argstr;
 	envdup = data;
 	char* ip = data;
 	char* portstr;
@@ -123,6 +121,9 @@ int init(void) {
 
 	// Attach signal handler.
 	signal(SIGINT, interrupt);
+
+	// Free stuff.
+	free(data);
 
 	return 0;
 }

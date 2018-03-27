@@ -21,7 +21,7 @@ int text_position, text_moduleno;
 
 text* rendered = NULL;
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	text_position = 0;
 	text_moduleno = moduleno;
 

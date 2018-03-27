@@ -15,7 +15,7 @@ static int pos;
 static int frame;
 static ulong nexttick;
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	if (matrix_getx() < 3)
 		return 1;
 	modno = moduleno;

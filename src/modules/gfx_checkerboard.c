@@ -13,7 +13,7 @@ static int modno;
 static int frame;
 static ulong nexttick;
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	if (matrix_getx() < 2)
 		return 1;
 	if (matrix_gety() < 2)

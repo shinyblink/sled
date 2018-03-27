@@ -28,7 +28,7 @@ static int twinkle_moduleno;
 static ulong twinkle_nexttick;
 int twinkle_framecount;
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	int i;
 	twinkle_levels = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	assert(twinkle_levels);

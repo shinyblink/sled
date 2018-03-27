@@ -72,7 +72,7 @@ float basecol = 0; 	// base color offset to start from for each frame
 
 /*** module init ***/
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	mx = matrix_getx();
 	my = matrix_gety();
 	fx = mx / scale_factor;

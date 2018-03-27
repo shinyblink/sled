@@ -6,15 +6,21 @@
 #include <modloader.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 
 static module* next;
 
-int init(int nextno) {
+int init(int nextno, char* argstr) {
 	printf("flt_dummy loading. next mod is %i\n", nextno);
 	fflush(stdin);
 	// get next ptr.
 	next = modules_get(nextno);
 	printf("next is %p", next);
+
+	if (argstr) {
+		printf("got argstr: %s", argstr);
+		free(argstr);
+	}
 	return 0;
 }
 

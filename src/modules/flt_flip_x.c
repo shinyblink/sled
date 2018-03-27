@@ -6,7 +6,7 @@
 
 static module* next;
 
-int init(int nextno) {
+int init(int nextno, char* argstr) {
 	// get next ptr.
 	next = modules_get(nextno);
 	return 0;

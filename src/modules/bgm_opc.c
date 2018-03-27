@@ -187,7 +187,7 @@ void * opc_thread_func(void * n) {
 	return 0;
 }
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	opc_shutdown_flag = 0;
 	opc_mtcountdown = 100;
 	// Shutdown signalling pipe

@@ -26,7 +26,7 @@ static int* new;
 
 RGB white = RGB(255, 255, 255);
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	// doesn't look very great with anything less.
 	if (matrix_getx() < 8)
 		return 1;

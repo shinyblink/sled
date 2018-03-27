@@ -18,7 +18,7 @@ static byte LUT_B[MAX_VAL + 1];
 
 #define CORRECTION ((powf((float)i / MAX_VAL, GAMMA) * MAX_VAL) + 0.5f)
 
-int init(int nextno) {
+int init(int nextno, char* argstr) {
 	// get next ptr.
 	next = modules_get(nextno);
 	float whitepoint[3] = WHITEPOINT;

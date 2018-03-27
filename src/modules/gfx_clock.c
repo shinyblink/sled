@@ -19,7 +19,7 @@ int usesmall;
 char clockstr[CHARS_FULL + 1];
 text* rendered = NULL;
 
-int init(int modno) {
+int init(int modno, char* argstr) {
 	moduleno = modno;
 
 	if (matrix_getx() < 15)

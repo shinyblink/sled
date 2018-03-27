@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <random.h>
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	return 0;
 }
 

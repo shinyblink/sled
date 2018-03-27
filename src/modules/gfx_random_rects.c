@@ -18,7 +18,7 @@ static int dir = 1;
 static int frame;
 static ulong nexttick;
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	if (matrix_getx() < (STEPS * 2))
 		return 1;
 	if (matrix_gety() < (STEPS * 2))

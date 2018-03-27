@@ -195,7 +195,7 @@ void * fish_thread_func(void * arg) {
 	return NULL;
 }
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	fish_shutdown = 0;
 	fish_moduleno = moduleno;
 

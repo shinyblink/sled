@@ -26,7 +26,7 @@ typedef struct ball {
 static int numballs;
 ball* balls;
 
-int init(int moduleno) {
+int init(int moduleno, char* argstr) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
 
