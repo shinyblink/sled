@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 	char* filternames[MAX_MODULES];
 	char* filterargs[MAX_MODULES];
 	int filterno = 0;
-	char* outarg;
+	char* outarg = NULL;
 	while ((ch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
 		switch(ch) {
 		case 'm': {
@@ -142,11 +142,9 @@ int main(int argc, char* argv[]) {
 			char* arg = tmp;
 
 			char* modname = strsep(&arg, ":");
-			if (arg != NULL) {
-				len = strlen(arg); // optarg is now the string after the colon
-				outarg = malloc((len + 1) * sizeof(char)); // i know, its a habit. a good one.
-				util_strlcpy(outarg, arg, len + 1);
-			} else
+			if (arg != NULL)
+				outarg = strdup(arg);
+			else
 				modname = optarg;
 			util_strlcpy(outmod, modname, 256);
 			if (arg)
