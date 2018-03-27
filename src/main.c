@@ -152,20 +152,17 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 		case 'f': {
-			int len = strlen(optarg);
-			char* tmp = malloc((len + 1) * sizeof(char));
-			util_strlcpy(tmp, optarg, len + 1);
-			char* arg = tmp;
+			char* arg = strdup(optarg);
 
 			char* modname = strsep(&arg, ":");
 			char* fltarg = NULL;
 			if (arg != NULL) {
-				len = strlen(arg); // optarg is now the string after the colon
+				int len = strlen(arg); // optarg is now the string after the colon
 				fltarg = malloc((len + 1) * sizeof(char)); // i know, its a habit. a good one.
 				util_strlcpy(fltarg, arg, len + 1);
 			} else
 				modname = optarg;
-			len = strlen(modname);
+			int len = strlen(modname);
 			char* str = malloc((len + 1) * sizeof(char));
 			util_strlcpy(str, modname, len + 1);
 			filternames[filterno] = str;
