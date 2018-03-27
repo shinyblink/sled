@@ -10,7 +10,7 @@ typedef struct module {
 	char type[4];
 	void *lib;
 
-	int (*init)(int moduleno);
+	int (*init)(int moduleno, char* argstr);
 	int (*deinit)(void);
 	int (*draw)(int argc, char* argv[]);
 	int (*set)(int x, int y, RGB *color);

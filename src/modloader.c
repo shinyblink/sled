@@ -15,7 +15,7 @@ typedef struct module {
 	char type[4];
 	void* lib;
 
-	int (*init)(int moduleno);
+	int (*init)(int moduleno, char* argstr);
 	int (*deinit)(void);
 	int (*draw)(int argc, char* argv[]);
 	int (*set)(int x, int y, RGB *color);
@@ -126,6 +126,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					continue;
 				}
 
+				int fltindex;
 				if (strcmp(type, "flt") == 0) {
 					if (*filtno == 0) {
 						printf(" Skipping unused filter modules.\n");
@@ -140,6 +141,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					for (i = 0; i < *filtno; ++i)
 						if (strcmp(name, filtnames[i]) == 0) { // offset for .so
 							found = 1;
+							fltindex = i;
 							break;
 						}
 					name[flen - 3] = '.';
@@ -160,7 +162,8 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					*outmodno = modcount;
 				}
 				if (strcmp(modules[modcount].type, "flt") == 0) {
-					filters[found_filters++] = modcount;
+					filters[fltindex] = modcount;
+					found_filters++;
 				}
 
 				free(modpath);
@@ -205,7 +208,7 @@ int modules_init(int * outmodno) {
 			rerun = 0;
 			if (strcmp(modules[mod].type, "out") != 0 && strcmp(modules[mod].type, "flt") != 0){
 				printf("\t- %s...", modules[mod].name);
-				ret = modules[mod].init(mod);
+				ret = modules[mod].init(mod, NULL);
 				if (ret > 0) {
 					if (ret != 1) {
 						printf("\n");

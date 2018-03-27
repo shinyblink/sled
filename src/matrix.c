@@ -12,19 +12,19 @@ static module* outmod;
 int* filters;
 int filter_amount = 0;
 
-int matrix_init(int outmodno, int* filter_list, int filtno) {
+int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char** filtargs) {
 	filters = filter_list;
 	filter_amount = filtno;
 
 	outmod = modules_get(outmodno);
-	int ret = outmod->init(outmodno);
+	int ret = outmod->init(outmodno, outarg);
 	if (ret != 0) return ret;
 
 	if (filtno > 0) {
 		int i = filtno;
 		int last = outmodno;
 		for (i = (filtno - 1); i >= 0; --i) {
-			ret = modules_get(filters[i])->init(last);
+			ret = modules_get(filters[i])->init(last, filtargs[i]);
 			if (ret != 0) return ret;
 			last = filters[i];
 		};

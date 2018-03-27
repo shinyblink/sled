@@ -6,7 +6,7 @@
 #include "types.h"
 #include "modloader.h"
 
-extern int matrix_init(int outmodno, int* filter_list, int filterno);
+extern int matrix_init(int outmodno, int* filter_list, int filterno, char* outarg, char** filtargs);
 extern int matrix_getx(void);
 extern int matrix_gety(void);
 extern int matrix_set(int x, int y, RGB *color);

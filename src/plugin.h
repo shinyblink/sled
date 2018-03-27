@@ -15,7 +15,10 @@
 //
 // NOTE: For "flt" type filter plugins, moduleno is the next filter or
 // the output module. In other cases, it is the moduleno of oneself.
-int init(int moduleno);
+//
+// argstr is always NULL for anything that isn't a filter or output module.
+// It may not be for those if args have been passed to sled.
+int init(int moduleno, char* argstr);
 
 // FOR "gfx" TYPE PLUGINS:
 // Draw function, gets called as scheduled.

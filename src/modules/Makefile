@@ -19,7 +19,7 @@ DEFINES := -DISMODULE $(DEFINES)
 	$(CC) -c -fPIC $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)	$(DEFINES)	-o $@	$^
 
 # Include files go here
-%.c: font.h ../main.h ../matrix.h ../modloader.h ../plugin.h ../random.h ../timers.h ../types.h
+%.c: font.h ../main.h ../asl.h ../matrix.h ../modloader.h ../plugin.h ../random.h ../timers.h ../types.h ../graphics.h ../mathey.h ../util.h
 
 # Module specific stuffs
 bgm_fish.so: LDFLAGS += -pthread

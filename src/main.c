@@ -123,7 +123,9 @@ int main(int argc, char* argv[]) {
 #endif
 
 	char* filternames[MAX_MODULES];
+	char* filterargs[MAX_MODULES];
 	int filterno = 0;
+	char* outarg;
 	while ((ch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
 		switch(ch) {
 		case 'm': {
@@ -134,14 +136,42 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 		case 'o': {
-			util_strlcpy(outmod, optarg, 256);
+			int len = strlen(optarg);
+			char* tmp = malloc((len + 1) * sizeof(char));
+			util_strlcpy(tmp, optarg, len + 1);
+			char* arg = tmp;
+
+			char* modname = strsep(&arg, ":");
+			if (arg != NULL) {
+				len = strlen(arg); // optarg is now the string after the colon
+				outarg = malloc((len + 1) * sizeof(char)); // i know, its a habit. a good one.
+				util_strlcpy(outarg, arg, len + 1);
+			} else
+				modname = optarg;
+			util_strlcpy(outmod, modname, 256);
+			free(modname);
 			break;
 		}
 		case 'f': {
 			int len = strlen(optarg);
+			char* tmp = malloc((len + 1) * sizeof(char));
+			util_strlcpy(tmp, optarg, len + 1);
+			char* arg = tmp;
+
+			char* modname = strsep(&arg, ":");
+			char* fltarg = NULL;
+			if (arg != NULL) {
+				len = strlen(arg); // optarg is now the string after the colon
+				fltarg = malloc((len + 1) * sizeof(char)); // i know, its a habit. a good one.
+				util_strlcpy(fltarg, arg, len + 1);
+			} else
+				modname = optarg;
+			len = strlen(modname);
 			char* str = malloc((len + 1) * sizeof(char));
-			util_strlcpy(str, optarg, len + 1);
-			filternames[filterno++] = str;
+			util_strlcpy(str, modname, len + 1);
+			filternames[filterno] = str;
+			filterargs[filterno] = fltarg;
+			filterno++;
 			break;
 		}
 		case '?':
@@ -187,7 +217,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	// Initialize Matrix.
-	ret = matrix_init(outmodno, filters, filterno);
+	ret = matrix_init(outmodno, filters, filterno, outarg, filterargs);
 	if (ret) {
 		// Fail.
 		printf("Matrix: Output plugin failed to initialize.\n");

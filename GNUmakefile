@@ -10,11 +10,11 @@ MODULES_AVAILABLE += bgm_fish bgm_opc
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y
 
 MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
-MODULES += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerboard
+MODULES += gfx_rainbow gfx_math_sinpi gfx_plasma gfx_checkerboard
 MODULES += gfx_balls gfx_clock gfx_sinematrix
 
 MODULES += bgm_fish bgm_opc
-MODULES += flt_debug flt_gamma_correct flt_flip_x flt_flip_y
+MODULES += flt_gamma_correct flt_flip_x flt_flip_y
 
 CC ?= cc
 CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
