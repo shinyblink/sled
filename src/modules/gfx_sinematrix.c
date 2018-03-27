@@ -29,7 +29,9 @@ float fx, fy;		// size-dependent factors
 
 /*** base effect coefficients. This is where you want to play around. ***/
 
-const float scale_factor = M_PI;		// basic scale factor, determining how much of the "base image" is seen on average.
+// basic scale factor, determining how much of the "base image" is seen on average.
+// Higher numbers mean that the camera is farther away from the canvas.
+const float scale_factor = M_PI;
 
 // Increments per frame. Higher numbers mean higher speed, but keep these values well below 0.1.
 // Anything higher than 0.1 definitely produces visual stuttering and blinking.
@@ -44,6 +46,9 @@ const float inc_translate_y =	0.0293f;	// camera movement speed in Y direction
 const float inc_rotcenter_x =	0.00197f;	// camera rotation center changing speed in X direction
 const float inc_rotcenter_y =	0.00227f;	// camera rotation center changing speed in Y direction
 
+// maximum effect color range per frame. Values between 32 and 1024 are interesting here.
+// Values above 255 let the rainbow overflow inside the effect range... well, it's hard to describe ^^
+const int effect_color_range = 	255;
 
 // middle of the scale factor range (the scale factors will revolve around these values). Keep them between 0.0 and 1.0.
 const float offset_scale_x =	0.35f;		
@@ -147,7 +152,7 @@ int draw(int argc, char* argv[]) {
 	for (y = 0; y < my; ++y)
 		for (x = 0; x < mx; ++x) {
 			vector c = vadd(vmmult(mmult(rotate, scale), (vector) { .x = x-rcx, .y = y-rcy }), translate);
-			RGB col = HSV2RGB(HSV((basecol+sinecircle3D(c.x, c.y))*255, 255, 255));
+			RGB col = HSV2RGB(HSV((basecol*255)+(sinecircle3D(c.x, c.y)*effect_color_range), 255, 255));
 			matrix_set(x, y, &col);
 		};
 
