@@ -52,7 +52,7 @@ int init(int modno, char* argstr) {
 
 	// Parse string. This sucks.
 	if (argstr == NULL) {
-		eprintf("MATRIX environment variable not set. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring not set. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 3;
 	}
 	char* data = argstr;
@@ -60,47 +60,47 @@ int init(int modno, char* argstr) {
 	char* ip = data;
 	char* portstr;
 	if (strsep(&data, ":") == NULL) {
-		eprintf("MATRIX environment variable doesn't contain a port seperator. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain a port seperator. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 3;
 	}
 	if ((portstr = strsep(&data, ",")) == NULL) { // can't find anything after : before ,
-		eprintf("MATRIX environment variable doesn't contain port. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain port. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 3;
 	}
 
 	if (inet_aton(ip, &sio.sin_addr) == 0) {
-		eprintf("MATRIX environment variable doesn't contain a valid IP. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain a valid IP. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 4;
 	}
 
 	char* xd;
 	if ((xd = strsep(&data, "x")) == NULL) { // can't find anything after ,
-		eprintf("MATRIX environment variable doesn't contain X size. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain X size. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 3;
 	}
 
 	port = util_parse_int(portstr);
 	if (port == 0) {
-		eprintf("MATRIX environment variable doesn't contain a valid port. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain a valid port. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 4;
 	}
 	sio.sin_port = htons(port);
 
 	char* yd;
 	if ((yd = strsep(&data, ",")) == NULL) { // can't find anything after ,
-		eprintf("MATRIX environment variable doesn't contain Y size. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain Y size. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 3;
 	}
 
 	X_SIZE = util_parse_int(xd);
 	if (X_SIZE == 0) {
-		eprintf("MATRIX environment variable doesn't contain a X matrix size. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain a X matrix size. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 4;
 	}
 
 	Y_SIZE = util_parse_int(yd);
 	if (Y_SIZE == 0) {
-		eprintf("MATRIX environment variable doesn't contain a Y matrix size. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain a Y matrix size. Example: -o udp:192.168.69.42:1234,16x8,snake\n");
 		return 4;
 	}
 
@@ -110,7 +110,7 @@ int init(int modno, char* argstr) {
 	if (strcmp(tilename, "plain") == 0) tiletype = TILE_PLAIN;
 	if (strcmp(tilename, "snake") == 0) tiletype = TILE_SNAKE;
 	if (tiletype == -1) {
-		eprintf("MATRIX environment variable doesn't contain a valid tiling type. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
+		eprintf("UDP argstring doesn't contain a valid tiling type. Example: MATRIX=192.168.69.42:1234,16x8,snake\n");
 		return 4;
 	}
 
