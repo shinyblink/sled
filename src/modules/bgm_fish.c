@@ -186,8 +186,6 @@ void * fish_thread_func(void * arg) {
 			if (!arg)
 				break;
 			argv = asl_growav(argc++, argv, arg);
-			if (!argv)
-				free(argv);
 		}
 		if (!argv)
 			argc = 0;
