@@ -41,8 +41,6 @@ int draw(int argc, char* argv[]) {
 		pos = randn(255);
 	}
 
-	matrix_clear();
-
 	float plasma = 1.0f / 3.6f;
 	float ccols = cosf(matrix_getx());
 	float srows = sinf(matrix_gety());

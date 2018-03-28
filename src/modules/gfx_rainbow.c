@@ -51,7 +51,6 @@ int draw(int argc, char* argv[]) {
 	if (frame == 0)
 		nexttick = udate();
 
-	matrix_clear();
 	int x;
 	for (x = 0; x < matrix_getx(); ++x)
 		wheel(x, pos + x);

@@ -101,7 +101,6 @@ int draw(int argc, char* argv[]) {
 		gol_shuffle_board();
 	}
 
-	matrix_clear();
 	int x;
 	int y;
 	for (x=0; x < matrix_getx(); ++x)

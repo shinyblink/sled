@@ -29,8 +29,6 @@ int draw(int argc, char* argv[]) {
 	if (frame == 0)
 		nexttick = udate();
 
-	matrix_clear();
-
 	int mx = matrix_getx();
 	int my = matrix_gety();
 

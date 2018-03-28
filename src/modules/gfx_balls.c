@@ -26,6 +26,8 @@ typedef struct ball {
 static int numballs;
 ball* balls;
 
+static RGB black = RGB(0, 0, 0);
+
 int init(int moduleno, char* argstr) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
@@ -92,12 +94,17 @@ void update_balls() {
 int draw(int argc, char* argv[]) {
 	if (frame == 0) {
 		nexttick = udate();
+		matrix_clear();
 		randomize_balls();
 	}
 
-	matrix_clear();
-
 	int ball;
+	// clear out old balls
+	for (ball = 0; ball < numballs; ++ball)
+		matrix_set(balls[ball].pos_x, balls[ball].pos_y, &black);
+
+	// update the balls and draw them
+	update_balls(); // todo, move back below matrix_render, to get a more consistant framerate
 	for (ball = 0; ball < numballs; ++ball)
 		matrix_set(balls[ball].pos_x, balls[ball].pos_y, &balls[ball].color);
 
@@ -110,7 +117,6 @@ int draw(int argc, char* argv[]) {
 	frame++;
 	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
-	update_balls();
 	return 0;
 }
 
