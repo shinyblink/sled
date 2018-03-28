@@ -69,6 +69,9 @@ float rcx = 0;		// rotation center offset x
 float rcy = 0;		// rotation center offset y
 float basecol = 0; 	// base color offset to start from for each frame
 
+/*** optimization preinit ***/
+
+RGB precalc_hsv[256]; // precalculated X, 255, 255
 
 /*** module init ***/
 
@@ -81,7 +84,8 @@ int init(int moduleno, char* argstr) {
 		return 1;
 	if (my < 2)
 		return 1;
-
+	for (int i = 0; i < 256; i++)
+		precalc_hsv[i] = HSV2RGB(HSV(i, 255, 255));
 	modno = moduleno;
 	return 0;
 }
@@ -108,11 +112,8 @@ inline float addmodpi(float x, float delta) {
 /*** main drawing loop ***/
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
+	if (frame == 0)
 		nexttick = udate();
-	}
-
-	matrix_clear();
 
 	// increase the run variables by the const amounts set above
 	pangle = addmodpi( pangle, inc_angle + (angle*var_angle) );
@@ -146,19 +147,38 @@ int draw(int argc, char* argv[]) {
 	  .y = sinf(ty) * my,
 	};
 
+	matrix rotscale = mmult(rotate, scale);
+	vector rotscale_xbasis = {
+	  .x = rotscale.v1_1,
+	  .y = rotscale.v1_2,
+	};
+	vector rotscale_ybasis = {
+	  .x = rotscale.v2_1,
+	  .y = rotscale.v2_2,
+	};
+
 	// put it all together
 	int x;
 	int y;
-	for (y = 0; y < my; ++y)
+	vector outerbasis = {
+	  .x = (rotscale_xbasis.x * -rcx) + (rotscale_ybasis.x * -rcy),
+	  .y = (rotscale_xbasis.y * -rcx) + (rotscale_ybasis.y * -rcy)
+	};
+	outerbasis = vadd(outerbasis, translate);
+	for (y = 0; y < my; ++y) {
+		vector c = outerbasis;
 		for (x = 0; x < mx; ++x) {
-			vector c = vadd(vmmult(mmult(rotate, scale), (vector) { .x = x-rcx, .y = y-rcy }), translate);
-			RGB col = HSV2RGB(HSV((basecol*255)+(sinecircle3D(c.x, c.y)*effect_color_range), 255, 255));
-			matrix_set(x, y, &col);
-		};
+			// vector c = vadd(vmmult(rotscale, (vector) { .x = x-rcx, .y = y-rcy }), translate);
+			float hue = (basecol * 255) + (sinecircle3D(c.x, c.y) * effect_color_range);
+			matrix_set(x, y, precalc_hsv + (((int) hue) & 0xFF));
+			c = vadd(c, rotscale_xbasis);
+		}
+		outerbasis = vadd(outerbasis, rotscale_ybasis);
+	}
 
 	// render it out
 	matrix_render();
-	
+
 	// manage framework variables
 	if (frame >= FRAMES) {
 		frame = 0;
