@@ -50,8 +50,8 @@ void randomize_balls() {
 		balls[ball].pos_x = randn(mx - 1);
 		balls[ball].pos_y = randn(my - 1);
 
-		balls[ball].vel_x = randn(1) ? 1 : -1;
-		balls[ball].vel_y = randn(1) ? 1 : -1;
+		balls[ball].vel_x = randn(8) - 4;
+		balls[ball].vel_y = randn(8) - 4;
 	}
 }
 

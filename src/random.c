@@ -15,8 +15,10 @@ uint randn(uint n) {
 	if (n == 0)
 		return 0; // don't even bother.
 
-	if ((n - 1) == RAND_MAX)
+	if (n == RAND_MAX)
 		return rand();
+
+	n++;
 
 	// Chop off all the values that would cause skew.
 	long end = RAND_MAX / n;
