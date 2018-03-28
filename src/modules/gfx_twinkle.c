@@ -13,7 +13,7 @@
 #define TWINKLE_LEVELS 8
 #define TWINKLE_FRAMETIME 100 * T_MILLISECOND
 #define TWINKLE_FRAMES RANDOM_TIME * 10
-const int twinkle_level_tab[TWINKLE_LEVELS] = {
+static const int twinkle_level_tab[TWINKLE_LEVELS] = {
 	0,
 	32,
 	192,

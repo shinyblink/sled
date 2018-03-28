@@ -21,7 +21,7 @@ static int pos;
 static int frame;
 static ulong nexttick;
 
-float *colbuf;
+static float *colbuf;
 
 int init(int moduleno, char* argstr) {
 	if (matrix_getx() < 3)

@@ -12,12 +12,12 @@
 #define FRAMES (RANDOM_TIME)
 #define CHARS_FULL 8 // 20:15:09, must also hold 20:15 (small)
 
-ulong nexttick;
-int frame = 0;
-int moduleno;
-int usesmall;
-char clockstr[CHARS_FULL + 1];
-text* rendered = NULL;
+static ulong nexttick;
+static int frame = 0;
+static int moduleno;
+static int usesmall;
+static char clockstr[CHARS_FULL + 1];
+static text* rendered = NULL;
 
 int init(int modno, char* argstr) {
 	moduleno = modno;

@@ -17,18 +17,17 @@
 #define TOPCOL_HEIGHT 8
 #define XWIDTH 8
 
-int width;
-int height;
+static int width;
+static int height;
 
-
-text* rendered = NULL;
+static text* errtext = NULL;
 
 int init(int moduleno, char* argstr) {
-	rendered = text_render(TEXT);
-	if (!rendered)
+	errtext = text_render(TEXT);
+	if (!errtext)
 		return 2;
 
-	width = (rendered->len + 4); // text size + pixel spacing and border
+	width = (errtext->len + 4); // text size + pixel spacing and border
 	height = (TOPCOL_HEIGHT + 7 + 3); // top window decor + text width (7) + pixel spacing and plus border
 
 
@@ -76,7 +75,7 @@ void draw_error(int x, int y) {
 	int ty;
 	for (ty = 0; ty < (height - TOPCOL_HEIGHT - 2); ty++) {
 		for (tx = 0; tx < (width - 2); tx++) {
-			RGB col = text_point(rendered, tx, ty) ? textcol : bgcol;
+			RGB col = text_point(errtext, tx, ty) ? textcol : bgcol;
 			matrix_set(tbx + tx, tby + ty, &col);
 		}
 	}
@@ -91,6 +90,6 @@ int draw(int argc, char* argv[]) {
 
 int deinit() {
 	// This acts conditionally on rendered being non-NULL.
-	text_free(rendered);
+	text_free(errtext);
 	return 0;
 }

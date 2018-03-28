@@ -16,10 +16,10 @@
 // "gap" of zeroes after text
 #define TEXT_GAP matrix_getx()
 
-ulong text_nexttick, text_frametime;
-int text_position, text_moduleno;
+static ulong text_nexttick, text_frametime;
+static int text_position, text_moduleno;
 
-text* rendered = NULL;
+static text* rendered = NULL;
 
 int init(int moduleno, char* argstr) {
 	text_position = 0;

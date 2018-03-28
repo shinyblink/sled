@@ -35,9 +35,6 @@ int draw(int argc, char* argv[]) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
 
-	int off1 = (frame + 0) % 2;
-	int off2 = (off1 == 1) ? 0 : 1;
-
 	int x;
 	int y;
 	for (y = 0; y < my; y++)

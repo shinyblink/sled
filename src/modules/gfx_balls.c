@@ -24,7 +24,7 @@ typedef struct ball {
 } ball;
 
 static int numballs;
-ball* balls;
+static ball* balls;
 
 static RGB black = RGB(0, 0, 0);
 
