@@ -23,11 +23,14 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-RGB white = RGB(255, 255, 255);
+static RGB white = RGB(255, 255, 255);
+static RGB black = RGB(0, 0, 0);
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0)
+	if (frame == 0) {
 		nexttick = udate();
+		matrix_clear();
+	}
 
 	int mx = matrix_getx();
 	int my = matrix_gety();
@@ -37,12 +40,9 @@ int draw(int argc, char* argv[]) {
 
 	int x;
 	int y;
-	for (y = 0; y < my; y += 2)
-		for (x = off1; x < mx; x += 2)
-			matrix_set(x, y, &white);
-	for (y = 1; y < my; y += 2)
-		for (x = off2; x < mx; x += 2)
-			matrix_set(x, y, &white);
+	for (y = 0; y < my; y++)
+		for (x = 0; x < mx; x++)
+			matrix_set(x, y, ((y + x + frame) % 2) ? &black : &white);
 
 	matrix_render();
 	if (frame >= FRAMES) {

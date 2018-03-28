@@ -24,7 +24,8 @@ static ulong nexttick;
 static int* board;
 static int* new;
 
-RGB white = RGB(255, 255, 255);
+static RGB white = RGB(255, 255, 255);
+static RGB black = RGB(0, 0, 0);
 
 int init(int moduleno, char* argstr) {
 	// doesn't look very great with anything less.
@@ -105,8 +106,7 @@ int draw(int argc, char* argv[]) {
 	int y;
 	for (x=0; x < matrix_getx(); ++x)
 		for (y=0; y < matrix_gety(); ++y)
-			if (board[POS(x, y)] == ALIVE)
-				matrix_set(x, y, &white);
+			matrix_set(x, y, (board[POS(x, y)] == ALIVE) ? &white : &black);
 
 	matrix_render();
 	if (frame >= FRAMES) {
