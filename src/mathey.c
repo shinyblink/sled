@@ -42,6 +42,14 @@ vector vadd(vector v1, vector v2) {
 	return r;
 };
 
+vector vmul(vector vec, float val) {
+	vector r = {
+		.x = vec.x * val,
+		.y = vec.y * val,
+	};
+	return r;
+}
+
 matrix mmult(matrix m1, matrix m2) {
 	matrix r = {
 		.v1_1 = (m1.v1_1 * m2.v1_1) + (m1.v1_2 * m2.v2_1),

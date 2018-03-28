@@ -8,6 +8,10 @@
 #include <pthread.h>
 #include <string.h>
 
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#include <pthread_np.h>
+#endif
+
 #include "timers.h"
 #include "matrix.h"
 #include "main.h"
@@ -208,6 +212,14 @@ int init(int moduleno, char* argstr) {
 		return 3;
 	}
 	pthread_create(&fish_thread, NULL, fish_thread_func, NULL);
+
+	// Name our thread.
+#if defined(__linux__) || defined(__NetBSD__)
+	pthread_setname_np(fish_thread, "bgm_fish");
+#elif defined(__FreeBSD__) || defined(__OpenBSD__)
+	pthread_set_name_np(fish_thread, "bgm_fish");
+#endif
+
 	return 0;
 }
 

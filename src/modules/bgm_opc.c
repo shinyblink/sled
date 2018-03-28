@@ -17,6 +17,11 @@
 #include <string.h>
 #include <errno.h>
 
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#include <pthread_np.h>
+#endif
+
+
 #include "timers.h"
 #include "matrix.h"
 #include "main.h"
@@ -197,6 +202,13 @@ int init(int moduleno, char* argstr) {
 	opc_shutdown_fd_ot = tmp[1];
 	opc_moduleno = moduleno;
 	pthread_create(&opc_thread, NULL, opc_thread_func, NULL);
+
+		// Name our thread.
+#if defined(__linux__) || defined(__NetBSD__)
+	pthread_setname_np(opc_thread, "bgm_opc");
+#elif defined(__FreeBSD__) || defined(__OpenBSD__)
+	pthread_set_name_np(opc_thread, "bgm_opc");
+#endif
 	return 0;
 }
 
