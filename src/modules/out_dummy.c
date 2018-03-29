@@ -4,7 +4,7 @@
 #include <timers.h>
 
 // Matrix size
-#ifdef MATRIX_X
+#ifndef MATRIX_X
 #error Define MATRIX_X as the matrixes X size.
 #endif
 

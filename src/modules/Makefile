@@ -37,7 +37,7 @@ RPI_WS2812B_PATH ?= ../../../rpi_ws281x
 out_rpi_ws2812b.so: EXTRA_OBJECTS = $(RPI_WS2812B_PATH)/libws2811.a
 out_rpi_ws2812b.so: CPPFLAGS += -I$(RPI_WS2812B_PATH)/
 
-RGB_LIB_PATH =+ ../rpi-rgb-led-matrix
+RGB_LIB_PATH =+ ../../../rpi-rgb-led-matrix
 out_rpi_hub75.so: EXTRA_OBJECTS = $(RGB_LIB_PATH)/lib/librgbmatrix.a
-out_rpi_hub75.so: CPPFLAGS += -I(RGB_LIB_PATH)/include
+out_rpi_hub75.so: CPPFLAGS += -I$(RGB_LIB_PATH)/include
 out_rpi_hub75.so: LIBS += -lrt -lm -lpthread -lstdc++
