@@ -32,8 +32,8 @@ endif
 # Defaults
 PLATFORM ?= DEBUG
 # For those who want to emulate layouts/wall.json from OPC, use 25x50 here.
-MATRIX_X ?= 25
-MATRIX_Y ?= 50
+MATRIX_X ?= 64
+MATRIX_Y ?= 64
 MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)

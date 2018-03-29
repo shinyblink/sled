@@ -10,28 +10,52 @@
 #include <matrix.h>
 #include <graphics.h>
 #include <stdlib.h>
+#include <random.h>
 
 #include "text.h"
 
-#define TEXT "no werk"
+#define NUMTEXT 8
+
+static char* texts[NUMTEXT] = {
+	"no werk",
+	"dafuq?",
+	"ok wtf",
+	"wat.",
+	"idk.",
+	"huh?",
+	"osnap",
+	"damn",
+};
+
+static text* rendered[NUMTEXT];
+
 #define TOPCOL_HEIGHT 8
 #define XWIDTH 8
 
+static const int height = (TOPCOL_HEIGHT + 7 + 3); // top window decor + text width (7) + pixel spacing and plus border
 static int width;
-static int height;
+
 
 static text* errtext = NULL;
 
 int init(int moduleno, char* argstr) {
-	errtext = text_render(TEXT);
-	if (!errtext)
-		return 2;
+	int maxlen = 0;
+	// Render all the text snippets, get the maximum length.
+	int i;
+	for (i = 0; i < NUMTEXT; i++) {
+		errtext = text_render(texts[i]);
+		if (!errtext)
+			return 2;
 
-	width = (errtext->len + 4); // text size + pixel spacing and border
-	height = (TOPCOL_HEIGHT + 7 + 3); // top window decor + text width (7) + pixel spacing and plus border
+		if (errtext->len > maxlen)
+			maxlen = errtext->len;
 
+		rendered[i] = errtext;
+	}
 
-	if (matrix_getx() < (width + 4))
+	int maxwidth = (maxlen + 4); // text size + pixel spacing and border
+
+	if (matrix_getx() < (maxwidth + 4))
 		return 1; // not enough X to be looking good
 	if (matrix_gety() < (height + 4))
 		return 1; // not enough Y to be looking good
@@ -44,7 +68,7 @@ static RGB bordercol = RGB(0, 0, 200); // border, blue
 static RGB xcol = RGB(255, 0, 0); // red X
 static RGB textcol = RGB(255, 255, 255); // white text
 
-void draw_error(int x, int y) {
+void draw_error(int x, int y, text* errtext) {
 	// Set areas.
 	int yw;
 	int xw;
@@ -82,14 +106,21 @@ void draw_error(int x, int y) {
 }
 
 int draw(int argc, char* argv[]) {
+	// Pick random error message.
+	errtext = rendered[(int) randn((unsigned int)NUMTEXT)];
+	width = (errtext->len + 4); // text size + pixel spacing and border
+
 	// draw single error at center, for now.
-	draw_error((matrix_getx() / 2) - 1 - (width / 2), (matrix_gety() / 2) - 1 - (height / 2));
+	draw_error((matrix_getx() / 2) - 1 - (width / 2), (matrix_gety() / 2) - 1 - (height / 2), errtext);
 	matrix_render();
 	return 0;
 }
 
 int deinit() {
 	// This acts conditionally on rendered being non-NULL.
-	text_free(errtext);
+	int i;
+	for (i = 0; i < NUMTEXT; i++) {
+		text_free(rendered[i]);
+	}
 	return 0;
 }
