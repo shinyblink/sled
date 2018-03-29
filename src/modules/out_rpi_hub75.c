@@ -26,7 +26,6 @@ int init(int modno, char* argstr) {
 	options.rows = 32;
 	options.cols = 64;
 	options.chain_length = 2;
-	options.multiplexing = 1;
 	options.pixel_mapper_config = "U-mapper";
 
 	// Split argstr into fake argc/argv.
