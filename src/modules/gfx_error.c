@@ -104,7 +104,7 @@ void draw_error(int x, int y, text* errtext) {
 
 int draw(int argc, char* argv[]) {
 	// Pick random error message.
-	text* errtext = rendered[(int) randn((unsigned int)NUMTEXT)];
+	text* errtext = rendered[(int) randn((unsigned int) (NUMTEXT - 1))];
 	width = (errtext->len + 4); // text size + pixel spacing and border
 
 	// draw single error at center, for now.
