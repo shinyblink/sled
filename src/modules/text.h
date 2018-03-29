@@ -11,7 +11,7 @@ typedef struct text {
 int text_point(text* rendered, int x, int y);
 // Renders text.
 // Returns heap allocated pointer or NULL if something failed.
-text* text_render(char* txt);
+text* text_render(const char* txt);
 // Frees rendered text. Do it. Don't forget to, leaks a bad, mmkay?
 // No harm in calling it multiple times.
-void text_free(text* rendered);
+void text_free(const text* rendered);
