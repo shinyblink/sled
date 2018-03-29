@@ -35,15 +35,12 @@ static text* rendered[NUMTEXT];
 static const int height = (TOPCOL_HEIGHT + 7 + 3); // top window decor + text width (7) + pixel spacing and plus border
 static int width;
 
-
-static text* errtext = NULL;
-
 int init(int moduleno, char* argstr) {
 	int maxlen = 0;
 	// Render all the text snippets, get the maximum length.
 	int i;
 	for (i = 0; i < NUMTEXT; i++) {
-		errtext = text_render(texts[i]);
+		text* errtext = text_render(texts[i]);
 		if (!errtext)
 			return 2;
 
@@ -107,7 +104,7 @@ void draw_error(int x, int y, text* errtext) {
 
 int draw(int argc, char* argv[]) {
 	// Pick random error message.
-	errtext = rendered[(int) randn((unsigned int)NUMTEXT)];
+	text* errtext = rendered[(int) randn((unsigned int)NUMTEXT)];
 	width = (errtext->len + 4); // text size + pixel spacing and border
 
 	// draw single error at center, for now.
