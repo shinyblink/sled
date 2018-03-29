@@ -30,8 +30,9 @@ int init(int modno, char* argstr) {
 	options.pixel_mapper_config = "U-mapper";
 
 	// Split argstr into fake argc/argv.
-	int argc = 0;
-	char* *argv = NULL;
+	int argc = 1;
+	char* *argv = malloc(1 * sizeof(char*));
+	argv[0] = "out_rpi_hub75";
 
 	if (argstr != NULL) {
 		char* tok;
