@@ -101,6 +101,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 	moduledir = opendir(moddir); // for now.
 	int found_filters = 0;
 	printf("Loading modules...\n");
+	int moddirlen = strlen(moddir);
 	if (moduledir) {
 		while ((file = readdir(moduledir)) != NULL) {
 			size_t len = strlen(file->d_name);
@@ -151,11 +152,13 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					}
 				}
 
-				char* modpath = malloc((strlen(moddir) + len + 2) * sizeof(char));
-				int moddirlen = strlen(moddir);
+				printf("MODDIR IS %s, %i\n", moddir, moddirlen);
+
+				char* modpath = malloc((moddirlen + len + 3) * sizeof(char));
 				strcpy(modpath, moddir);
 				modpath[moddirlen] = '/';
 				util_strlcpy(modpath + moddirlen + 1, file->d_name, len + 1);
+				printf("modpath is %s", modpath);
 
 				modules_loadmod(&modules[modcount], file->d_name, modpath);
 				if (strcmp(modules[modcount].type, "out") == 0) {
