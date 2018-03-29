@@ -17,12 +17,12 @@ Both start upper left, as that is (0, 0) for this code.
 Connected to the ports of the specific board you're using.
 
 * Raspberry Pi (Zero): See https://github.com/jgarff/rpi_ws281x
- - I can recommend using PCM, little chance it is used. It is used by default. Pin 40 on the Zero.
- - You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
+	- I can recommend using PCM, little chance it is used. It is used by default. Pin 40 on the Zero.
+	- You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
 
 * ESP8266 DevBoard with UDP Sketch
- - Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
- - You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
+	- Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
+	- You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
 
 # Software
 
@@ -40,23 +40,23 @@ Compile with `make PLATFORM=<PLATFORM> MATRIX_X=<X size> MATRIX_Y=<Y size>`
 # Platforms
 
 * `SDL2`
- - SDL2-based virtual matrix for development.
+	- SDL2-based virtual matrix for development.
 
 * `DEBUG`
- - Alias to SDL2 + some debugging-friendly compiler options.
+	- Alias to SDL2 + some debugging-friendly compiler options.
 
 * `RPI_WS2812B`
- - Uses https://github.com/jgarff/rpi_ws281x to drive the strips.
- - Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
+	- Uses https://github.com/jgarff/rpi_ws281x to drive the strips.
+	- Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
 
 * `UDP`
- - UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
- - An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
+	- UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
+	- An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
 
 * `RPI_HUB75`
- - A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
- - Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
- - Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
+	- A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
+	- Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
+	- Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
 
 # Modules
 
@@ -67,15 +67,15 @@ They are the following:
 * `gfx_random_static`: Randomized static color.
 
 * `gfx_random_rects`: Random colored rectangle animation.
- - Note, your matrix axies have to be dividable by 4.
+	- Note, your matrix axies have to be dividable by 4.
 
 * `gfx_twinkle`: Twinkle, twinkle, little star? Made by @20kdc.
 
 * `gfx_text`: Displays text using custom proportional font. Made by @20kdc.
- -"Hack me" greeting by default, obviously. 8x8 or bigger required.
+	- "Hack me" greeting by default, obviously. 8x8 or bigger required.
 
 * `bgm_fish`: FIfo Shell. A small FIFO-based queue manipulator. Made by @20kdc.
- - Uses a little background CPU usage. Creates `sled.fish` FIFO in the sled tree.
+	- Uses a little background CPU usage. Creates `sled.fish` FIFO in the sled tree.
 
 * `gfx_gol`: A Conway's Game of Life clone.
 
