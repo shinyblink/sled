@@ -35,21 +35,28 @@ Platforms might need additional dependencies, check below.
 
 Compile with `make PLATFORM=<PLATFORM> MATRIX_X=<X size> MATRIX_Y=<Y size>`
 
+`MATRIX_X` and `MATRIX_Y` are optional, defaults are there. However, you probably want to change them.
+
 # Platforms
 
-1) `SDL2`
+* `SDL2`
  - SDL2-based virtual matrix for development.
 
-2) `DEBUG`
+* `DEBUG`
  - Alias to SDL2 + some debugging-friendly compiler options.
 
-3) `RPI`
+* `RPI_WS2812B`
  - Uses https://github.com/jgarff/rpi_ws281x to drive the strips.
  - Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
 
-4) `UDP`
+* `UDP`
  - UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
  - An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
+
+* `RPI_HUB75`
+ - A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
+ - Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
+ - Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
 
 # Modules
 
@@ -57,23 +64,38 @@ By default, only modules with zero dependencies are built. Apart from the output
 They are the following:
 
 ## Effects/Graphic Modules
-1) `gfx_random_static`: Randomized static color.
+* `gfx_random_static`: Randomized static color.
 
-2) `gfx_random_rects`: Random colored rectangle animation. Note, your matrix axies have to be dividable by 4.
+* `gfx_random_rects`: Random colored rectangle animation.
+ - Note, your matrix axies have to be dividable by 4.
 
-3) `gfx_twinkle`: Twinkle, twinkle, little star? Made by @20kdc.
+* `gfx_twinkle`: Twinkle, twinkle, little star? Made by @20kdc.
 
-4) `gfx_text`: Displays text using custom proportional font. Satanic greeting by default, obviously. 8x8 or bigger required. Made by @20kdc.
+* `gfx_text`: Displays text using custom proportional font. Made by @20kdc.
+ -"Hack me" greeting by default, obviously. 8x8 or bigger required.
 
-5) `bgm_fish`: FIfo Shell. A small FIFO-based queue manipulator. Uses a little background CPU usage. Creates `sled.fish` FIFO in the sled tree. Made by 20kdc.
+* `bgm_fish`: FIfo Shell. A small FIFO-based queue manipulator. Made by @20kdc.
+ - Uses a little background CPU usage. Creates `sled.fish` FIFO in the sled tree.
 
-6) `gfx_gol`: A Conway's Game of Life clone.
+* `gfx_gol`: A Conway's Game of Life clone.
 
-7) `gfx_rainbow`: A simple rainbow animation.
+* `gfx_rainbow`: A simple rainbow animation.
 
-8) `gfx_math_sinpi`: A sinus curve of Pi.
+* `gfx_math_sinpi`: A sinus curve of Pi.
 
-9) `gfx_plasma`: A plasma animation, ported from borgware.
+* `gfx_plasma`: A plasma animation, ported from borgware.
+
+* `gfx_balls`: Small ball animation.
+
+* `gfx_checkerboard`: A checkerboard animation.
+
+* `gfx_clock`: A digital clock.
+
+* `gfx_rainbow`: A rainbow!
+
+* `gfx_sinematrix`: A psychadelic matrix manipulating effect, made by @orithena.
+
+* `bgm_opc`: An OpenPixelControl server, displays things when it is written to.
 
 ---
 

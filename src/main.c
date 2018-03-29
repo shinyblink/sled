@@ -114,8 +114,10 @@ int main(int argc, char* argv[]) {
 	int ch;
 #ifdef PLATFORM_SDL2
 	char outmod[256] = "sdl2";
-#elif defined(PLATFORM_RPI)
+#elif defined(PLATFORM_RPI_WS2812B)
 	char outmod[256] = "rpi_ws2812b";
+#elif defined(PLATFORM_RPI_HUB75)
+	char outmod[256] = "rpi_hub75";
 #elif defined(PLATFORM_UDP)
 	char outmod[256] = "udp";
 #else

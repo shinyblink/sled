@@ -5,7 +5,7 @@ MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
 MODULES_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerboard
 MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error
 
-MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb
+MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
 MODULES_AVAILABLE += bgm_fish bgm_opc
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y
 
@@ -55,9 +55,12 @@ DEBUG: SDL2
 
 RPI_DMA ?= 10
 RPI_PIN ?= 21
-RPI: PLATFORM := RPI
-RPI: DEFINES += -DRPI_DMA=$(RPI_DMA) -DRPI_PIN=$(RPI_PIN)
-RPI: $(PROJECT) out_rpi_ws2812b
+RPI_WS2812B: PLATFORM := RPI_WS2812B
+RPI_WS2812B: DEFINES += -DRPI_DMA=$(RPI_DMA) -DRPI_PIN=$(RPI_PIN)
+RPI_WS2812B: $(PROJECT) out_rpi_ws2812b
+
+RPI_HUB75: PLATFORM := RPI_HUB75
+RPI_HUB75: $(PROJECT) out_rpi_hub75
 
 UDP: $(PROJECT) out_udp
 
