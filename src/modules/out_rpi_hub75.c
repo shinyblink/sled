@@ -90,6 +90,7 @@ int clear(void) {
 int render(void) {
 	// swap buffers on next vsync, so we don't get any tearing.
 	// this is fine, because it'll be running at a very high refresh rate, hopefully.
+	offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 	return 0;
 }
 
