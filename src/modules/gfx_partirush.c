@@ -38,7 +38,7 @@ static void randomize_particle(int particle) {
 
 	int speed = 0;
 	while (speed == 0)
-		speed = randn(mx/16);
+		speed = randn(mx/8);
 	particles[particle].speed = speed;
 }
 

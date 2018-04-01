@@ -5,7 +5,7 @@
 RGB HSV2RGB(HSV hsv)
 {
     RGB rgb;
-    unsigned char region, remainder, p, q, t;
+    byte region, remainder, p, q, t;
 
     if (hsv.s == 0)
     {
@@ -62,7 +62,7 @@ RGB HSV2RGB(HSV hsv)
 HSV RGB2HSV(RGB rgb)
 {
     HSV hsv;
-    unsigned char rgbMin, rgbMax;
+    byte rgbMin, rgbMax;
 
     rgbMin = rgb.red < rgb.green ? (rgb.red < rgb.blue ? rgb.red : rgb.blue) : (rgb.green < rgb.blue ? rgb.green : rgb.blue);
     rgbMax = rgb.red > rgb.green ? (rgb.red > rgb.blue ? rgb.red : rgb.blue) : (rgb.green > rgb.blue ? rgb.green : rgb.blue);
