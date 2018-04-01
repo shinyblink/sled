@@ -14,8 +14,8 @@
 struct RGBLedMatrix *matrix;
 struct LedCanvas *offscreen_canvas;
 
-int width;
-int height;
+static int width;
+static int height;
 
 int init(int modno, char* argstr) {
 	struct RGBLedMatrixOptions options;
@@ -79,6 +79,10 @@ int set(int x, int y, RGB *color) {
 }
 
 int clear(void) {
+	// clear this canvas, make sure we clean it on the double buffer too.
+	// problem with this is that it needs a render call.
+	led_canvas_clear(offscreen_canvas);
+	offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 	led_canvas_clear(offscreen_canvas);
 	return 0;
 };
@@ -86,7 +90,6 @@ int clear(void) {
 int render(void) {
 	// swap buffers on next vsync, so we don't get any tearing.
 	// this is fine, because it'll be running at a very high refresh rate, hopefully.
-	offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 	return 0;
 }
 
