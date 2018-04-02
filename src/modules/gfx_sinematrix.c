@@ -150,10 +150,10 @@ int draw(int argc, char* argv[]) {
 	matrix rotscale = mmult(rotate, scale);
 	vector rotscale_xbasis = {
 	  .x = rotscale.v1_1,
-	  .y = rotscale.v1_2,
+	  .y = rotscale.v2_1,
 	};
 	vector rotscale_ybasis = {
-	  .x = rotscale.v2_1,
+	  .x = rotscale.v1_2,
 	  .y = rotscale.v2_2,
 	};
 
