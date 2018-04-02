@@ -10,8 +10,12 @@
 // <20kdc> Doesn't need replacing - amazingly elegant. Changed to PREV to avoid flagging searches.
 //         I did do some cleanup though, does that count?
 //         Note that this uses signed ints so clipping is "automatic".
+// (Later, 20kdc again: April 1st, changed this to use a callback. It still uses actual matrix bounds, though.
+//  A define in graphics.h handles conversion to this API)
+
 #define GRAPHICS_INBOUNDS(X, Y, CW, CH) (((((X) >= 0) && ((X) < (CW))) && (((Y) >= 0) && ((Y) < (CH)))))
-int graphics_drawline(int x1, int y1, int x2, int y2, RGB *color) {
+
+int graphics_drawline_core(int x1, int y1, int x2, int y2, int (*set)(int, int, void*), void * ud) {
 	int ret, i;
 	int dx, dy; // D: Result of subtracting source from target
 	int sdx, sdy; // Sign of D
@@ -32,7 +36,7 @@ int graphics_drawline(int x1, int y1, int x2, int y2, RGB *color) {
 	py = y1;
 
 	if (GRAPHICS_INBOUNDS(px, py, sw, sh)) {
-		ret = matrix_set(px, py, color);
+		ret = set(px, py, ud);
 		if (ret != 0) return ret;
 	}
 
@@ -45,7 +49,7 @@ int graphics_drawline(int x1, int y1, int x2, int y2, RGB *color) {
 			}
 			px += sdx;
 			if (GRAPHICS_INBOUNDS(px, py, sw, sh)) {
-				ret = matrix_set(px, py, color);
+				ret = set(px, py, ud);
 				if (ret != 0) return ret;
 			}
 		}
@@ -58,7 +62,7 @@ int graphics_drawline(int x1, int y1, int x2, int y2, RGB *color) {
 			}
 			py += sdy;
 			if (GRAPHICS_INBOUNDS(px, py, sw, sh)) {
-				ret = matrix_set(px, py, color);
+				ret = set(px, py, ud);
 				if (ret != 0) return ret;
 			}
 		}
