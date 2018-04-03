@@ -15,9 +15,9 @@
 #include <graphics.h>
 
 // Then a bunch of defines,
-#define FRAMES 2000
-// 50 FPS
-#define FRAMETIME 20000
+#define FPS 60
+#define FRAMETIME (T_SECOND / FPS)
+#define FRAMES (RANDOM_TIME * FPS)
 
 // then we check our statics,
 

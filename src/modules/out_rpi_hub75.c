@@ -17,6 +17,9 @@ struct LedCanvas *offscreen_canvas;
 static int width;
 static int height;
 
+static RGB *buffer;
+#define PPOS(x, y) (x + (y * width)
+
 int init(int modno, char* argstr) {
 	struct RGBLedMatrixOptions options;
 	memset(&options, 0, sizeof(options));
@@ -31,6 +34,8 @@ int init(int modno, char* argstr) {
 	// Split argstr into fake argc/argv.
 	int argc = 1;
 	char* *argv = malloc(1 * sizeof(char*));
+	if (argv == NULL)
+		return 1;
 	argv[0] = "out_rpi_hub75";
 
 	if (argstr != NULL) {
@@ -57,6 +62,11 @@ int init(int modno, char* argstr) {
 	offscreen_canvas = led_matrix_create_offscreen_canvas(matrix);
 	led_canvas_get_size(offscreen_canvas, &width, &height);
 
+	// Allocate our internal buffer.
+	buffer = malloc((width * height * 3));
+	if (buffer == NULL)
+		return 1;
+
 	// Free stuff if argparsing happened.
 	if (argstr != NULL) {
 		free(argv);
@@ -74,22 +84,29 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
-	led_canvas_set_pixel(offscreen_canvas, x, y, color->red, color->green, color->blue);
+	buffer[POS(x, y)] = RGB(color->red, color->green, color->blue);
 	return 0;
 }
 
 int clear(void) {
 	// clear this canvas, make sure we clean it on the double buffer too.
 	// problem with this is that it needs a render call.
-	led_canvas_clear(offscreen_canvas);
-	offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
-	led_canvas_clear(offscreen_canvas);
+	// so, instead, we simply don't, we just maintain our own buffer and copy our state over.
+	memset(buffer, 0, (width * height * 3));
 	return 0;
 };
 
 int render(void) {
 	// swap buffers on next vsync, so we don't get any tearing.
 	// this is fine, because it'll be running at a very high refresh rate, hopefully.
+	// however, in order to don't get any differential update issues, we need to syncronize state.
+	int x;
+	int y;
+	for (y = 0; y < height; y++)
+		for (x = 0; x < width; y++) {
+			RGB color = buffer[POS(x, y)];
+			led_canvas_set_pixel(offscreen_canvas, x, y, color->red, color->green, color->blue);
+		}
 	offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 	return 0;
 }
@@ -100,6 +117,7 @@ ulong wait_until(ulong desired_usec) {
 }
 
 int deinit(void) {
+	free(buffer);
 	led_matrix_delete(matrix);
 	return 0;
 }
