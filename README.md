@@ -104,3 +104,16 @@ If you want to only build a specific set of modules, pass a `MODULES="myfavourit
 If you want to build a specific module later on, you can do the same but with just the
 module you wanna build. It'll get added to the same directory where the others are.
 Or, if you are particularly lazy, just add the module name to the make invocation.
+
+# Support
+Support for sled is done on a if-i-can-find-the-time basis. Mostly, this project is for myself.
+I'll try to help everyone, but I might take some time.
+
+
+
+If you'd like to support my work or me in general, I have a [donation page](https://i0i0.me/donateme.html).
+Anything is highly appreciated. If you are donating via PayPal, please set a message so I can thank you!
+
+Most of the donations tracable to anything sled related will be spend buying different LED matrices and other hardware.
+
+Plus, buying cola and booze. ;)
