@@ -19,7 +19,8 @@ MODULES += bgm_fish bgm_opc
 MODULES += flt_gamma_correct flt_flip_x flt_flip_y
 
 CC ?= cc
-CFLAGS := -std=gnu99 -O2 -Wall -Wno-unused-command-line-argument $(CFLAGS)
+CFLAGS ?= -O2 -march=native
+CFLAGS += -std=gnu99 -Wall -Wno-unused-command-line-argument
 CPPFLAGS += -Isrc
 LIBS = -lm
 
