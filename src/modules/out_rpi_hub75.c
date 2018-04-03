@@ -18,7 +18,7 @@ static int width;
 static int height;
 
 static RGB *buffer;
-#define PPOS(x, y) (x + (y * width)
+#define PPOS(x, y) (x + (y * width))
 
 int init(int modno, char* argstr) {
 	struct RGBLedMatrixOptions options;
@@ -63,7 +63,7 @@ int init(int modno, char* argstr) {
 	led_canvas_get_size(offscreen_canvas, &width, &height);
 
 	// Allocate our internal buffer.
-	buffer = malloc((width * height * 3));
+	buffer = malloc((width * height * sizeof(RGB)));
 	if (buffer == NULL)
 		return 1;
 
@@ -84,7 +84,7 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
-	buffer[POS(x, y)] = RGB(color->red, color->green, color->blue);
+	buffer[PPOS(x, y)] = RGB(color->red, color->green, color->blue);
 	return 0;
 }
 
@@ -92,7 +92,7 @@ int clear(void) {
 	// clear this canvas, make sure we clean it on the double buffer too.
 	// problem with this is that it needs a render call.
 	// so, instead, we simply don't, we just maintain our own buffer and copy our state over.
-	memset(buffer, 0, (width * height * 3));
+	memset(buffer, 0, (width * height * sizeof(RGB)));
 	return 0;
 };
 
@@ -103,9 +103,9 @@ int render(void) {
 	int x;
 	int y;
 	for (y = 0; y < height; y++)
-		for (x = 0; x < width; y++) {
-			RGB color = buffer[POS(x, y)];
-			led_canvas_set_pixel(offscreen_canvas, x, y, color->red, color->green, color->blue);
+		for (x = 0; x < width; x++) {
+			RGB color = buffer[PPOS(x, y)];
+			led_canvas_set_pixel(offscreen_canvas, x, y, color.red, color.green, color.blue);
 		}
 	offscreen_canvas = led_matrix_swap_on_vsync(matrix, offscreen_canvas);
 	return 0;

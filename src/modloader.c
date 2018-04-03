@@ -127,7 +127,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					continue;
 				}
 
-				int fltindex;
+				int fltindex = 0;
 				if (strcmp(type, "flt") == 0) {
 					if (*filtno == 0) {
 						printf(" Skipping unused filter modules.\n");
