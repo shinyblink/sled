@@ -104,7 +104,7 @@ int draw(int argc, char* argv[]) {
 		int y = lines[line].pos_y - lines[line].length;
 		int speed;
 		for (speed = 0; speed <= lines[line].speed; speed++)
-			if ((y - speed) > 0 && (y - speed) < my)
+			if ((y - speed) >= 0 && (y - speed) < my)
 				matrix_set(lines[line].pos_x, y - speed, &black);
 	}
 
@@ -113,7 +113,7 @@ int draw(int argc, char* argv[]) {
 	for (line = 0; line < numlines; ++line) {
 		int y;
 		for (y = lines[line].pos_y - lines[line].length; y <= lines[line].pos_y; y++)
-			if (y > 0 && y < my)
+			if (y >= 0 && y < my)
 				matrix_set(lines[line].pos_x, y, &lines[line].color);
 	}
 

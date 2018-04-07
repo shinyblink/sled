@@ -142,17 +142,17 @@ int draw(int argc, char* argv[]) {
 	  .v2_1 = 0,
 	  .v2_2 = (cosf(sy) + offset_scale_y)/fy,
 	};
-	vector translate = {
+	vec2 translate = {
 	  .x = sinf(tx) * mx,
 	  .y = sinf(ty) * my,
 	};
 
 	matrix rotscale = mmult(rotate, scale);
-	vector rotscale_xbasis = {
+	vec2 rotscale_xbasis = {
 	  .x = rotscale.v1_1,
 	  .y = rotscale.v2_1,
 	};
-	vector rotscale_ybasis = {
+	vec2 rotscale_ybasis = {
 	  .x = rotscale.v1_2,
 	  .y = rotscale.v2_2,
 	};
@@ -160,15 +160,15 @@ int draw(int argc, char* argv[]) {
 	// put it all together
 	int x;
 	int y;
-	vector outerbasis = {
+	vec2 outerbasis = {
 	  .x = (rotscale_xbasis.x * -rcx) + (rotscale_ybasis.x * -rcy),
 	  .y = (rotscale_xbasis.y * -rcx) + (rotscale_ybasis.y * -rcy)
 	};
 	outerbasis = vadd(outerbasis, translate);
 	for (y = 0; y < my; ++y) {
-		vector c = outerbasis;
+		vec2 c = outerbasis;
 		for (x = 0; x < mx; ++x) {
-			// vector c = vadd(vmmult(rotscale, (vector) { .x = x-rcx, .y = y-rcy }), translate);
+			// vec2 c = vadd(vmmult(rotscale, (vector) { .x = x-rcx, .y = y-rcy }), translate);
 			float hue = (basecol * 255) + (sinecircle3D(c.x, c.y) * effect_color_range);
 			matrix_set(x, y, precalc_hsv + (((int) hue) & 0xFF));
 			c = vadd(c, rotscale_xbasis);

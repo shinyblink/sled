@@ -22,10 +22,10 @@ byte bmax(byte a, byte b) {
 }
 
 // Matrix/Vector stuff
-typedef struct vector {
+typedef struct vec2 {
 	float x;
 	float y;
-} vector;
+} vec2;
 
 typedef struct matrix {
 	float v1_1;
@@ -34,18 +34,26 @@ typedef struct matrix {
 	float v2_2;
 } matrix;
 
-vector vadd(vector v1, vector v2) {
-	vector r = {
+vec2 vadd(vec2 v1, vec2 v2) {
+	vec2 r = {
 		.x = v1.x + v2.x,
 		.y = v1.y + v2.y,
 	};
 	return r;
 }
 
-vector vmul(vector vec, float val) {
-	vector r = {
+vec2 vmul(vec2 vec, float val) {
+	vec2 r = {
 		.x = vec.x * val,
 		.y = vec.y * val,
+	};
+	return r;
+}
+
+vec2 vdiv(vec2 v1, vec2 v2) {
+	vec2 r = {
+		.x = v1.x / v2.x,
+		.y = v1.y / v2.y,
 	};
 	return r;
 }
@@ -60,8 +68,8 @@ matrix mmult(matrix m1, matrix m2) {
 	return r;
 }
 
-vector vmmult(matrix m, vector v) {
-	vector r = {
+vec2 vmmult(matrix m, vec2 v) {
+	vec2 r = {
 		.x = (m.v1_1 * v.x) + (m.v1_2 * v.y),
 		.y = (m.v2_1 * v.x) + (m.v2_2 * v.y),
 	};

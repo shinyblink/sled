@@ -7,10 +7,10 @@ extern byte bdiff(byte a, byte b);
 extern byte bmin(byte a, byte b);
 extern byte bmax(byte a, byte b);
 
-typedef struct vector {
+typedef struct vec2 {
 	float x;
 	float y;
-} vector;
+} vec2;
 
 typedef struct matrix {
 	float v1_1;
@@ -19,6 +19,10 @@ typedef struct matrix {
 	float v2_2;
 } matrix;
 
-vector vadd(vector v1, vector v2);
+#define vec2(xv, yv) ((vec2) { .x = (xv), .y = (yv)})
+
+vec2 vadd(vec2 v1, vec2 v2);
+vec2 vmul(vec2 v1, vec2 v2);
+vec2 vdiv(vec2 v1, vec2 v2);
 matrix mmult(matrix m1, matrix m2);
-vector vmmult(matrix m, vector v);
+vec2 vmmult(matrix m, vec2 v);
