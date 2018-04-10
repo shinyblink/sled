@@ -8,7 +8,7 @@ MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot
 
 MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
 MODULES_AVAILABLE += bgm_fish bgm_opc
-MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y
+MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
 
 MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
 MODULES += gfx_rainbow gfx_math_sinpi gfx_plasma gfx_checkerboard
@@ -16,7 +16,7 @@ MODULES += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES += gfx_matrix gfx_cube gfx_mandelbrot
 
 MODULES += bgm_fish bgm_opc
-MODULES += flt_gamma_correct flt_flip_x flt_flip_y
+MODULES += flt_gamma_correct flt_flip_x flt_flip_y flt_scale
 
 CC ?= cc
 CFLAGS ?= -O2 -march=native

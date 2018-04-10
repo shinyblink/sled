@@ -58,7 +58,7 @@ int gety(void) {
 	return MATRIX_Y; // for now.
 }
 
-int matrix_ppos(int x, int y) {
+static int matrix_ppos(int x, int y) {
 	return (x + (y * MATRIX_X));
 }
 
