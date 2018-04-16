@@ -32,9 +32,9 @@ int init(int moduleno, char* argstr) {
 	mx = matrix_getx();
 	my = matrix_gety();
 
-	if (matrix_getx() < 2)
+	if (mx < 2)
 		return 1;
-	if (matrix_gety() < 2)
+	if (my < 2)
 		return 1;
 
 	iters = malloc((mx * my) * sizeof(int));
@@ -69,7 +69,7 @@ int draw(int argc, char* argv[]) {
 		for (px = 0; px < mx; px++) {
 			float zoom = SCALE(frame, FRAMES) * MAXZOOM;
 			float x0 = ((SCALE(px, mx) * 3.5f) - 2.5f) / zoom;
-			float y0 = ((SCALE(py, mx) * 2.0f) - 1.0f) / zoom;
+			float y0 = ((SCALE(py, my) * 2.0f) - 1.0f) / zoom;
 
 			float x = 0;
 			float y = 0;

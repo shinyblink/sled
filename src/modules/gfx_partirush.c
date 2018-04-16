@@ -89,13 +89,13 @@ int draw(int argc, char* argv[]) {
 	int particle;
 	// clear out old particles
 	for (particle = 0; particle < numparticles; ++particle)
-		if (particles[particle].pos_x > 0)
+		if (particles[particle].pos_x >= 0)
 			matrix_set(particles[particle].pos_x, particles[particle].pos_y, &black);
 
 	// update the particles and draw them
 	update_particles(); // todo, move back below matrix_render, to get a more consistant framerate
 	for (particle = 0; particle < numparticles; ++particle)
-		if (particles[particle].pos_x > 0)
+		if (particles[particle].pos_x >= 0)
 			matrix_set(particles[particle].pos_x, particles[particle].pos_y, &particles[particle].color);
 
 	matrix_render();
