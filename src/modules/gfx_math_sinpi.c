@@ -11,7 +11,7 @@
 #define FRAMETIME (T_SECOND / 30)
 #define FRAMES (RANDOM_TIME * 30)
 // Size of a full revolution
-#define XSCALE ((float) matrix_getx())
+#define XSCALE (matrix_getx())
 #define HALF_Y (matrix_gety() / 2)
 
 static int modno;
@@ -39,24 +39,19 @@ int draw(int argc, char* argv[]) {
 	int y;
 	int lastx = 0;
 	int lasty = 0;
-	for (x = 0; x < mx; ++x) {
-		y = HALF_Y + (HALF_Y * sin((x + pos - 1) * M_PI * 2.0f / XSCALE));
-		if (y < 0)
-			y = 0;
-		if (y >= my)
-			y = my - 1;
+	int dy;
+	int py;
+	for (x = 0; x < mx; x++) {
+		y = HALF_Y + ((HALF_Y - 1) * sin((x + pos) * M_PI * 2.0f / (float) XSCALE)); // * M_PI * 2.0f
 		matrix_set(x, y, &white);
 		if (x != 0) {
 			matrix_set(x, lasty, &white);
-			// fill gaps, slightly less ugly than invoking the line thing every call.
-			if (abs(y - lasty) > 1) {
-				int up = (lasty < y);
-				int px = lastx + 1;
-				int py = lasty + (up ? 1 : -1);
-				matrix_set(px, py, &white);
-				if ((px + 1) < mx) matrix_set(px + 1, py, &white);
+			/* fill the gaps with a magnificent method */
+			if ((dy = abs(y - lasty)) > 1) {
+				for (py = fmin(y, lasty); py<fmin(y, lasty)+dy; py++)
+					matrix_set(x, py, &white);
 			}
-		};
+		}
 		lastx = x;
 		lasty = y;
 	}
@@ -69,6 +64,7 @@ int draw(int argc, char* argv[]) {
 	}
 	frame++;
 	pos++;
+	pos = pos % XSCALE;
 	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
 	return 0;
