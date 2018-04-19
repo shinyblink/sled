@@ -9,22 +9,7 @@
 #include <stdlib.h>
 #include "util.h"
 #include <pthread.h>
-
-typedef struct module {
-	char name[256];
-	char type[4];
-	void* lib;
-
-	int (*init)(int moduleno, char* argstr);
-	int (*deinit)(void);
-	int (*draw)(int argc, char* argv[]);
-	int (*set)(int x, int y, RGB *color);
-	int (*clear)(void);
-	int (*render)(void);
-	int (*getx)(void);
-	int (*gety)(void);
-	ulong (*wait_until)(ulong desired_usec);
-} module;
+#include "modloader.h"
 
 static struct module modules[MAX_MODULES];
 static int modcount = 0;
