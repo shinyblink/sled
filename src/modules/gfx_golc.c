@@ -265,8 +265,14 @@ void gol_loop()
 {
   // 1024 microseconds or 1000 microseconds per millisecond, where's the difference? ;)
   ulong ms = udate() >> 10;
+  
+  // microsecond overflow protection -- if the gap between ms value and nextrun value is too big, we reset to sensible values.
+  // this might lead to a very short generation time every 71.58278825 minutes, assuming udate works with 32 bit unsigned.
+  if( gol_stat.nextrun - ms > GOL_ROUNDTIME_MS ) {
+    gol_stat.nextrun = ms;
+  }
 
-  if( ms > gol_stat.nextrun ) {
+  if( ms >= gol_stat.nextrun ) {
     if( gol_stat.repetitions > GOL_MAX_REPETITIONS ) {
       gol_randomize_buffers();
     } 
