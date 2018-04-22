@@ -138,7 +138,7 @@ byte gol_meanneighborcolor(byte b, int x, int y) {
   while( phi_n < 0.0 ) phi_n += 2*M_PI;
   byte color = (phi_n * 128.0) / M_PI;
   // color of 0 (plain red) is not allowed, that would mean that the cell is dead.
-  if(color == 0) color = 1;
+  if(color == 0) color = 255;
   return color;
 }
 
@@ -149,10 +149,10 @@ void gol_randomize_buffers() {
       gol_stat_buf[ixy(GOL_LAST, x, y)] = 0;
       gol_stat_buf[ixy(GOL_HARE2, x, y)] = 0;
       byte r;
-      if( randn(2) == 0) {
+      if( randn(1) == 0) {
         r = 0;
       } else {
-        r = (randn(3)*85 ) + 1;
+        r = ( randn(2)*85 ) + 1;
       }
       gol_stat_buf[ixy(GOL_CUR, x, y)] = r;
       gol_stat_buf[ixy(GOL_HARE1, x, y)] = r;
