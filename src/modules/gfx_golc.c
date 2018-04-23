@@ -54,10 +54,10 @@ typedef struct GOL_InternalStatus {
 } GOL_InternalStatus;
 
 static GOL_InternalStatus gol_stat = {
- .current_buf : 0,
- .nextrun : 0,
- .fadestep : 0,
- .repetitions : GOL_MAX_REPETITIONS
+ .current_buf = 0,
+ .nextrun = 0,
+ .fadestep = 0,
+ .repetitions = GOL_MAX_REPETITIONS
 };
 
 /*====== helper functions =====*/
