@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <getopt.h>
+#include <signal.h>
 
 static int modcount;
 
@@ -109,6 +110,10 @@ static struct option longopts[] = {
 	{ "filter",  optional_argument, NULL, 'f' },
 	{ NULL,      0,                 NULL, 0},
 };
+
+void set_timers_quitting(int sig) {
+	timers_quitting = 1;
+}
 
 int main(int argc, char* argv[]) {
 	int ch;
@@ -231,6 +236,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	modcount = modules_count();
+
+	signal(SIGINT, set_timers_quitting);
 
 	// Startup.
 	pick_other(-1, udate());
