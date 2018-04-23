@@ -112,7 +112,8 @@ static struct option longopts[] = {
 };
 
 void set_timers_quitting(int sig) {
-	timers_quitting = 1;
+	//timers_quitting = 1;
+	timers_doquit();
 }
 
 int main(int argc, char* argv[]) {
