@@ -1,12 +1,12 @@
-/* 
-  Conway's Game of Life -- COLORIZED!.
-  
+/*
+  Conway's Game of Life -- COLORIZED!
+
   - 'Born' cells inherit a mix of the colors of their three 'parents'
   - Toroidal board (i.e. the board loops around at the edges)
   - Loop detection (i.e. the board reinitializes when the game runs into a loop)
   - Fading (i.e. cells fade in/out from one generation to the next)
-  
-  Donated to sled by orithena.
+
+  Donated to sled by orithena. Many thanks!
 */
 
 #include <types.h>
@@ -54,10 +54,10 @@ typedef struct GOL_InternalStatus {
 } GOL_InternalStatus;
 
 static GOL_InternalStatus gol_stat = {
-  current_buf : 0,
-  nextrun : 0,
-  fadestep : 0,
-  repetitions : GOL_MAX_REPETITIONS
+ .current_buf : 0,
+ .nextrun : 0,
+ .fadestep : 0,
+ .repetitions : GOL_MAX_REPETITIONS
 };
 
 /*====== helper functions =====*/
@@ -179,25 +179,25 @@ int gol_generation(int from, int to) {
   for( int x = 0; x < kMatrixWidth; x++ ) {
     for( int y = 0; y < kMatrixHeight; y++ ) {
       int n = gol_neighborsalive(from, x, y);
-      if( gol_alive(from,x,y) ) {   
-      // ---------- if current cell was alive in the last iteration
+      if( gol_alive(from,x,y) ) {
+				// ---------- if current cell was alive in the last iteration
         if( n < 2 ) { // underpopulation => DIE!
           gol_stat_buf[ixy(to, x, y)] = 0;
-        } 
+        }
         else if( n > 3 ) { // overpopulation => DIE!!1eleven!
           gol_stat_buf[ixy(to, x, y)] = 0;
-        } 
+        }
         else { // two or three neighbors => ha ha ha ha, stayin' alive, stayin' alive!
           gol_stat_buf[ixy(to,x,y)] = gol_stat_buf[ixy(from,x,y)];
           currentlyalive++;
         }
-      } 
+      }
       else {
-      // ----------- if current cell was dead in the last iteration
+				// ----------- if current cell was dead in the last iteration
         if( n == 3 ) { // reproduction
           gol_stat_buf[ixy(to,x,y)] = gol_meanneighborcolor(from, x, y);
           currentlyalive++;
-        } 
+        }
         else { // keep playing dead
           gol_stat_buf[ixy(to,x,y)] = 0;
         }
@@ -211,27 +211,27 @@ int gol_generation(int from, int to) {
 void gol_generation_control() {
   // swap the current buffer with the last buffer. The reason this works is in the #defines.
   GOL_CUR = GOL_LAST;
-  
+
   // For loop detection, we use the "Hare and Tortoise" algorithm.
   // What we actually do here is running the game twice in parallel, but one at double speed;
   // i.e. for each generation in one game ("Tortoise"), we calculate two generations in
   // the other game ("Hare"). If there is a loop, the hare will run around that loop until
-  // the tortoise also does enter that loop. When they meet (i.e. have the exact same 
-  // alive/dead state in all cells without checking colors, see gol_buf_compare()), we know 
+  // the tortoise also does enter that loop. When they meet (i.e. have the exact same
+  // alive/dead state in all cells without checking colors, see gol_buf_compare()), we know
   // that the tortoise is also in the loop.
   // We allow the two to meet GOL_MAX_REPETITIONS times, so a human can see the loop.
   // This also means that a glider will have a looong screen time, especially on non-square boards.
   //  This is intentional.
-  
+
   // this is the hare. it always computes two generations. It's never displayed.
   gol_generation(GOL_HARE1, GOL_HARE2);
   gol_generation(GOL_HARE2, GOL_HARE1);
-  
+
   // this is the tortoise. it always computes one generation. The tortoise is displayed.
   gol_generation(GOL_LAST, GOL_CUR);
-  
+
   // if hare and tortoise meet, the hare just went ahead of the tortoise through a repetition loop.
-  // we only have to check the tortoise against one hare. they will meet sooner or later. 
+  // we only have to check the tortoise against one hare. they will meet sooner or later.
   // play the pure abstract algorithm in your head if you don't believe me.
   if( gol_buf_compare(GOL_CUR, GOL_HARE1) ) {
     gol_stat.repetitions++;
@@ -247,12 +247,8 @@ void gol_fader(int cstep) {
         byte from = gol_valueof(GOL_LAST, x, y);
         byte to = gol_valueof(GOL_CUR, x, y);
 
-        RGB color = HSV2RGB(HSV(
-          gol_colorof(to == 0 ? GOL_LAST : GOL_CUR, x, y), 
-          255, 
-          (byte)((float)(from*255) + ((to*255)-(from*255)) * _min(1.0, ((float)cstep) / (float)spd))
-        )); 
-        
+        RGB color = HSV2RGB(HSV(gol_colorof(to == 0 ? GOL_LAST : GOL_CUR, x, y), 255, (byte)((float)(from*255) + ((to*255)-(from*255)) * _min(1.0, ((float)cstep) / (float)spd))));
+
         matrix_set(x, y, &color);
 
       }
@@ -265,7 +261,7 @@ void gol_loop()
 {
   // 1024 microseconds or 1000 microseconds per millisecond, where's the difference? ;)
   ulong ms = udate() >> 10;
-  
+
   // microsecond overflow protection -- if the gap between ms value and nextrun value is too big, we reset to sensible values.
   // this might lead to a very short generation time every 71.58278825 minutes, assuming udate works with 32 bit unsigned.
   if( gol_stat.nextrun - ms > GOL_ROUNDTIME_MS ) {
@@ -275,11 +271,11 @@ void gol_loop()
   if( ms >= gol_stat.nextrun ) {
     if( gol_stat.repetitions > GOL_MAX_REPETITIONS ) {
       gol_randomize_buffers();
-    } 
+    }
     else {
       gol_generation_control();
     }
-    gol_stat.nextrun = ms + GOL_ROUNDTIME_MS; 
+    gol_stat.nextrun = ms + GOL_ROUNDTIME_MS;
   }
   gol_fader( GOL_ROUNDTIME_MS-(gol_stat.nextrun - ms) );
 }
@@ -293,14 +289,14 @@ int init(int moduleno, char* argstr) {
 	if (matrix_gety() < 8)
 		return 1;
 
-        // save the matrix dimensions so we don't have to use functions inside this module
-        kMatrixWidth = matrix_getx();
-        kMatrixHeight = matrix_gety();
+	// save the matrix dimensions so we don't have to use functions inside this module
+	kMatrixWidth = matrix_getx();
+	kMatrixHeight = matrix_gety();
 
-        // prepare 4 buffers -- 2 for the hare, 2 for the tortoise
-        gol_bufsize = 4 * kMatrixWidth * kMatrixHeight * sizeof(byte);
+	// prepare 4 buffers -- 2 for the hare, 2 for the tortoise
+	gol_bufsize = 4 * kMatrixWidth * kMatrixHeight * sizeof(byte);
 	gol_stat_buf = malloc(gol_bufsize);
-	
+
 	// initialize the buffers with random values
 	gol_randomize_buffers();
 
@@ -313,7 +309,7 @@ int draw(int argc, char* argv[]) {
 		nexttick = udate();
 	}
 
-        gol_loop();
+	gol_loop();
 
 	matrix_render();
 	if (frame >= FRAMES) {
@@ -331,4 +327,3 @@ int deinit() {
 	free(gol_stat_buf);
 	return 0;
 }
-
