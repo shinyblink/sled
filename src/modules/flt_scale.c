@@ -24,15 +24,19 @@ int init(int nextno, char* argstr) {
 		return 2;
 	}
 	free(argstr);
+
+	if (scale < 1) {
+		eprintf("flt_scale: Scale factor must be greater equal 1.\n");
+		return 1;
+	}
+
 	return 0;
 }
 
 int getx(void) {
-	assert(scale != 0);
 	return next->getx() / scale;
 }
 int gety(void) {
-	assert(scale != 0);
 	return next->gety() / scale;
 }
 
@@ -40,11 +44,9 @@ int set(int x, int y, RGB *color) {
 	int px = 0;
 	int py = 0;
 	int ret = 0;
-	x = x * scale;
-	y = y * scale;
 	for (py = 0; py < scale; py++)
 		for (px = 0; px < scale; px++) {
-			ret = next->set(x + px, y + py, color);
+			ret = next->set(x * scale + px, y * scale + py, color);
 			if (ret != 0) return ret;
 		};
 	return 0;

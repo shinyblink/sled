@@ -29,6 +29,7 @@ int* filtno, int* filters);
 extern int modules_init(int* outmodno);
 // These are not readonly during modules_init. So a mutex is held for the entirety of modules_init. - 20kdc
 extern module* modules_get(int moduleno);
+extern module* modules_find(char* name);
 extern int modules_count(void);
 
 #endif
