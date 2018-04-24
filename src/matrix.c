@@ -51,17 +51,14 @@ int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB *color) {
 	if (start_y > end_y)
 		return 2;
 
-	int ret = 0;
 	int x;
 	int y;
 
 	for (y=start_y; y <= end_y; y++)
 		for (x=start_x; x <= end_x; x++) {
-			ret = matrix_set(x, y, color);
-			if (ret != 0)
-				return ret;
+			matrix_set(x, y, color);
 		}
-	return ret;
+	return 0;
 }
 
 // Zeroes the stuff.

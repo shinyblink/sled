@@ -18,6 +18,7 @@
 #include <string.h>
 #include <assert.h>
 #include <timers.h>
+#include <modloader.h>
 
 // Calculation for amount of bytes needed.
 #define ROW_SIZE MATRIX_X * 3 // 3 for R, G and B.
@@ -37,7 +38,11 @@ SDL_Renderer *renderer;
 SDL_Texture *texture;
 SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 
-int init(void) {
+module *this = NULL;
+
+int init(int modno, char *argstr) {
+	this = modules_get(modno);
+
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
 
@@ -47,6 +52,7 @@ int init(void) {
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
 
 	memset(BUFFER, 0, BUFFER_SIZE);
+
 	return 0;
 }
 
@@ -63,10 +69,10 @@ static int matrix_ppos(int x, int y) {
 }
 
 int set(int x, int y, RGB *color) {
-	assert(x >= 0);
-	assert(y >= 0);
-	assert(x < getx());
-	assert(y < gety());
+	if (x < 0 || y < 0)
+		return 1;
+	if (x >= this->getx() || y >= this->gety())
+		return 2;
 
 	int pos = matrix_ppos(x, y) * 3;
 	BUFFER[pos + 0] = color->red;

@@ -34,10 +34,8 @@ int draw(int argc, char* argv[]) {
 
 	matrix_clear();
 	int mx = matrix_getx();
-	int my = matrix_gety();
 	int x;
 	int y;
-	int lastx = 0;
 	int lasty = 0;
 	int dy;
 	int py;
@@ -52,7 +50,6 @@ int draw(int argc, char* argv[]) {
 					matrix_set(x, py, &white);
 			}
 		}
-		lastx = x;
 		lasty = y;
 	}
 	matrix_render();
