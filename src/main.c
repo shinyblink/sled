@@ -111,9 +111,20 @@ static struct option longopts[] = {
 	{ NULL,      0,                 NULL, 0},
 };
 
-void set_timers_quitting(int sig) {
-	//timers_quitting = 1;
-	timers_doquit();
+static int interrupt_count = 0;
+static void interrupt_handler(int sig) {
+	//
+	if (interrupt_count == 0) {
+		printf("sled: Quitting due to interrupt...\n");
+		timers_doquit();
+	}	else if (interrupt_count == 1) {
+		eprintf("sled: Warning: One more interrupt until ungraceful exit!\n");
+	} else {
+		eprintf("sled: Instantly panic-exiting. Bye.\n");
+		exit(1);
+	}
+
+	interrupt_count++;
 }
 
 int main(int argc, char* argv[]) {
@@ -238,7 +249,7 @@ int main(int argc, char* argv[]) {
 
 	modcount = modules_count();
 
-	signal(SIGINT, set_timers_quitting);
+	signal(SIGINT, interrupt_handler);
 
 	// Startup.
 	pick_other(-1, udate());
