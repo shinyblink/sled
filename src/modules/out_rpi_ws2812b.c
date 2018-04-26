@@ -89,10 +89,10 @@ int ppos(int x, int y) {
 }
 
 int set(int x, int y, RGB *color) {
-	assert(x >= 0);
-	assert(y >= 0);
-	assert(x < getx());
-	assert(y < gety());
+	if (x < 0 || y < 0)
+		return 1;
+	if (x >= MATRIX_X || y >= MATRIX_Y)
+		return 2;
 
 #ifdef COLOR_ORDER_RGB
 	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;

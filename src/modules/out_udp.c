@@ -144,6 +144,11 @@ int ppos(int x, int y) {
 }
 
 int set(int x, int y, RGB *color) {
+	if (x < 0 || y < 0)
+		return 1;
+	if (x >= X_SIZE || y >= Y_SIZE)
+		return 2;
+
 	int pos = (ppos(x, y) * 3) + 1;
 	message[pos + 0] = color->red;
 	message[pos + 1] = color->green;

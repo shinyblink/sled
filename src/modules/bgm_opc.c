@@ -203,7 +203,7 @@ int init(int moduleno, char* argstr) {
 	opc_moduleno = moduleno;
 	pthread_create(&opc_thread, NULL, opc_thread_func, NULL);
 
-		// Name our thread.
+	// Name our thread.
 #if defined(__linux__) || defined(__NetBSD__)
 	pthread_setname_np(opc_thread, "bgm_opc");
 #elif defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -251,7 +251,7 @@ int deinit() {
 	opc_shutdown_flag = 1;
 	write(opc_shutdown_fd_mt, &opc_shutdown_flag, sizeof(opc_shutdown_flag));
 	pthread_join(opc_thread, NULL);
-    close(opc_shutdown_fd_mt);
-    close(opc_shutdown_fd_ot);
+	close(opc_shutdown_fd_mt);
+	close(opc_shutdown_fd_ot);
 	return 0;
 }

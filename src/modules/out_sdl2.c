@@ -18,7 +18,6 @@
 #include <string.h>
 #include <assert.h>
 #include <timers.h>
-#include <modloader.h>
 
 // Calculation for amount of bytes needed.
 #define ROW_SIZE MATRIX_X * 3 // 3 for R, G and B.
@@ -38,11 +37,7 @@ SDL_Renderer *renderer;
 SDL_Texture *texture;
 SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 
-module *this = NULL;
-
 int init(int modno, char *argstr) {
-	this = modules_get(modno);
-
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
 
@@ -71,7 +66,7 @@ static int matrix_ppos(int x, int y) {
 int set(int x, int y, RGB *color) {
 	if (x < 0 || y < 0)
 		return 1;
-	if (x >= this->getx() || y >= this->gety())
+	if (x >= MATRIX_X || y >= MATRIX_Y)
 		return 2;
 
 	int pos = matrix_ppos(x, y) * 3;

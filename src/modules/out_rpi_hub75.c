@@ -84,6 +84,11 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
+	if (x < 0 || y < 0)
+		return 1;
+	if (x >= width || y >= height)
+		return 2;
+
 	buffer[PPOS(x, y)] = RGB(color->red, color->green, color->blue);
 	return 0;
 }

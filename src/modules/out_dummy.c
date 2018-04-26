@@ -26,6 +26,11 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
+	if (x < 0 || y < 0)
+		return 1;
+	if (x >= MATRIX_X || y >= MATRIX_Y)
+		return 2;
+
 	// Setting pixels? Nah, we're good.
 	return 0;
 }

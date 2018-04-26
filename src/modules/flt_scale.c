@@ -44,9 +44,11 @@ int set(int x, int y, RGB *color) {
 	int px = 0;
 	int py = 0;
 	int ret = 0;
+	x = x * scale;
+	y = y * scale;
 	for (py = 0; py < scale; py++)
 		for (px = 0; px < scale; px++) {
-			ret = next->set(x * scale + px, y * scale + py, color);
+			ret = next->set(x + px, y + py, color);
 			if (ret != 0) return ret;
 		};
 	return 0;
