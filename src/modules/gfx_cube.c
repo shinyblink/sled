@@ -86,6 +86,9 @@ static ulong nexttick;
 // And then the main functions sublime!
 
 int init(int _moduleno, char* argstr) {
+	if (matrix_getx() < 16 || matrix_gety() < 16)
+		return 1;
+
 	moduleno = _moduleno;
 	framecount = 0;
 	nexttick = 0;
