@@ -33,6 +33,7 @@ gfx_sinematrix.so: LIBS += -lm
 gfx_golc.so: LIBS += -lm
 gfx_mandelbrot.so: LIBS += -lm
 gfx_cube.so: LIBS += -lm
+gfx_scope.so: LIBS += -lasound -lm
 
 out_sdl2.so: LIBS += -lSDL2
 
