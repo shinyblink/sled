@@ -1,4 +1,5 @@
 // FISh: FIFO Shell
+#include <sys/select.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -18,11 +19,13 @@
 #include "modloader.h"
 #include "asl.h"
 
-#define FISH_SLEEPTIME (T_SECOND / 10)
-
 int fish_fifo;
 pthread_t fish_thread;
+// NOTE: fish_shutdown is maintained by the FISh thread,
+//  and is set by fish_pollshutdown.
 int fish_getch_buffer, fish_shutdown, fish_moduleno;
+// Shutdown FDs, by owner. MT is main thread.
+int fish_shutdown_mt, fish_shutdown_ot;
 char fish_getch_bufferval;
 
 void fish_panic(char * reason) {
@@ -30,17 +33,32 @@ void fish_panic(char * reason) {
 	pthread_exit(0);
 }
 
+void fish_pollshutdown() {
+	char ch = 0;
+	if (read(fish_shutdown_ot, &ch, 1) > 0) {
+		printf("I acknowledge your shutdown - fish\n");
+		fish_shutdown = 1;
+	}
+}
+
+// This is the function where FISh spends most of its time blocking.
 char fish_getch() {
 	if (fish_getch_buffer) {
 		fish_getch_buffer = 0;
 		return fish_getch_bufferval;
 	}
 	char ch = 0;
+	fd_set selset;
 	while (read(fish_fifo, &ch, 1) < 1) {
+		fish_pollshutdown();
 		if (fish_shutdown)
 			return 0;
-		usleep(FISH_SLEEPTIME);
-	};
+		FD_ZERO(&selset);
+		FD_SET(fish_fifo, &selset);
+		FD_SET(fish_shutdown_ot, &selset);
+		select(FD_SETSIZE, &selset, NULL, NULL, NULL);
+		// printf("Select returned");
+	}
 	return ch;
 }
 void fish_ungetch(char c) {
@@ -172,11 +190,18 @@ void fish_execute(char * module, int argc, char ** argv) {
 
 void * fish_thread_func(void * arg) {
 	fish_getch_buffer = 0;
-	// If this doesn't work out, it'll eat more CPU than preferable (but nothing more)
-	//int fl = fcntl(fish_fifo, F_GETFL);
-	//if (fl >= 0)
-	//	fcntl(fish_fifo, F_SETFL, fl & (~O_NONBLOCK));
-	while (!fish_shutdown) {
+	fish_shutdown = 0;
+	// Make the FIFO and the shutdown pipe non-blocking.
+	int fl = fcntl(fish_fifo, F_GETFL, 0);
+	if (fl >= 0)
+		fcntl(fish_fifo, F_SETFL, fl | O_NONBLOCK);
+	fl = fcntl(fish_shutdown_ot, F_GETFL, 0);
+	if (fl >= 0)
+		fcntl(fish_shutdown_ot, F_SETFL, fl | O_NONBLOCK);
+	while (1) {
+		fish_pollshutdown();
+		if (fish_shutdown)
+			break;
 		fish_skipws();
 		int hitnl = 0;
 		char * module = fish_word(&hitnl);
@@ -200,7 +225,6 @@ void * fish_thread_func(void * arg) {
 }
 
 int init(int moduleno, char* argstr) {
-	fish_shutdown = 0;
 	fish_moduleno = moduleno;
 
 	// This is allowed to fail!
@@ -211,6 +235,13 @@ int init(int moduleno, char* argstr) {
 		unlink("sled.fish");
 		return 3;
 	}
+
+	int tmp[2];
+	pipe(tmp);
+
+	fish_shutdown_mt = tmp[1];
+	fish_shutdown_ot = tmp[0];
+
 	pthread_create(&fish_thread, NULL, fish_thread_func, NULL);
 
 	// Name our thread.
@@ -243,9 +274,12 @@ int draw(int argc, char ** argv) {
 }
 
 int deinit() {
-	fish_shutdown = 1;
+	char ch = 0;
+	write(fish_shutdown_mt, &ch, 1);
 	pthread_join(fish_thread, NULL);
 	close(fish_fifo);
+	close(fish_shutdown_mt);
+	close(fish_shutdown_ot);
 	unlink("sled.fish");
 	return 0;
 }
