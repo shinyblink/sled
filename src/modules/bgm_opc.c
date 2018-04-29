@@ -179,7 +179,13 @@ void * opc_thread_func(void * n) {
 				backptr = (opc_client_t**) &((*backptr)->next);
 			}
 		}
-		select(FD_SETSIZE, &rset, &nset, &nset, NULL);
+		// Contingency plan. Sometimes the select hangs for no good reason.
+		// Given that IO is still working fine, the select's working, I think.
+		// But until it's tracked down, this is used to ensure opc_shutdown_flag gets checked.
+		struct timeval tv;
+		tv.tv_sec = 1;
+		tv.tv_usec = 0;
+		select(FD_SETSIZE, &rset, &nset, &nset, &tv);
 	}
 	// Close & Deallocate
 	while (list) {
