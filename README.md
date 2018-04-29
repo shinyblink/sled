@@ -77,7 +77,9 @@ They are the following:
 * `bgm_fish`: FIfo Shell. A small FIFO-based queue manipulator. Made by @20kdc.
 	- Uses a little background CPU usage. Creates `sled.fish` FIFO in the sled tree.
 
-* `gfx_gol`: A Conway's Game of Life clone.
+* `gfx_gol`: A simple black and white Conway's Game of Life clone.
+
+* `gfx_golc`: A Conway's Game of Life clone; with fading, color inheritance and loop detection.
 
 * `gfx_rainbow`: A simple rainbow animation.
 
@@ -93,7 +95,9 @@ They are the following:
 
 * `gfx_rainbow`: A rainbow!
 
-* `gfx_sinematrix`: A psychadelic matrix manipulating effect, made by @orithena.
+* `gfx_sinematrix`: A psychedelic matrix manipulating effect, made by @orithena.
+
+* `gfx_sinefield`: A strange effect that cam to pass while whacking random math functions into a loop, made by @orithena.
 
 * `bgm_opc`: An OpenPixelControl server, displays things when it is written to.
 
