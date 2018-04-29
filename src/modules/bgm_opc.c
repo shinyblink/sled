@@ -33,7 +33,7 @@ byte opc_array[65536];
 // Where data goes that we ignore
 byte opc_scratch_array[65536];
 
-int opc_shutdown_fd_mt, opc_shutdown_fd_ot, opc_shutdown_flag;
+int opc_shutdown_fd_mt, opc_shutdown_fd_ot;
 // opc_mtcountdown is the time until we decide to end. It's main-thread-only.
 int opc_moduleno, opc_mtcountdown;
 ulong opc_mtlastframe;
@@ -152,13 +152,11 @@ void * opc_thread_func(void * n) {
 		return 0;
 	}
 	opc_nbs(server);
+	opc_nbs(opc_shutdown_fd_ot);
 	// --
-	fd_set nset, rset;
-	FD_ZERO(&nset);
-	FD_ZERO(&rset);
-	FD_SET(opc_shutdown_fd_ot, &rset);
-	FD_SET(server, &rset);
-	while (!opc_shutdown_flag) {
+	fd_set rset;
+	char sdbuf;
+	while (read(opc_shutdown_fd_ot, &sdbuf, 1) <= 0) {
 		// Accept?
 		int accepted = accept(server, NULL, NULL);
 		if (accepted >= 0) {
@@ -166,26 +164,24 @@ void * opc_thread_func(void * n) {
 			if (opc_client_new(&list, accepted))
 				FD_SET(accepted, &rset);
 		}
+		// select zeroes FDs >:(
+		FD_ZERO(&rset);
 		// Go through all clients!
 		opc_client_t ** backptr = &list;
 		while (*backptr) {
 			if (opc_client_update(*backptr)) {
 				void * on = (*backptr)->next;
-				FD_CLR((*backptr)->socket, &rset);
 				close((*backptr)->socket);
 				free(*backptr);
 				*backptr = on;
 			} else {
+				FD_SET((*backptr)->socket, &rset);
 				backptr = (opc_client_t**) &((*backptr)->next);
 			}
 		}
-		// Contingency plan. Sometimes the select hangs for no good reason.
-		// Given that IO is still working fine, the select's working, I think.
-		// But until it's tracked down, this is used to ensure opc_shutdown_flag gets checked.
-		struct timeval tv;
-		tv.tv_sec = 1;
-		tv.tv_usec = 0;
-		select(FD_SETSIZE, &rset, &nset, &nset, &tv);
+		FD_SET(opc_shutdown_fd_ot, &rset);
+		FD_SET(server, &rset);
+		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
 	}
 	// Close & Deallocate
 	while (list) {
@@ -199,13 +195,13 @@ void * opc_thread_func(void * n) {
 }
 
 int init(int moduleno, char* argstr) {
-	opc_shutdown_flag = 0;
 	opc_mtcountdown = 100;
 	// Shutdown signalling pipe
 	int tmp[2];
 	pipe(tmp);
-	opc_shutdown_fd_mt = tmp[0];
-	opc_shutdown_fd_ot = tmp[1];
+	// For whatever reason, the *receiver* is FD 0.
+	opc_shutdown_fd_mt = tmp[1];
+	opc_shutdown_fd_ot = tmp[0];
 	opc_moduleno = moduleno;
 	pthread_create(&opc_thread, NULL, opc_thread_func, NULL);
 
@@ -225,7 +221,7 @@ int draw(int argc, char ** argv) {
 	}
 	matrix_clear();
 	int indx = 0;
-	// Note the use of 65535 as the limit,
+	// Note the use of 65535 as the maximum amount (making 65534 the maximum index),
 	//  this aligns to the magic number 3.
 	int w = matrix_getx(), h = matrix_gety();
 	for (int i = 0; i < w; i++) {
@@ -254,8 +250,8 @@ int draw(int argc, char ** argv) {
 }
 
 int deinit() {
-	opc_shutdown_flag = 1;
-	write(opc_shutdown_fd_mt, &opc_shutdown_flag, sizeof(opc_shutdown_flag));
+	char blah = 0;
+	write(opc_shutdown_fd_mt, &blah, 1);
 	pthread_join(opc_thread, NULL);
 	close(opc_shutdown_fd_mt);
 	close(opc_shutdown_fd_ot);
