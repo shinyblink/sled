@@ -30,6 +30,7 @@ gfx_text.so: text.o
 gfx_clock.so: text.o
 gfx_error.so: text.o
 gfx_sinematrix.so: LIBS += -lm
+gfx_sinefield.so: LIBS += -lm
 gfx_golc.so: LIBS += -lm
 gfx_mandelbrot.so: LIBS += -lm
 gfx_cube.so: LIBS += -lm
