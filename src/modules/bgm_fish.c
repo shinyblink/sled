@@ -1,4 +1,8 @@
 // FISh: FIFO Shell
+#ifdef __linux__
+#define _GNU_SOURCE
+#endif
+
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/stat.h>

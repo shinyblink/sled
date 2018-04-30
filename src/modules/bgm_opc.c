@@ -5,6 +5,10 @@
 // Should all OPC connections disconnect,
 //  the module will end.
 
+#ifdef __linux__
+#define _GNU_SOURCE
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -198,7 +202,8 @@ int init(int moduleno, char* argstr) {
 	opc_mtcountdown = 100;
 	// Shutdown signalling pipe
 	int tmp[2];
-	pipe(tmp);
+	if (pipe(tmp) != 0)
+		return 1;
 	// For whatever reason, the *receiver* is FD 0.
 	opc_shutdown_fd_mt = tmp[1];
 	opc_shutdown_fd_ot = tmp[0];
@@ -251,8 +256,8 @@ int draw(int argc, char ** argv) {
 
 int deinit() {
 	char blah = 0;
-	write(opc_shutdown_fd_mt, &blah, 1);
-	pthread_join(opc_thread, NULL);
+	if (write(opc_shutdown_fd_mt, &blah, 1) != -1)
+		pthread_join(opc_thread, NULL);
 	close(opc_shutdown_fd_mt);
 	close(opc_shutdown_fd_ot);
 	return 0;
