@@ -94,6 +94,7 @@ int opc_client_update(opc_client_t * client) {
 					*argv = strdup("--start");
 					if (*argv) {
 						timer_add(0, opc_moduleno, 1, argv);
+						wait_until_break();
 					} else {
 						free(argv);
 					}

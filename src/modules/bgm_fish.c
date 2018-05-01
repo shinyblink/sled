@@ -183,6 +183,7 @@ void fish_execute(char * module, int argc, char ** argv) {
 				main_force_random(i, argc, argv);
 			} else {
 				timer_add(0, i, argc, argv);
+				wait_until_break();
 			}
 			free(module);
 			return;
