@@ -27,6 +27,8 @@ static pthread_mutex_t tlock;
 
 module* outmod;
 
+static int breakpipe_fds[2];
+
 void timer_free_argv(int argc, char ** argv);
 
 ulong udate(void) {
@@ -44,8 +46,36 @@ ulong wait_until_core(ulong desired_usec) {
 	if (tnow >= desired_usec)
 		return tnow;
 	useconds_t sleeptime = desired_usec - tnow;
-	usleep(sleeptime);
+	struct timeval timeout;
+	timeout.tv_sec = sleeptime / 1000000;
+	timeout.tv_usec = sleeptime % 1000000;
+	fd_set set;
+	FD_ZERO(&set);
+	FD_SET(breakpipe_fds[0], &set);
+	if (select(FD_SETSIZE, &set, NULL, NULL, &timeout)) {
+		char buf[512];
+		read(breakpipe_fds[0], buf, 512);
+		return udate();
+	}
 	return desired_usec;
+}
+
+void wait_until_break_cleanup_core(void) {
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+	fd_set set;
+	FD_ZERO(&set);
+	FD_SET(breakpipe_fds[0], &set);
+	if (select(FD_SETSIZE, &set, NULL, NULL, &timeout)) {
+		char buf[512];
+		read(breakpipe_fds[0], buf, 512);
+	}
+}
+
+void wait_until_break_core(void) {
+	char discard = 0;
+	write(breakpipe_fds[1], &discard, 1);
 }
 
 // This code calls into the output module's wait_until impl.
@@ -53,10 +83,19 @@ ulong wait_until(ulong desired_usec) {
 	return outmod->wait_until(desired_usec);
 }
 
+// This code calls into the output module's wait_until_break impl.
+void wait_until_break(void) {
+	return outmod->wait_until_break();
+}
+
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
 	struct timer t = { .moduleno = moduleno, .time = usec, .argc = argc, .argv = argv };
 
 	pthread_mutex_lock(&tlock);
+	if (timer_count >= MAX_TIMERS) {
+		pthread_mutex_unlock(&tlock);
+		return 1;
+	}
 	TIMERS[timer_count] = t;
 	timer_count++;
 	pthread_mutex_unlock(&tlock);
@@ -116,7 +155,7 @@ void timer_free_argv(int argc, char ** argv) {
 int timers_init(int outmodno) {
 	if (pthread_mutex_init(&tlock, NULL))
 		return 1;
-
+	pipe(breakpipe_fds);
 	outmod = modules_get(outmodno);
 
 	return 0;
@@ -124,6 +163,7 @@ int timers_init(int outmodno) {
 
 void timers_doquit(void) {
 	timers_quitting = 1;
+	wait_until_break();
 }
 
 int timers_deinit(void) {

@@ -50,6 +50,10 @@ ulong wait_until(ulong desired_usec) {
 	return wait_until_core(desired_usec);
 }
 
+void wait_until_break(void) {
+	wait_until_break_core();
+}
+
 int deinit(void) {
 	// Can we just.. chill for a moment, please?
 	return 0;

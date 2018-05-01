@@ -121,6 +121,10 @@ ulong wait_until(ulong desired_usec) {
 	return wait_until_core(desired_usec);
 }
 
+void wait_until_break(void) {
+	return wait_until_break_core();
+}
+
 int deinit(void) {
 	free(buffer);
 	led_matrix_delete(matrix);

@@ -20,6 +20,12 @@
 // It may not be for those if args have been passed to sled.
 int init(int moduleno, char* argstr);
 
+// FOR "gfx" TYPE PLUGINS, OPTIONAL:
+// This gets called before draw if this was not the last module drawn.
+// This is particularly useful because modules can be unexpectedly turned off,
+//  and various timers (among other things) need to be reset in this case.
+void force_redraw(void);
+
 // FOR "gfx" TYPE PLUGINS:
 // Draw function, gets called as scheduled.
 // If the image should be retained for a certain time

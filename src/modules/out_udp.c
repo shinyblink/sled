@@ -185,6 +185,9 @@ ulong wait_until(ulong desired_usec) {
 	return wait_until_core(desired_usec);
 }
 
+void wait_until_break(void) {
+}
+
 int deinit(void) {
 	close(sock);
 	free(envdup);

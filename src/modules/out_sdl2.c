@@ -29,6 +29,8 @@
 // SDL-based stuff, we need to create a buffer.
 static byte BUFFER[BUFFER_SIZE];
 
+static int sdl_event_break;
+
 #define WIN_W (MATRIX_X * SDL_SCALE_FACTOR)
 #define WIN_H (MATRIX_Y * SDL_SCALE_FACTOR)
 
@@ -40,7 +42,7 @@ SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 int init(int modno, char *argstr) {
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
-
+	sdl_event_break = SDL_RegisterEvents(1);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, 0);
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -102,11 +104,22 @@ ulong wait_until(ulong desired_usec) {
 			if (ev.type == SDL_QUIT) {
 				timers_doquit();
 				return udate();
+			} else if (ev.type == sdl_event_break) {
+				wait_until_break_cleanup_core();
+				return udate();
 			}
 		} else {
 			return wait_until_core(desired_usec);
 		}
 	}
+}
+
+void wait_until_break(void) {
+	SDL_Event myevent;
+	memset(&myevent, 0, sizeof(myevent));
+	myevent.type = sdl_event_break;
+	SDL_PushEvent(&myevent);
+	wait_until_break_core();
 }
 
 int deinit(void) {

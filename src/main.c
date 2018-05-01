@@ -73,8 +73,11 @@ static int pick_other(int mymodno, ulong in) {
 			if (mod == mymodno) mod = -1;
 			if (strcmp(modules_get(mod)->type, "gfx") != 0) mod = -1;
 		}
-	} else {
+	} else if (usablemodcount == 1) {
 		mod = lastvalidmod;
+	} else {
+		in += 5000000;
+		mod = -2;
 	}
 	return timer_add(in, mod, 0, NULL);
 }
@@ -92,7 +95,7 @@ void main_force_random(int mnum, int argc, char ** argv) {
 		pthread_mutex_unlock(&rmod_lock);
 		usleep(5000);
 	}
-	// Used to prevent deadlock.
+	// Quits out without doing anything to prevent deadlock.
 	timer_free_argv(argc, argv);
 }
 
@@ -117,7 +120,7 @@ static void interrupt_handler(int sig) {
 	if (interrupt_count == 0) {
 		printf("sled: Quitting due to interrupt...\n");
 		timers_doquit();
-	}	else if (interrupt_count == 1) {
+	} else if (interrupt_count == 1) {
 		eprintf("sled: Warning: One more interrupt until ungraceful exit!\n");
 	} else {
 		eprintf("sled: Instantly panic-exiting. Bye.\n");
@@ -261,29 +264,43 @@ int main(int argc, char* argv[]) {
 			// Queue random.
 			pick_other(lastmod, udate() + RANDOM_TIME * T_SECOND);
 		} else {
-			wait_until(tnext.time);
-			module* mod = modules_get(tnext.moduleno);
-			if (tnext.moduleno != lastmod) {
-				printf("\n>> Now drawing %s", mod->name);
-				fflush(stdout);
-			} else {
-				printf(".");
-				fflush(stdout);
-			};
-			ret = mod->draw(tnext.argc, tnext.argv);
-			timer_free_argv(tnext.argc, tnext.argv);
-			lastmod = tnext.moduleno;
-			if (ret != 0) {
-				if (ret == 1) {
-					if (lastmod != tnext.moduleno) // not an animation.
-						printf("\nModule chose to pass its turn to draw.");
-					pick_other(lastmod, udate() + T_MILLISECOND);
+			if (tnext.time > wait_until(tnext.time)) {
+				// Early break. Set this timer up for elimination by any 0-time timers that have come along
+				if (tnext.time == 0)
+					tnext.time = 1;
+				timer_add(tnext.time, tnext.moduleno, tnext.argc, tnext.argv);
+				continue;
+			}
+			if (tnext.moduleno >= 0) {
+				module* mod = modules_get(tnext.moduleno);
+				if (tnext.moduleno != lastmod) {
+					printf("\n>> Now drawing %s", mod->name);
+					fflush(stdout);
+					if (mod->force_redraw)
+						mod->force_redraw();
 				} else {
-					eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
-					timers_quitting = 1;
-					deinit();
-					return 7;
+					printf(".");
+					fflush(stdout);
+				};
+				ret = mod->draw(tnext.argc, tnext.argv);
+				timer_free_argv(tnext.argc, tnext.argv);
+				lastmod = tnext.moduleno;
+				if (ret != 0) {
+					if (ret == 1) {
+						if (lastmod != tnext.moduleno) // not an animation.
+							printf("\nModule chose to pass its turn to draw.");
+						pick_other(lastmod, udate() + T_MILLISECOND);
+					} else {
+						eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
+						timers_quitting = 1;
+						deinit();
+						return 7;
+					}
 				}
+			} else {
+				// Virtual null module
+				printf(">> using virtual null module\n");
+				timer_free_argv(tnext.argc, tnext.argv);
 			}
 		}
 	}
