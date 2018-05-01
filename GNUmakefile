@@ -15,7 +15,7 @@ MODULES += gfx_rainbow gfx_math_sinpi gfx_plasma gfx_checkerboard
 MODULES += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
 
-MODULES += bgm_fish bgm_opc bgm_xyscope
+MODULES += bgm_fish bgm_opc
 MODULES += flt_gamma_correct flt_flip_x flt_flip_y flt_scale
 
 CC ?= cc

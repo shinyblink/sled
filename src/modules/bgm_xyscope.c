@@ -13,17 +13,15 @@
 #include <pthread.h>
 
 #define SAMPLE_RATE 48000
-#define BUFFER_FRAMES 256
+#define BUFFER_FRAMES 800
 #define TIMEOUT_FRAMES 480000
-
-#define FRAME_INTERRUPT 32
 #define XAMUL 1
 #define XADIV 1
 // Phosphor gain control, controls how slow the beam must move to light a given line
 #define PGAINMUL 3
 #define PGAINDIV 2
 
-#define PLOSSFAC 1
+#define PLOSSFAC ((BUFFER_FRAMES) / 32)
 
 static snd_pcm_t * scope_pcm;
 // Details on the sample format before conversion.
@@ -32,6 +30,7 @@ static int sf_2c;
 static int sf_16b;
 static int sf_us;
 static int sf_forcex;
+static int sf_forceon;
 
 static int camera_width;
 static int camera_height;
@@ -55,16 +54,6 @@ static int doshutdown;
 static int dotimeout;
 
 static pthread_t scope_thread;
-
-static byte run_ca(byte * src, int left, int right, int top, int bottom) {
-	byte srcM = *src;
-	if (srcM >= PLOSSFAC) {
-		srcM -= PLOSSFAC;
-	} else {
-		srcM = 0;
-	}
-	return srcM;
-}
 
 #define SM_ALGORITHM(sample, shr, sub) (((byte) (sample >> shr)) - sub)
 #define LD_ALGORITHM(typ, shr, sub) \
@@ -146,14 +135,22 @@ static void * thread_func(void * ign) {
 			graphics_drawline_core(lx, ly, x, y, pgain_func, &pgain);
 			lx = x;
 			ly = y;
-			if (!(i % FRAME_INTERRUPT)) {
-				// -- Run CA --
-				int camera_size = camera_width * camera_height;
-				for (int i = 0; i < camera_size; i++)
-					bufferC[camera_size + i] = run_ca(bufferC + i, x > 0, x < camera_width - 1, y > 0, y < camera_height - 1);
-				memcpy(bufferC, bufferC + camera_size, camera_size);
-			}
 		}
+		// -- Run CA --
+		int camera_size = camera_width * camera_height;
+		for (int i = 0; i < camera_size; i++) {
+			byte srcM = bufferC[i];
+			if (srcM >= PLOSSFAC) {
+				srcM -= PLOSSFAC;
+			} else {
+				srcM = 0;
+			}
+			bufferC[camera_size + i] = srcM;
+		}
+		memcpy(bufferC, bufferC + camera_size, camera_size);
+		// -- Add Timer --
+		if (sf_forceon)
+			timeout = TIMEOUT_FRAMES;
 		if (timeout > 0) {
 			timeout -= frames;
 			dotimeout = timeout <= 0;
@@ -178,10 +175,15 @@ int init(int modulen, char* argstr) {
 	memset(bufferC, 0, camera_width * camera_height * 2);
 	memset(bufferC + (camera_width * camera_height * 2), 255, camera_width * camera_height);
 	sf_forcex = 0;
+	sf_forceon = 0;
 	char * fx = getenv("SLED_SCOPE_FORCEX");
 	if (fx)
 		if (!strcmp(fx, "1"))
 			sf_forcex = 1;
+	fx = getenv("SLED_SCOPE_FORCEON");
+	if (fx)
+		if (!strcmp(fx, "1"))
+			sf_forceon = 1;
 	// Can't rely on argstr right now, but allow it
 	char * ourarg = argstr;
 	if (!ourarg)
