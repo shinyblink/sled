@@ -39,7 +39,12 @@ int init(int moduleno, char* argstr) {
 	balls = malloc(numballs * sizeof(ball));
 
 	modno = moduleno;
+	frame = 0;
 	return 0;
+}
+
+void force_redraw() {
+	frame = 0;
 }
 
 void randomize_balls() {

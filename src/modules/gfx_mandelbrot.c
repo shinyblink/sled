@@ -42,6 +42,7 @@ int init(int moduleno, char* argstr) {
 		return 2;
 
 	modno = moduleno;
+	frame = 0;
 	return 0;
 }
 
@@ -52,6 +53,10 @@ static int rescale(int x, int maxn, int newn) {
 }
 
 #define SCALE(i, n) ((float) i / (float) n)
+
+void force_redraw() {
+	frame = 0;
+}
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0) {

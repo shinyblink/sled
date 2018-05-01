@@ -49,9 +49,9 @@ int draw(int argc, char* argv[]) {
 	float step = (float)(((udate()) >> 16) & 0x00007FFF);
 	//printf("[%8.1f]", step);
 	byte hue = 0;
-	for( byte x = 0; x < mx; x++ ) {
+	for(int x = 0; x < mx; x++ ) {
 		hue = step + (37 * sinf( ((x*step)/(11*M_PI)) * 0.04 ) );
-		for( byte y = 0; y < my; y++ ) {
+		for(int y = 0; y < my; y++ ) {
 			hue += 17 * sinf(y/(5*M_PI));
 			RGB color = HSV2RGB(HSV(
 				(byte)(hue + ((unsigned long)step & 0x000000FF)), 

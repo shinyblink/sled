@@ -95,6 +95,10 @@ int init(int _moduleno, char* argstr) {
 	return 0;
 }
 
+void force_redraw() {
+	framecount = 0;
+}
+
 int draw(int argc, char* argv[]) {
 	// Prepare aspect/size variable stuff
 	float aspectx, aspecty, mw, mh;

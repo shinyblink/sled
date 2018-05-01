@@ -31,6 +31,10 @@ int init(int modno, char* argstr) {
 	return 0;
 }
 
+void force_redraw() {
+	frame = 0;
+}
+
 int draw(int argc, char* argv[]) {
 	if (frame == 0)
 		nexttick = udate();

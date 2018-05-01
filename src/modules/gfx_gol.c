@@ -40,7 +40,12 @@ int init(int moduleno, char* argstr) {
 	assert(new);
 
 	modno = moduleno;
+	frame = 0;
 	return 0;
+}
+
+void force_redraw() {
+	frame = 0;
 }
 
 void gol_shuffle_board(void) {

@@ -20,7 +20,12 @@ int init(int moduleno, char* argstr) {
 		return 1;
 
 	modno = moduleno;
+	frame = 0;
 	return 0;
+}
+
+void force_redraw() {
+	frame = 0;
 }
 
 static RGB white = RGB(255, 255, 255);
