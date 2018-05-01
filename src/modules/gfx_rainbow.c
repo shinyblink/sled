@@ -12,7 +12,7 @@
 
 static int modno;
 static int pos;
-static int frame;
+static int frame = 0;
 static ulong nexttick;
 
 int init(int moduleno, char* argstr) {
@@ -20,6 +20,10 @@ int init(int moduleno, char* argstr) {
 		return 1;
 	modno = moduleno;
 	return 0;
+}
+
+void force_redraw() {
+	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {

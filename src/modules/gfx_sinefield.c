@@ -19,7 +19,7 @@
 /*** management variables ***/
 
 static int modno;
-static int frame;
+static int frame = 0;
 static ulong nexttick;
 
 /*** matrix info (initialized in init()) ***/
@@ -39,6 +39,10 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
+
+void force_redraw() {
+	frame = 0;
+}
 
 /*** main drawing loop ***/
 

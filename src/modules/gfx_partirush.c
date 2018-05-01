@@ -76,6 +76,7 @@ int init(int moduleno, char* argstr) {
 	randomize_particles();
 
 	modno = moduleno;
+	frame = 0;
 	return 0;
 }
 

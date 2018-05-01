@@ -88,9 +88,13 @@ int init(int moduleno, char* argstr) {
 	randomize_lines();
 
 	modno = moduleno;
+	frame = 0;
 	return 0;
 }
 
+void force_redraw() {
+	frame = 0;
+}
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0) {

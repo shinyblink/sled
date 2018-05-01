@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <random.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 
 #define TWINKLE_LEVELS 8
@@ -26,10 +27,9 @@ static const int twinkle_level_tab[TWINKLE_LEVELS] = {
 static int *twinkle_levels;
 static int twinkle_moduleno;
 static ulong twinkle_nexttick;
-int twinkle_framecount;
+int twinkle_framecount = 0;
 
 int init(int moduleno, char* argstr) {
-	int i;
 	twinkle_levels = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	assert(twinkle_levels);
 	force_redraw();

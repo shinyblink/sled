@@ -19,7 +19,7 @@
 /*** management variables ***/
 
 static int modno;
-static int frame;
+static int frame = 0;
 static ulong nexttick;
 
 /*** matrix info (initialized in init()) ***/
@@ -110,6 +110,10 @@ inline float addmodpi(float x, float delta) {
 }
 
 /*** main drawing loop ***/
+
+void force_redraw() {
+	frame = 0;
+}
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0)

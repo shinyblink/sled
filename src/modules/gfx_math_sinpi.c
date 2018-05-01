@@ -23,10 +23,15 @@ int init(int moduleno, char* argstr) {
 	if (matrix_getx() < 3)
 		return 1;
 	modno = moduleno;
+	frame = 0;
 	return 0;
 }
 
 RGB white = { .red = 255, .green = 255, .blue = 255 };
+
+void force_redraw() {
+	frame = 0;
+}
 
 int draw(int argc, char* argv[]) {
 	if (frame == 0)

@@ -13,9 +13,9 @@
 #define STEP_Y (matrix_gety() / STEPS / 2)
 
 static int modno;
-static int step;
+static int step = 0;
 static int dir = 1;
-static int frame;
+static int frame = 0;
 static ulong nexttick;
 
 int init(int moduleno, char* argstr) {
@@ -26,6 +26,11 @@ int init(int moduleno, char* argstr) {
 
 	modno = moduleno;
 	return 0;
+}
+
+void force_redraw() {
+	frame = 0;
+	step = 0;
 }
 
 int draw(int argc, char* argv[]) {

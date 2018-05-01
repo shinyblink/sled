@@ -35,6 +35,10 @@ float dist(float x0, float y0, float x1, float y1) {
 	return sqrtf(((x0 - x1) * (x0 - x1)) + ((y0 - y1) * (y0 - y1)));
 }
 
+void force_redraw() {
+	frame = 0;
+}
+
 int draw(int argc, char* argv[]) {
 	if (frame == 0) {
 		nexttick = udate();
