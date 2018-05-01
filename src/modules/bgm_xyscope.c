@@ -4,15 +4,20 @@
 #include <types.h>
 #include <plugin.h>
 #include <matrix.h>
+#include <timers.h>
+#include <graphics.h>
 #include <stdio.h>
 #include <random.h>
 #include <alsa/asoundlib.h>
 #include <math.h>
+#include <pthread.h>
 
 #define SAMPLE_RATE 48000
 #define BUFFER_FRAMES 256
+#define TIMEOUT_FRAMES 480000
+
 #define FRAME_INTERRUPT 32
-#define XAMUL 4
+#define XAMUL 1
 #define XADIV 1
 // Phosphor gain control, controls how slow the beam must move to light a given line
 #define PGAINMUL 3
@@ -47,6 +52,8 @@ static int moduleno;
 
 static int doshutdown;
 
+static int dotimeout;
+
 static pthread_t scope_thread;
 
 static byte run_ca(byte * src, int left, int right, int top, int bottom) {
@@ -68,19 +75,20 @@ static byte run_ca(byte * src, int left, int right, int top, int bottom) {
 			typ sampleB = ((typ *) bufferA)[(indx * (sf_2c ? 2 : 1)) + 1]; \
 			bufferB[(indx * 2) + 1] = 255 - SM_ALGORITHM(sampleB, shr, sub); \
 		} else { \
-			bufferB[(indx * 2) + 1] = ((xa++) * XAMUL) / XADIV; \
+			bufferB[(indx * 2) + 1] = bufferB[indx * 2]; \
+			bufferB[indx * 2] = ((xa++) * XAMUL) / XADIV; \
 		} \
 	}
 
 static int pgain_func(int x, int y, void * pgf) {
 	if (x < 0)
-		return;
+		return 0;
 	if (y < 0)
-		return;
+		return 0;
 	if (x >= camera_width)
-		return;
+		return 0;
 	if (y >= camera_height)
-		return;
+		return 0;
 	int pg = *((int*) pgf);
 	// Phosphor gain
 	int v = bufferC[x + (y * camera_width)];
@@ -99,6 +107,7 @@ static void * thread_func(void * ign) {
 	int pgm = camera_width;
 	if (camera_height > pgm)
 		pgm = camera_height;
+	int timeout = 0;
 	while (!doshutdown) {
 		// -- Stream Audio --
 		int frames = snd_pcm_readi(scope_pcm, bufferA, BUFFER_FRAMES);
@@ -130,6 +139,8 @@ static void * thread_func(void * ign) {
 			dx *= dx;
 			dy *= dy;
 			float dst = sqrtf(dx + dy) + 1;
+			if (dy >= (camera_height / 8))
+				timeout = TIMEOUT_FRAMES;
 			int pgain = (int) (((PGAINMUL * pgm) / PGAINDIV) / dst);
 			//pgain_func(x, y, &pgain);
 			graphics_drawline_core(lx, ly, x, y, pgain_func, &pgain);
@@ -138,13 +149,16 @@ static void * thread_func(void * ign) {
 			if (!(i % FRAME_INTERRUPT)) {
 				// -- Run CA --
 				int camera_size = camera_width * camera_height;
-				for (int i = 0; i < camera_size; i++) {
-					int x = i % camera_width;
-					int y = i / camera_width;
+				for (int i = 0; i < camera_size; i++)
 					bufferC[camera_size + i] = run_ca(bufferC + i, x > 0, x < camera_width - 1, y > 0, y < camera_height - 1);
-				}
 				memcpy(bufferC, bufferC + camera_size, camera_size);
 			}
+		}
+		if (timeout > 0) {
+			timeout -= frames;
+			dotimeout = timeout <= 0;
+			timer_add(0, moduleno, 0, NULL);
+			wait_until_break();
 		}
 	}
 	return 0;
@@ -177,7 +191,7 @@ int init(int modulen, char* argstr) {
 		printf("You didn't specify an audio device for gfx_scope, so assuming you want 'default'.\n"
 			"To resolve this, by device:\n");
 		char ** devnames;
-		if (snd_device_name_hint(-1, "pcm", (void **) &devnames)) {
+		if (snd_device_name_hint(-1, "pcm", (void ***) &devnames)) {
 			printf("\n(ALSA wasn't available, so no device names for you.)\n\n");
 		} else {
 			char ** devnamep = devnames;
@@ -203,7 +217,7 @@ int init(int modulen, char* argstr) {
 		return 1;
 	}
 	int code;
-	if (code = snd_pcm_open(&scope_pcm, ourarg, SND_PCM_STREAM_CAPTURE, 0)) {
+	if ((code = snd_pcm_open(&scope_pcm, ourarg, SND_PCM_STREAM_CAPTURE, 0))) {
 		free(ourarg);
 		printf("Couldn't open stream: %i\n", code);
 		free(bufferC);
@@ -257,9 +271,9 @@ int init(int modulen, char* argstr) {
 	pthread_create(&scope_thread, NULL, thread_func, NULL);
 	// Name our thread.
 #if defined(__linux__) || defined(__NetBSD__)
-	pthread_setname_np(scope_thread, "gfx_scope");
+	pthread_setname_np(scope_thread, "bgm_xyscope");
 #elif defined(__FreeBSD__) || defined(__OpenBSD__)
-	pthread_set_name_np(scope_thread, "gfx_scope");
+	pthread_set_name_np(scope_thread, "bgm_xyscope");
 #endif
 	return 0;
 }
@@ -288,11 +302,14 @@ static int get_cm(int ca) {
 	return 15 - (ca >> 4);
 }
 
+void force_redraw() {
+	int camera_size = camera_width * camera_height;
+	memset(bufferC + (camera_size * 2), 255, camera_size);
+}
+
 int draw(int argc, char* argv[]) {
 	int camera_size = camera_width * camera_height;
 	for (int i = 0; i < camera_size; i++) {
-		int x = i % camera_width;
-		int y = i / camera_width;
 		int cm = get_cm(bufferC[i]);
 		if (cm != bufferC[i + (camera_size * 2)]) {
 			bufferC[i + (camera_size * 2)] = cm;
@@ -300,7 +317,8 @@ int draw(int argc, char* argv[]) {
 		}
 	}
 	matrix_render();
-	timer_add(1, moduleno, 0, NULL);
+	if (dotimeout)
+		return 1;
 	return 0;
 }
 
