@@ -278,6 +278,10 @@ int draw(int argc, char ** argv) {
 	return 1;
 }
 
+void reset(void) {
+	// Nothing?
+}
+
 int deinit() {
 	char ch = 0;
 	write(fish_shutdown_mt, &ch, 1);

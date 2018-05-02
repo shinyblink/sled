@@ -112,13 +112,11 @@ inline float addmodpi(float x, float delta) {
 /*** main drawing loop ***/
 
 void reset() {
+	nexttick = udate();
 	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0)
-		nexttick = udate();
-
 	// increase the run variables by the const amounts set above
 	pangle = addmodpi( pangle, inc_angle + (angle*var_angle) );
 	angle = cosf(pangle) * M_PI;

@@ -55,15 +55,12 @@ static int rescale(int x, int maxn, int newn) {
 #define SCALE(i, n) ((float) i / (float) n)
 
 void reset() {
+	nexttick = udate();
+	matrix_clear();
 	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-		matrix_clear();
-	}
-
 	int min;
 	int max;
 

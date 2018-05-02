@@ -24,19 +24,17 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
-	frame = 0;
-}
-
 static RGB white = RGB(255, 255, 255);
 static RGB black = RGB(0, 0, 0);
 
-int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-		matrix_clear();
-	}
+void reset(reset) {
+	nexttick = udate();
+	matrix_clear();
+	frame = 0;
+}
 
+
+int draw(int argc, char* argv[]) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
 

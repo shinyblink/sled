@@ -41,15 +41,13 @@ int init(int moduleno, char* argstr) {
 
 
 void reset() {
+	nexttick = udate();
 	frame = 0;
 }
 
 /*** main drawing loop ***/
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0)
-		nexttick = udate();
-
 	float step = (float)(((udate()) >> 16) & 0x00007FFF);
 	//printf("[%8.1f]", step);
 	byte hue = 0;
@@ -58,8 +56,8 @@ int draw(int argc, char* argv[]) {
 		for(int y = 0; y < my; y++ ) {
 			hue += 17 * sinf(y/(5*M_PI));
 			RGB color = HSV2RGB(HSV(
-				(byte)(hue + ((unsigned long)step & 0x000000FF)), 
-				255, //(byte)(192 - (63*cosf((hue+step)*M_PI*0.004145))), 
+				(byte)(hue + ((unsigned long)step & 0x000000FF)),
+				255, //(byte)(192 - (63*cosf((hue+step)*M_PI*0.004145))),
 				(byte)(255*sinf((hue+step)*M_PI*0.003891))
 			));
 			matrix_set(x,y,&color);

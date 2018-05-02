@@ -93,15 +93,13 @@ int init(int moduleno, char* argstr) {
 }
 
 void reset() {
+	nexttick = udate();
+	matrix_clear();
+
 	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-		matrix_clear();
-	}
-
 	int line;
 	// clear out old points of lines
 	for (line = 0; line < numlines; ++line) {

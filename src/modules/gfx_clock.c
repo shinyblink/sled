@@ -32,13 +32,11 @@ int init(int modno, char* argstr) {
 }
 
 void reset() {
+	nexttick = udate();
 	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0)
-		nexttick = udate();
-
 	time_t rawtime;
 	struct tm * timeinfo;
 	const char * format = "%T";

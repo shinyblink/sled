@@ -255,6 +255,10 @@ int draw(int argc, char ** argv) {
 	return 1;
 }
 
+void reset(void) {
+	// Nothing?
+}
+
 int deinit() {
 	char blah = 0;
 	if (write(opc_shutdown_fd_mt, &blah, 1) != -1)

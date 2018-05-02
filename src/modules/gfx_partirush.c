@@ -81,15 +81,13 @@ int init(int moduleno, char* argstr) {
 }
 
 void reset() {
+	nexttick = udate();
+	matrix_clear();
+
 	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-		matrix_clear();
-	}
-
 	int particle;
 	// clear out old particles
 	for (particle = 0; particle < numparticles; ++particle)

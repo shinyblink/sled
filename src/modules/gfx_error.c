@@ -113,6 +113,10 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
+void reset(void) {
+	// Nothing?
+}
+
 int deinit() {
 	// This acts conditionally on rendered being non-NULL.
 	int i;

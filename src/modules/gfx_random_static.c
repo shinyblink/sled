@@ -19,6 +19,10 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
+void reset(void) {
+	// Nothing?
+}
+
 int deinit(void) {
 	return 0;
 }

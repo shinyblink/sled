@@ -29,14 +29,12 @@ int init(int moduleno, char* argstr) {
 }
 
 void reset() {
+	nexttick = udate();
 	frame = 0;
 	step = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0)
-		nexttick = udate();
-
 	if (step == 0)
 		dir = 1;
 	if (step == 4)

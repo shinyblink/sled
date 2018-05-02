@@ -43,10 +43,6 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
-	frame = 0;
-}
-
 void randomize_balls() {
 	int ball;
 	int mx = matrix_getx();
@@ -96,13 +92,14 @@ void update_balls() {
 	}
 }
 
-int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-		matrix_clear();
-		randomize_balls();
-	}
+void reset(void) {
+	nexttick = udate();
+	matrix_clear();
+	randomize_balls();
+	frame = 0;
+}
 
+int draw(int argc, char* argv[]) {
 	int ball;
 	// clear out old balls
 	for (ball = 0; ball < numballs; ++ball)

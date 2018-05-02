@@ -36,15 +36,13 @@ float dist(float x0, float y0, float x1, float y1) {
 }
 
 void reset() {
+	nexttick = udate();
+	pos = randn(255);
+
 	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-		pos = randn(255);
-	}
-
 	float plasma = 1.0f / 3.6f;
 	float ccols = cosf(matrix_getx());
 	float srows = sinf(matrix_gety());

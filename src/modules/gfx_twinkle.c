@@ -38,14 +38,12 @@ int init(int moduleno, char* argstr) {
 }
 
 void reset() {
+	twinkle_nexttick = udate();
 	twinkle_framecount = 0;
 	memset(twinkle_levels, 0, matrix_getx() * matrix_gety() * sizeof(int));
 }
 
 int draw(int argc, char* argv[]) {
-	if (twinkle_framecount == 0)
-		twinkle_nexttick = udate();
-
 	int x;
 	int y;
 	int i = 0;

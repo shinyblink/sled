@@ -45,6 +45,8 @@ int init(int moduleno, char* argstr) {
 }
 
 void reset() {
+	nexttick = udate();
+	gol_shuffle_board();
 	frame = 0;
 }
 
@@ -102,11 +104,6 @@ void gol_cycle(void) {
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-		gol_shuffle_board();
-	}
-
 	int x;
 	int y;
 	for (x=0; x < matrix_getx(); ++x)

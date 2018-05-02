@@ -305,14 +305,11 @@ int init(int moduleno, char* argstr) {
 }
 
 void reset() {
+	nexttick = udate();
 	frame = 0;
 }
 
 int draw(int argc, char* argv[]) {
-	if (frame == 0) {
-		nexttick = udate();
-	}
-
 	gol_loop();
 
 	matrix_render();
