@@ -40,7 +40,7 @@ int init(int moduleno, char* argstr) {
 }
 
 
-void force_redraw() {
+void reset() {
 	frame = 0;
 }
 

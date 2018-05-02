@@ -95,7 +95,7 @@ int init(int _moduleno, char* argstr) {
 	return 0;
 }
 
-void force_redraw() {
+void reset() {
 	framecount = 0;
 }
 

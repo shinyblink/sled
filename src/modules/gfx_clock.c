@@ -31,7 +31,7 @@ int init(int modno, char* argstr) {
 	return 0;
 }
 
-void force_redraw() {
+void reset() {
 	frame = 0;
 }
 

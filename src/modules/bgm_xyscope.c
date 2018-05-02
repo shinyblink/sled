@@ -308,7 +308,7 @@ static int get_cm(int ca) {
 	return 15 - (ca >> 4);
 }
 
-void force_redraw() {
+void reset() {
 	int camera_size = camera_width * camera_height;
 	memset(bufferC + (camera_size * 2), 255, camera_size);
 }

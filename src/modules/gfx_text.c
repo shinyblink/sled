@@ -33,7 +33,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void force_redraw() {
+void reset() {
 	text_free(rendered);
 	text_position = 0;
 }

@@ -54,7 +54,7 @@ static int rescale(int x, int maxn, int newn) {
 
 #define SCALE(i, n) ((float) i / (float) n)
 
-void force_redraw() {
+void reset() {
 	frame = 0;
 }
 

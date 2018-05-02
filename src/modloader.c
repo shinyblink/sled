@@ -77,7 +77,7 @@ int modules_loadmod(module* mod, char name[256], char* modpath) {
 		mod->wait_until_break = dlookup(handle, modpath, "wait_until_break");
 	} else {
 		// Optional!
-		mod->force_redraw = dlsym(handle, "force_redraw");
+		mod->force_redraw = dlsym(handle, "reset");
 		mod->draw = dlookup(handle, modpath, "draw");
 	}
 	return 0;
@@ -150,7 +150,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					printf(" Failed.\n");
 					continue;
 				}
-				
+
 				if (strcmp(modules[modcount].type, "out") == 0) {
 					*outmodno = modcount;
 				}

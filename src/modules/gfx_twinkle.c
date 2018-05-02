@@ -32,12 +32,12 @@ int twinkle_framecount = 0;
 int init(int moduleno, char* argstr) {
 	twinkle_levels = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	assert(twinkle_levels);
-	force_redraw();
+	reset();
 	twinkle_moduleno = moduleno;
 	return 0;
 }
 
-void force_redraw() {
+void reset() {
 	twinkle_framecount = 0;
 	memset(twinkle_levels, 0, matrix_getx() * matrix_gety() * sizeof(int));
 }

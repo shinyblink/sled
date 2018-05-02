@@ -111,7 +111,7 @@ inline float addmodpi(float x, float delta) {
 
 /*** main drawing loop ***/
 
-void force_redraw() {
+void reset() {
 	frame = 0;
 }
 

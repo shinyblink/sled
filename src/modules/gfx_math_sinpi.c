@@ -29,7 +29,7 @@ int init(int moduleno, char* argstr) {
 
 RGB white = { .red = 255, .green = 255, .blue = 255 };
 
-void force_redraw() {
+void reset() {
 	frame = 0;
 }
 
