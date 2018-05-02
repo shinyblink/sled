@@ -13,7 +13,7 @@
 #include <pthread.h>
 
 #define SAMPLE_RATE 48000
-#define BUFFER_FRAMES 800
+#define BUFFER_FRAMES 4096
 #define TIMEOUT_FRAMES 480000
 #define XAMUL 1
 #define XADIV 1
@@ -21,7 +21,7 @@
 #define PGAINMUL 3
 #define PGAINDIV 2
 
-#define PLOSSFAC ((BUFFER_FRAMES) / 32)
+#define PLOSSFAC ((BUFFER_FRAMES) / 128)
 
 static snd_pcm_t * scope_pcm;
 // Details on the sample format before conversion.
