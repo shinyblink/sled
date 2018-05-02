@@ -12,7 +12,7 @@ typedef struct module {
 
 	int (*init)(int moduleno, char* argstr);
 	int (*deinit)(void);
-	void (*force_redraw)(void);
+	void (*reset)(void);
 	int (*draw)(int argc, char* argv[]);
 	int (*set)(int x, int y, RGB *color);
 	int (*clear)(void);

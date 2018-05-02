@@ -24,7 +24,7 @@ int init(int moduleno, char* argstr);
 // This gets called before draw if this was not the last module drawn.
 // This is particularly useful because modules can be unexpectedly turned off,
 //  and various timers (among other things) need to be reset in this case.
-void force_redraw(void);
+void reset(void);
 
 // FOR "gfx" TYPE PLUGINS:
 // Draw function, gets called as scheduled.

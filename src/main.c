@@ -276,8 +276,8 @@ int main(int argc, char* argv[]) {
 				if (tnext.moduleno != lastmod) {
 					printf("\n>> Now drawing %s", mod->name);
 					fflush(stdout);
-					if (mod->force_redraw)
-						mod->force_redraw();
+					if (mod->reset)
+						mod->reset();
 				} else {
 					printf(".");
 					fflush(stdout);

@@ -77,7 +77,7 @@ int modules_loadmod(module* mod, char name[256], char* modpath) {
 		mod->wait_until_break = dlookup(handle, modpath, "wait_until_break");
 	} else {
 		// Optional!
-		mod->force_redraw = dlsym(handle, "reset");
+		mod->reset = dlsym(handle, "reset");
 		mod->draw = dlookup(handle, modpath, "draw");
 	}
 	return 0;
