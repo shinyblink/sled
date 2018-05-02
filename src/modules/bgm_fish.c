@@ -40,7 +40,7 @@ void fish_panic(char * reason) {
 void fish_pollshutdown() {
 	char ch = 0;
 	if (read(fish_shutdown_ot, &ch, 1) > 0) {
-		printf("I acknowledge your shutdown - fish\n");
+		printf(" fish: bye! -");
 		fish_shutdown = 1;
 	}
 }

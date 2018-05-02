@@ -1,3 +1,4 @@
+// An (XY) Oscilloscope, using ALSA audio sources as input.
 // Anyone who makes the "this is out of scope" joke... Uh, vifino, are we allowed to say what happens to them?
 // Apparently the answer is: "hahaha" "No. >:)" I assume by that they get nice happy hugs. -20kdc
 
@@ -16,12 +17,12 @@
 #define BUFFER_FRAMES 4096
 #define TIMEOUT_FRAMES 480000
 #define XAMUL 1
-#define XADIV 1
+#define XADIV 2
 // Phosphor gain control, controls how slow the beam must move to light a given line
 #define PGAINMUL 3
 #define PGAINDIV 2
 
-#define PLOSSFAC ((BUFFER_FRAMES) / 128)
+#define PLOSSFAC ((BUFFER_FRAMES) / 64)
 
 static snd_pcm_t * scope_pcm;
 // Details on the sample format before conversion.
@@ -29,7 +30,7 @@ static snd_pcm_t * scope_pcm;
 static int sf_2c;
 static int sf_16b;
 static int sf_us;
-static int sf_forcex;
+static int sf_usey;
 static int sf_forceon;
 
 static int camera_width;
@@ -50,7 +51,6 @@ static byte * bufferC;
 static int moduleno;
 
 static int doshutdown;
-
 static int dotimeout;
 
 static pthread_t scope_thread;
@@ -60,7 +60,7 @@ static pthread_t scope_thread;
 	for (int indx = 0; indx < BUFFER_FRAMES; indx++) { \
 		typ sampleA = ((typ *) bufferA)[indx * (sf_2c ? 2 : 1)]; \
 		bufferB[indx * 2] = SM_ALGORITHM(sampleA, shr, sub); \
-		if (sf_2c && !sf_forcex) { \
+		if (sf_2c && sf_usey) { \
 			typ sampleB = ((typ *) bufferA)[(indx * (sf_2c ? 2 : 1)) + 1]; \
 			bufferB[(indx * 2) + 1] = 255 - SM_ALGORITHM(sampleB, shr, sub); \
 		} else { \
@@ -174,12 +174,12 @@ int init(int modulen, char* argstr) {
 	}
 	memset(bufferC, 0, camera_width * camera_height * 2);
 	memset(bufferC + (camera_width * camera_height * 2), 255, camera_width * camera_height);
-	sf_forcex = 0;
+	sf_usey = 0;
 	sf_forceon = 0;
-	char * fx = getenv("SLED_SCOPE_FORCEX");
+	char * fx = getenv("SLED_SCOPE_USEY");
 	if (fx)
 		if (!strcmp(fx, "1"))
-			sf_forcex = 1;
+			sf_usey = 1;
 	fx = getenv("SLED_SCOPE_FORCEON");
 	if (fx)
 		if (!strcmp(fx, "1"))
@@ -229,39 +229,43 @@ int init(int modulen, char* argstr) {
 	sf_2c = 0;
 	sf_16b = 0;
 	sf_us = 0;
-	if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BS8C2\n");
-		sf_2c = 1;
-	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BS16C2\n");
-		sf_16b = 1;
-		sf_2c = 1;
-	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BU8C2\n");
-		sf_2c = 1;
-		sf_us = 1;
-	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BU16C2\n");
-		sf_16b = 1;
-		sf_2c = 1;
-		sf_us = 1;
-	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BS8C1\n");
-	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BS16C1\n");
-		sf_16b = 1;
-	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BU8C1\n");
-		sf_us = 1;
-	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-		printf("Got BU16C1\n");
-		sf_16b = 1;
-		sf_us = 1;
+	if (sf_usey) {
+		if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS8C2\n");
+			sf_2c = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS16C2\n");
+			sf_16b = 1;
+			sf_2c = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU8C2\n");
+			sf_2c = 1;
+			sf_us = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU16C2\n");
+			sf_16b = 1;
+			sf_2c = 1;
+			sf_us = 1;
+		}
 	} else {
-		printf("Couldn't convince ALSA to give sane settings: %i\n", code);
-		snd_pcm_close(scope_pcm);
-		free(bufferC);
-		return 1;
+		if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS8C1\n");
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS16C1\n");
+			sf_16b = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU8C1\n");
+			sf_us = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU16C1\n");
+			sf_16b = 1;
+			sf_us = 1;
+		} else {
+			printf("Couldn't convince ALSA to give sane settings: %i\n", code);
+			snd_pcm_close(scope_pcm);
+			free(bufferC);
+			return 1;
+		}
 	}
 	bufferA = malloc(BUFFER_FRAMES * (sf_2c ? 2 : 1) * (sf_16b ? 2 : 1));
 	if (!bufferA) {
