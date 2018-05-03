@@ -44,7 +44,7 @@ int draw(int argc, char* argv[]) {
 
 	matrix_clear();
 
-	for (p.x = 0; p.x < XSCALE; p.x++) {
+	for (p.x = 0; p.x <= XSCALE; p.x++) {
 		p.y = - round((YSCALE - 1) / 2 * (sin((p.x + pos) * M_PI * 2.0f / (double) XSCALE) - 1));
 		/* what the hell why is p.x not equal to 0? */
 		if (frame == 0 && p.x <= 1)
