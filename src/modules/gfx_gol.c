@@ -44,18 +44,18 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
-	nexttick = udate();
-	gol_shuffle_board();
-	frame = 0;
-}
-
 void gol_shuffle_board(void) {
 	int x;
 	int y;
 	for (x=0; x < matrix_getx(); ++x)
 		for (y=0; y < matrix_gety(); ++y)
 			board[POS(x, y)] = ((randn(8) == 0) ? ALIVE : DEAD);
+}
+
+void reset() {
+	nexttick = udate();
+	gol_shuffle_board();
+	frame = 0;
 }
 
 int gol_adj(int x, int y) {
