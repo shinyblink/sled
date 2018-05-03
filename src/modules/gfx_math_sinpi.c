@@ -7,12 +7,14 @@
 #include <stddef.h>
 #include <graphics.h>
 #include <stdlib.h>
+#include <mathey.h>
+
 
 #define FRAMETIME (T_SECOND / 30)
 #define FRAMES (RANDOM_TIME * 30)
 // Size of a full revolution
 #define XSCALE (matrix_getx())
-#define HALF_Y (matrix_gety() / 2)
+#define YSCALE (matrix_gety())
 
 static int modno;
 static int pos;
@@ -35,26 +37,22 @@ void reset() {
 }
 
 int draw(int argc, char* argv[]) {
-	matrix_clear();
-	int mx = matrix_getx();
-	int x;
-	int y;
-	int lasty = 0;
+	vec2 p, _p;
 	int dy;
-	int py;
-	for (x = 0; x < mx; x++) {
-		y = HALF_Y + ((HALF_Y - 1) * sin((x + pos) * M_PI * 2.0f / (float) XSCALE)); // * M_PI * 2.0f
-		matrix_set(x, y, &white);
-		if (x != 0) {
-			matrix_set(x, lasty, &white);
-			/* fill the gaps with a magnificent method */
-			if ((dy = abs(y - lasty)) > 1) {
-				for (py = fmin(y, lasty); py<fmin(y, lasty)+dy; py++)
-					matrix_set(x, py, &white);
-			}
-		}
-		lasty = y;
+
+	matrix_clear();
+
+	for (p.x = -1; p.x <= XSCALE; p.x++) {
+		p.y = - round((YSCALE - 1) / 2 * (sin((p.x + pos) * M_PI * 2.0f / (double) XSCALE) - 1));
+		matrix_set(p.x, p.y, &white);
+		vec2 d = vadd(_p, vmul(p, -1));
+		dy = round(d.y);
+		d = vmul(d, 1.0/d.y);
+		for (int i = 1; abs(dy)>1, i<abs(dy); ++i)
+			matrix_set((int) ((p.x==0&&dy>0)?_p.x:p.x + i*d.x), (int) (fmin(p.y,_p.y) + i*d.y), &white);
+		memcpy(&_p, &p, sizeof(p));
 	}
+
 	matrix_render();
 
 	if (frame >= FRAMES) {
@@ -62,6 +60,7 @@ int draw(int argc, char* argv[]) {
 		pos = 0;
 		return 1;
 	}
+
 	frame++;
 	pos++;
 	pos = pos % XSCALE;

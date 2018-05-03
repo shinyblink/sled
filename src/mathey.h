@@ -22,7 +22,7 @@ typedef struct matrix {
 #define vec2(xv, yv) ((vec2) { .x = (xv), .y = (yv)})
 
 vec2 vadd(vec2 v1, vec2 v2);
-vec2 vmul(vec2 v1, vec2 v2);
+vec2 vmul(vec2 v1, float val);
 vec2 vdiv(vec2 v1, vec2 v2);
 matrix mmult(matrix m1, matrix m2);
 vec2 vmmult(matrix m, vec2 v);
