@@ -26,13 +26,13 @@ int init(int nextno, char* argstr) {
 
 int getx(void) {
 	printf("getx\n");
-	fflush(stdin);
+	fflush(stdout);
 	assert(next != NULL);
 	return next->getx();
 }
 int gety(void) {
 	printf("gety\n");
-	fflush(stdin);
+	fflush(stdout);
 	assert(next != NULL);
 	return next->gety();
 }
@@ -45,23 +45,31 @@ int set(int x, int y, RGB *color) {
 
 int clear(void) {
 	printf("clear\n");
-	fflush(stdin);
+	fflush(stdout);
 	assert(next != NULL);
 	return next->clear();
 }
 
 int render(void) {
 	printf("render\n");
-	fflush(stdin);
+	fflush(stdout);
 	assert(next != NULL);
 	return next->render();
 }
 
 ulong wait_until(ulong desired_usec) {
 	printf("wait_until\n");
-	fflush(stdin);
+	fflush(stdout);
 	assert(next != NULL);
 	return next->wait_until(desired_usec);
+}
+
+void wait_until_break(void) {
+	printf("wait_until_break\n");
+	fflush(stdout);
+	assert(next != NULL);
+	if (next->wait_until_break)
+		return next->wait_until_break();
 }
 
 int deinit(void) {

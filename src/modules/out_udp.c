@@ -50,7 +50,6 @@ int init(int modno, char* argstr) {
 		return 3;
 	}
 	char* data = argstr;
-	envdup = data;
 	char* ip = data;
 	char* portstr;
 	if (strsep(&data, ":") == NULL) {
@@ -114,7 +113,7 @@ int init(int modno, char* argstr) {
 	message[0] = 0xAA;
 
 	// Free stuff.
-	free(data);
+	free(argstr);
 
 	return 0;
 }
@@ -186,11 +185,11 @@ ulong wait_until(ulong desired_usec) {
 }
 
 void wait_until_break(void) {
+	return wait_until_break_core();
 }
 
 int deinit(void) {
 	close(sock);
-	free(envdup);
 	free(message);
 	return 0;
 }

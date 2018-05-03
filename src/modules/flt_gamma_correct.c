@@ -57,6 +57,11 @@ ulong wait_until(ulong desired_usec) {
 	return next->wait_until(desired_usec);
 }
 
+void wait_until_break(void) {
+	if (next && next->wait_until_break)
+		return next->wait_until_break();
+}
+
 int deinit(void) {
 	return next->deinit();
 }
