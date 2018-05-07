@@ -7,6 +7,7 @@ MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinematrix
 
 MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
+MODULES_AVAILABLE += out_sf75_bi_spidev
 MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
 
@@ -64,6 +65,9 @@ RPI_WS2812B: $(PROJECT) out_rpi_ws2812b
 
 RPI_HUB75: PLATFORM := RPI_HUB75
 RPI_HUB75: $(PROJECT) out_rpi_hub75
+
+BISPIDEV: PLATFORM := BISPIDEV
+BISPIDEV: $(PROJECT) out_sf75_bi_spidev
 
 UDP: $(PROJECT) out_udp
 
