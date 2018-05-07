@@ -132,13 +132,13 @@ int draw(int argc, char* argv[]) {
 
 	// construct matrices, using run variables as coefficients
 	// (sometimes normalized and made more interesting by sine curves)
-	matrix rotate = {
+	matrix2_2 rotate = {
 	  .v1_1 = cosf(angle),
 	  .v1_2 = -sinf(angle),
 	  .v2_1 = sinf(angle),
 	  .v2_2 = cosf(angle),
 	};
-	matrix scale = {
+	matrix2_2 scale = {
 	  .v1_1 = (sinf(sx) + offset_scale_x)/fx,
 	  .v1_2 = 0,
 	  .v2_1 = 0,
@@ -149,7 +149,7 @@ int draw(int argc, char* argv[]) {
 	  .y = sinf(ty) * my,
 	};
 
-	matrix rotscale = mmult(rotate, scale);
+	matrix2_2 rotscale = multm2(rotate, scale);
 	vec2 rotscale_xbasis = {
 	  .x = rotscale.v1_1,
 	  .y = rotscale.v2_1,
