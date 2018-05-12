@@ -55,6 +55,8 @@ pthread_t px_thread;
 
 typedef struct {
 	int socket; // The socket
+	int off_x;
+	int off_y;
 	void * next; // The next client
 } px_client_t;
 
@@ -145,7 +147,7 @@ int px_client_update(px_client_t * client) {
 		return 1;
 	} else { // parse line
 		// ripped from pixelnuke
-		if (fast_str_startswith("PX ", line)) {
+		if (line[0] == 'P' && line[1] == 'X') {
 			const char * ptr = line + 3;
 			const char * endptr = ptr;
 			errno = 0;
@@ -172,7 +174,7 @@ int px_client_update(px_client_t * client) {
 			if (*endptr == '\n') {
 				char str[64];
 
-				uint32_t pixel = *(uint32_t *)&px_array[(x*px_mx + y) * 3];
+				uint32_t pixel = *(uint32_t *)&px_array[((x + client->off_x)*px_mx + (y + client->off_y)) * 3];
 				sprintf(str, "PX %u %u %06X", x, y, pixel & 0xFFFFFF);
 				net_send(client, str);
 				poke_main_thread();
@@ -204,9 +206,39 @@ int px_client_update(px_client_t * client) {
 			}
 
 			px_pixelcount++;
-			px_array[(x*px_mx + y) * 3]    = c >> 16;
-			px_array[(x*px_mx + y) * 3 +1] = c >>  8;
-			px_array[(x*px_mx + y) * 3 +2] = c;
+			px_array[((x + client->off_x)*px_mx + (y + client->off_y)) * 3]    = c >> 16;
+			px_array[((x + client->off_x)*px_mx + (y + client->off_y)) * 3 +1] = c >>  8;
+			px_array[((x + client->off_x)*px_mx + (y + client->off_y)) * 3 +2] = c;
+		} else if (fast_str_startswith("OFFSET", line)) {
+			const char * ptr = line + 7;
+			const char * endptr = ptr;
+			errno = 0;
+
+			uint32_t x = fast_strtoul10(ptr, &endptr);
+			if (endptr == ptr) {
+				net_err(client, "ERROR: Invalid command (expected decimal as first parameter)");
+				return 1;
+			}
+			if (*endptr == '\n') {
+				net_err(client, "ERROR: Invalid command (second parameter required)");
+				return 1;
+			}
+
+			endptr++; // eat space (or whatever non-decimal is found here)
+
+			uint32_t y = fast_strtoul10((ptr = endptr), &endptr);
+			if (endptr == ptr) {
+				net_err(client, "Invalid command (expected decimal as second parameter)");
+				return 1;
+			}
+
+			// OFFSET <x> <y> -> set offset to position (x,y) for future use
+			if (*endptr == '\n') {
+				client->off_x = x;
+				client->off_y = y;
+				poke_main_thread();
+				return 0;
+			}
 		} else if (fast_str_startswith("SIZE", line)) {
 			char str[64];
 			snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
@@ -243,6 +275,8 @@ int px_client_new(px_client_t ** list, int sock) {
 		return 0;
 	}
 	c->socket = sock;
+	c->off_x = 0;
+	c->off_y = 0;
 	c->next = NULL;
 	if (*list)
 		c->next = *list;
