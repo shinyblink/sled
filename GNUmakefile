@@ -10,6 +10,7 @@ MODULES_AVAILABLE += out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_h
 MODULES_AVAILABLE += out_sf75_bi_spidev
 MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
+MODULES_AVAILABLE += flt_rot_90
 
 MODULES := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
 MODULES += gfx_rainbow gfx_math_sinpi gfx_plasma gfx_checkerboard
@@ -18,6 +19,7 @@ MODULES += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinem
 
 MODULES += bgm_fish bgm_opc bgm_pixelflut
 MODULES += flt_gamma_correct flt_flip_x flt_flip_y flt_scale
+MODULES += flt_rot_90
 
 CC ?= cc
 CFLAGS ?= -O2 -march=native
