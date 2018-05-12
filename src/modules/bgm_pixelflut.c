@@ -204,9 +204,9 @@ int px_client_update(px_client_t * client) {
 			}
 
 			px_pixelcount++;
-			px_array[(x*px_mx + y) * 3 +2] = c >> 16;
+			px_array[(x*px_mx + y) * 3]    = c >> 16;
 			px_array[(x*px_mx + y) * 3 +1] = c >>  8;
-			px_array[(x*px_mx + y) * 3]    = c;
+			px_array[(x*px_mx + y) * 3 +2] = c;
 		} else if (fast_str_startswith("SIZE", line)) {
 			char str[64];
 			snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
