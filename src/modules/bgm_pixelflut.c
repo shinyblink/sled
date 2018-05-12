@@ -126,7 +126,7 @@ int px_client_readln(px_client_t * client, char * line, size_t maxread) {
 	char * line_read = line;
 	do {
 		ssize_t r = read(client->socket, line_read, 1);
-		if (r < 0) return -1;
+		if (r <= 0) return -1;
 			
 		line_read++;
 		maxread--;
