@@ -18,6 +18,7 @@
 static text **lines = NULL;
 static int linecount = 0;
 static int columncount = 0;
+static const char *ignored_interfaces;
 
 void reset_lines()
 {
@@ -36,6 +37,10 @@ int init(int modno, char *argstr) {
 
 	lines = calloc(linecount, sizeof(text *));
 
+	ignored_interfaces = getenv("SLED_IP_BLACKLIST");
+	if(ignored_interfaces == NULL)
+		ignored_interfaces = "lo";
+
 	return 0;
 }
 
@@ -51,14 +56,20 @@ void reset() {
 
 	int i = 0;
 	for(struct ifaddrs *curr = ifap; curr != NULL; curr = curr->ifa_next) {
-		struct sockaddr_in *addr = (struct sockaddr_in *)curr->ifa_addr;
+		const char *ignored = strstr(ignored_interfaces, curr->ifa_name);
+		if(ignored != NULL) {
+			size_t len = strlen(curr->ifa_name);
+			if(ignored[len] == 0 || ignored[len] == ',')
+				continue;
+		}
 
+		struct sockaddr_in *addr = (struct sockaddr_in *)curr->ifa_addr;
 		if(inet_ntop(curr->ifa_addr->sa_family, &(addr->sin_addr), buff, INET6_ADDRSTRLEN) != NULL) {
-			snprintf(displaybuff, columncount, "%s", curr->ifa_name, buff);
+			snprintf(displaybuff, columncount, "%s", curr->ifa_name);
 			lines[i] = text_render(displaybuff);
 			i++;
 
-			snprintf(displaybuff, columncount, "    %s", buff, buff);
+			snprintf(displaybuff, columncount, "    %s", buff);
 			lines[i] = text_render(displaybuff);
 			i++;
 		}
