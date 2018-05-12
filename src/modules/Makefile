@@ -29,6 +29,7 @@ flt_gamma_correct.so: LIBS += -lm
 gfx_text.so: text.o
 gfx_clock.so: text.o
 gfx_error.so: text.o
+gfx_ip.so: text.o
 gfx_sinematrix.so: LIBS += -lm
 gfx_affinematrix.so: LIBS += -lm
 gfx_sinefield.so: LIBS += -lm
