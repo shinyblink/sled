@@ -1,6 +1,7 @@
 #include <types.h>
 #include <matrix.h>
-#include <timers.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <sys/types.h>
@@ -11,57 +12,72 @@
 #include "text.h"
 
 #define FRAMETIME (T_SECOND)
-#define FRAMES (RANDOM_TIME)
+#define FRAMES (10)
 #define CHARS_FULL 8 // 20:15:09, must also hold 20:15 (small)
 
-static text* rendered = NULL;
+static text **lines = NULL;
+static int linecount = 0;
+static int columncount = 0;
+
+void reset_lines()
+{
+	for(int i = 0; i < linecount; i++) {
+		text_free(lines[i]);
+		lines[i] = NULL;
+	}
+}
 
 int init(int modno, char *argstr) {
-	// max digit size is 4, plus 3 for ., (4 * 3) * 4 + 3 * 3 = 57
-	//TODO split ip into multiple rows
-	if (matrix_getx() < 57)
-		return 1; // not enough X to be usable
 	if (matrix_gety() < 7)
 		return 1; // not enough Y to be usable
 
-	//TODO allow to customize these, can we use argstr here?
-	int target_family = AF_INET;
-	const char *target_interface = "eth0";
+	linecount = matrix_gety() / 8;
+	columncount = matrix_getx() / 3;
 
-	char buff[INET_ADDRSTRLEN];
-	buff[0] = 0;
-
-	struct ifaddrs *ifap;
-	getifaddrs(&ifap);
-
-	for(struct ifaddrs *curr = ifap; curr != NULL; curr = curr->ifa_next) {
-		struct sockaddr *addr = curr->ifa_addr;
-		if(addr->sa_family == target_family && strcmp(curr->ifa_name, target_interface) == 0) {
-			struct sockaddr_in *addr_in = (struct sockaddr_in *)curr->ifa_addr;
-			inet_ntop(target_family, &(addr_in->sin_addr), buff, INET_ADDRSTRLEN);
-			break;
-		}
-	}
-
-	if(buff[0] == 0)
-		return 1;
-
-	rendered = text_render(buff);
-	if(rendered == NULL)
-		return 1;
+	lines = calloc(linecount, sizeof(text *));
 
 	return 0;
 }
 
 void reset() {
+    char buff[INET6_ADDRSTRLEN];
+	char displaybuff[columncount];
+	buff[0] = 0;
+
+	reset_lines();
+
+	struct ifaddrs *ifap;
+	getifaddrs(&ifap);
+
+	int i = 0;
+	for(struct ifaddrs *curr = ifap; curr != NULL; curr = curr->ifa_next) {
+		struct sockaddr_in *addr = (struct sockaddr_in *)curr->ifa_addr;
+
+		if(inet_ntop(curr->ifa_addr->sa_family, &(addr->sin_addr), buff, INET6_ADDRSTRLEN) != NULL) {
+			snprintf(displaybuff, columncount, "%s", curr->ifa_name, buff);
+			lines[i] = text_render(displaybuff);
+			i++;
+
+			snprintf(displaybuff, columncount, "    %s", buff, buff);
+			lines[i] = text_render(displaybuff);
+			i++;
+		}
+	}
+
+	freeifaddrs(ifap);
 }
 
 int draw(int argc, char **argv) {
-	for (int y = 0; y < matrix_gety(); y++) {
-		for (int x = 0; x < matrix_getx(); x++) {
-			int v = text_point(rendered, x, y) ? 255 : 0;
-			RGB color = RGB(v, v, v);
-			matrix_set(x, y, &color);
+	for(int i = 0; i < linecount; i++) {
+		if(lines[i] == NULL)
+			continue;
+
+		for (int y = 0; y < matrix_gety() && y < 8; y++) {
+			for (int x = 0; x < matrix_getx(); x++) {
+				int v = text_point(lines[i], x, y) ? 255 : 0;
+				RGB color = RGB(v, v, v);
+				matrix_set(x, i * 8 + y, &color);
+			}
 		}
 	}
 
@@ -70,7 +86,6 @@ int draw(int argc, char **argv) {
 }
 
 int deinit() {
-	// This acts conditionally on rendered being non-NULL.
-	text_free(rendered);
+	reset_lines();
 	return 0;
 }
