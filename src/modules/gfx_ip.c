@@ -1,3 +1,5 @@
+// Module that shows the IP addresses of the system.
+
 #include <types.h>
 #include <matrix.h>
 #include <stdio.h>
@@ -41,7 +43,7 @@ int init(int modno, char *argstr) {
 }
 
 void reset(void) {
-    char buff[INET6_ADDRSTRLEN];
+	char buff[INET6_ADDRSTRLEN];
 	char displaybuff[columncount];
 	buff[0] = 0;
 

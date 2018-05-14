@@ -34,8 +34,6 @@
 
 // It is *IMPOSSIBLE* for a px client to send a length that escapes this buffer.
 static byte px_array[65536];
-// Where data goes that we ignore
-static byte px_scratch_array[65536];
 
 static int px_shutdown_fd_mt, px_shutdown_fd_ot;
 // px_mtcountdown is the time until we decide to end. It's main-thread-only.
@@ -86,8 +84,8 @@ static inline uint32_t fast_strtoul16(const char *str, const char **endptr) {
 	uint32_t result = 0;
 	unsigned char c;
 	while ((c = *str - '0') <= 9 // 0-9
-			|| ((c -= 7) >= 10 && c <= 15) // A-F
-			|| ((c -= 32) >= 10 && c <= 15)) { // a-f
+				 || ((c -= 7) >= 10 && c <= 15) // A-F
+				 || ((c -= 32) >= 10 && c <= 15)) { // a-f
 		result = result * 16 + c;
 		str++;
 	}
@@ -185,7 +183,7 @@ static int px_client_update(px_client_t * client) {
 			uint32_t c = fast_strtoul16((ptr = endptr), &endptr);
 			if (endptr == ptr) {
 				net_err(client,
-						"Third parameter missing or invalid (should be hex color)");
+								"Third parameter missing or invalid (should be hex color)");
 				return 1;
 			}
 
@@ -199,7 +197,7 @@ static int px_client_update(px_client_t * client) {
 				c = (c << 24) + (c << 16) + (c << 8) + 0xff;
 			} else {
 				net_err(client,
-						"Color hex code must be 2, 6 or 8 characters long (WW, RGB or RGBA)");
+								"Color hex code must be 2, 6 or 8 characters long (WW, RGB or RGBA)");
 				return 1;
 			}
 
@@ -244,11 +242,11 @@ static int px_client_update(px_client_t * client) {
 		} else if (fast_str_startswith("STATS", line)) {
 			char str[128];
 			snprintf(str, 128, "STATS px:%u conn:%u", px_pixelcount,
-					px_clientcount);
+							 px_clientcount);
 			net_send(client, str);
 		} else if (fast_str_startswith("HELP", line)) {
 			net_send(client,
-					"\
+							 "\
 PX x y: Get color at position (x,y)\n\
 PX x y rrggbb(aa): Draw a pixel (alpha ignored)\n\
 SIZE: Get canvas size\n\
