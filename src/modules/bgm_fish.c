@@ -166,7 +166,7 @@ void fish_execute(char * module, int argc, char ** argv) {
 		} else {
 			module = strdup("fish");
 			if (!module) {
-				timer_free_argv(argc, argv);
+				asl_free_argv(argc, argv);
 				return;
 			}
 		}
@@ -190,7 +190,7 @@ void fish_execute(char * module, int argc, char ** argv) {
 		}
 	}
 	free(module);
-	timer_free_argv(argc, argv);
+	asl_free_argv(argc, argv);
 }
 
 void * fish_thread_func(void * arg) {

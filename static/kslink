@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# kslink, the only 'linker' stupid enough to link C programs together by concatenating them
+
+GFX_FUNCS="init deinit reset draw"
+OUT_FUNCS="init deinit set clear render getx gety wait_until wait_until_break"
+ALL_FUNCS="init deinit reset draw set clear render getx gety wait_until wait_until_break"
+
+RVL=""
+for x in "$@"; do
+ name=`echo $x | grep -o [^/]*\.c$ | grep -o ^[^\.]*`
+ RVL="$name $RVL"
+ # repeated later
+ FUNCS=$GFX_FUNCS
+ echo $name | grep "^out_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
+ # --
+ for y in $FUNCS; do
+  echo "#define $y kslink_"$name"_"$y
+ done
+ echo "#include \"$x\""
+ for y in $FUNCS; do
+  echo "#undef $y"
+ done
+done
+echo "#include <modloader.h>"
+echo "#include <loadcore.h>"
+echo "#include <assert.h>"
+echo "typedef struct kslink_module {"
+for y in $ALL_FUNCS; do
+ echo "	void * $y;"
+done
+echo "} kslink_module;"
+for name in $RVL; do
+ echo "static kslink_module kslink_"$name"_MOD = {"
+ # this is repeated from the previous
+ FUNCS=$GFX_FUNCS
+ echo $name | grep "^out_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
+ for y in $FUNCS; do
+  echo " .$y = kslink_"$name"_$y,"
+ done
+ # --
+ echo "};"
+done
+echo "void * loadcore_open(const char * str) {"
+for name in $RVL; do
+ echo "	if (!strcmp(str, \"./modules/"$name".so\"))"
+ echo "		return &kslink_"$name"_MOD;"
+done
+echo "	return NULL;"
+echo "}"
+echo "void * loadcore_sym(void * targ, const char * str) {"
+echo "	kslink_module * mstar = (kslink_module *) targ;"
+for y in $ALL_FUNCS; do
+ echo "	if (!strcmp(str, \"$y\"))"
+ echo "		return mstar->$y;"
+done
+echo "	return NULL;"
+echo "}"
+echo "char * loadcore_error() {"
+echo "	return 0;"
+echo "}"
+echo "void loadcore_close(void * targ) {"
+echo "}"
+echo "void loadcore_setdir(char * sd) {"
+echo "}"
+echo "char ** loadcore_getdir(int * argc) {"
+echo "	char ** basis = malloc(sizeof(char*) * `echo $RVL | wc -w`);"
+echo "	assert(basis);"
+RVLI=0
+for name in $RVL; do
+ echo "	assert((basis[$RVLI] = strdup(\"$name.so\")));"
+ let RVLI=RVLI+1
+done
+echo "	*argc = $RVLI;"
+echo "	return basis;"
+echo "}"

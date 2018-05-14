@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include "modloader.h"
-#include <dlfcn.h>
+#include "loadcore.h"
 
 static module* outmod;
 
@@ -76,7 +76,7 @@ int matrix_deinit(void) {
 	int ret = 0;
 	if (outmod != NULL) {
 		ret = outmod->deinit();
-		dlclose(outmod->lib);
+		loadcore_close(outmod->lib);
 	}
 	return ret;
 }

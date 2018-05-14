@@ -1,5 +1,8 @@
 // Timers
 
+#ifndef __INCLUDED_TIMERS__
+#define __INCLUDED_TIMERS__
+
 #define SECOND 100000
 
 typedef struct timer {
@@ -34,8 +37,6 @@ extern void wait_until_break(void);
 extern int timer_add(unsigned long usec, int moduleno, int argc, char* argv[]);
 extern timer timer_get(void);
 
-// If argv != NULL: all args will be freed if relevant, then argv will be freed
-extern void timer_free_argv(int argc, char ** argv);
 
 // Regarding these, I'm drawing a distinction between "timer" as in an individual, and timers, the service,
 //  to try and keep naming consistent with the X.h -> X_ scheme.
@@ -47,3 +48,5 @@ extern int timers_init(int outmodno);
 extern void timers_doquit(void);
 // Used to ensure all argv's freed and destroy the mutex.
 extern int timers_deinit(void);
+
+#endif

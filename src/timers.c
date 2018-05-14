@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include <string.h>
 #include "modloader.h"
+#include "asl.h"
 
 typedef struct timer {
 	int moduleno;
@@ -28,8 +29,6 @@ static pthread_mutex_t tlock;
 module* outmod;
 
 static int breakpipe_fds[2];
-
-void timer_free_argv(int argc, char ** argv);
 
 ulong udate(void) {
 	struct timeval tv;
@@ -131,7 +130,7 @@ timer timer_get(void) {
 		int i;
 		for (i = 0; i < timer_count; i++)
 			if (i != smallest)
-				timer_free_argv(TIMERS[i].argc, TIMERS[i].argv);
+				asl_free_argv(TIMERS[i].argc, TIMERS[i].argv);
 		timer_count = 0;
 	} else {
 		// Move things back.
@@ -141,15 +140,6 @@ timer timer_get(void) {
 
 	pthread_mutex_unlock(&tlock);
 	return t;
-}
-
-void timer_free_argv(int argc, char ** argv) {
-	if (argv) {
-		int i;
-		for (i = 0; i < argc; i++)
-			free(argv[i]);
-		free(argv);
-	}
 }
 
 int timers_init(int outmodno) {
@@ -170,6 +160,6 @@ int timers_deinit(void) {
 	pthread_mutex_destroy(&tlock);
 	int i;
 	for (i = 0; i < timer_count; i++)
-		timer_free_argv(TIMERS[i].argc, TIMERS[i].argv);
+		asl_free_argv(TIMERS[i].argc, TIMERS[i].argv);
 	return 0;
 }

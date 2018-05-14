@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "timers.h"
+#include "asl.h"
 
 // Adds a character to a string, and disposes of the old one, unless it's NULL (in which case this creates a new one-char string)
 // Can return NULL itself on malloc failure (in which case the original is still freed)
@@ -43,7 +44,7 @@ char ** asl_growav(int argc, char ** argv, char * nxt) {
 		nav = malloc(sizeof(char*));
 	}
 	if (!nav) {
-		timer_free_argv(argc, argv);
+		asl_free_argv(argc, argv);
 		free(nxt);
 		return NULL;
 	}
@@ -64,7 +65,7 @@ char ** asl_pgrowav(int argc, char ** argv, char * nxt) {
 		nav = malloc(sizeof(char*));
 	}
 	if (!nav) {
-		timer_free_argv(argc, argv);
+		asl_free_argv(argc, argv);
 		free(nxt);
 		return NULL;
 	}
@@ -88,7 +89,7 @@ char ** asl_pnabav(int argc, char ** argv) {
 		return NULL;
 	}
 	if (!nav) {
-		timer_free_argv(argc - 1, argv + 1);
+		asl_free_argv(argc - 1, argv + 1);
 		return NULL;
 	}
 	memcpy(nav, argv + 1, sizeof(char*) * (argc - 1));
@@ -96,3 +97,11 @@ char ** asl_pnabav(int argc, char ** argv) {
 	return nav;
 }
 
+void asl_free_argv(int argc, char ** argv) {
+	if (argv) {
+		int i;
+		for (i = 0; i < argc; i++)
+			free(argv[i]);
+		free(argv);
+	}
+}

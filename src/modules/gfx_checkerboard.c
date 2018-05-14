@@ -27,7 +27,7 @@ int init(int moduleno, char* argstr) {
 static RGB white = RGB(255, 255, 255);
 static RGB black = RGB(0, 0, 0);
 
-void reset(reset) {
+void reset(void) {
 	nexttick = udate();
 	matrix_clear();
 	frame = 0;

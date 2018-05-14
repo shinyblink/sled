@@ -6,6 +6,7 @@
 #include "timers.h"
 #include "random.h"
 #include "util.h"
+#include "asl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -37,7 +38,7 @@ static int deinit(void) {
 		return ret;
 	pthread_mutex_destroy(&rmod_lock);
 	if (main_rmod_override != -1)
-		timer_free_argv(main_rmod_override_argc, main_rmod_override_argv);
+		asl_free_argv(main_rmod_override_argc, main_rmod_override_argv);
 
 	free(modpath);
 
@@ -96,7 +97,7 @@ void main_force_random(int mnum, int argc, char ** argv) {
 		usleep(5000);
 	}
 	// Quits out without doing anything to prevent deadlock.
-	timer_free_argv(argc, argv);
+	asl_free_argv(argc, argv);
 }
 
 int usage(char* name) {
@@ -283,7 +284,7 @@ int main(int argc, char* argv[]) {
 					fflush(stdout);
 				};
 				ret = mod->draw(tnext.argc, tnext.argv);
-				timer_free_argv(tnext.argc, tnext.argv);
+				asl_free_argv(tnext.argc, tnext.argv);
 				lastmod = tnext.moduleno;
 				if (ret != 0) {
 					if (ret == 1) {
@@ -300,7 +301,7 @@ int main(int argc, char* argv[]) {
 			} else {
 				// Virtual null module
 				printf(">> using virtual null module\n");
-				timer_free_argv(tnext.argc, tnext.argv);
+				asl_free_argv(tnext.argc, tnext.argv);
 			}
 		}
 	}
