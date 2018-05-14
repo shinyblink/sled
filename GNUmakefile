@@ -46,7 +46,7 @@ MATRIX_ORDER ?= SNAKE
 
 DEFINES = -DPLATFORM_$(PLATFORM) -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DMATRIX_ORDER_$(MATRIX_ORDER)
 
-SOURCES := src/asl.c src/modloader.c src/color.c src/matrix.c src/timers.c src/random.c src/mathey.c src/graphics.c src/util.c
+SOURCES := src/asl.c src/dlloadcore.c src/modloader.c src/color.c src/matrix.c src/timers.c src/random.c src/mathey.c src/graphics.c src/util.c
 OBJECTS := $(SOURCES:.c=.o)
 HEADERS := $(SOURCES:.c=.h)
 

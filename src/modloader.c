@@ -2,7 +2,6 @@
 
 #include "types.h"
 //#include <timers.h>
-#include <dlfcn.h>
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,16 +9,17 @@
 #include "util.h"
 #include <pthread.h>
 #include "modloader.h"
+#include "loadcore.h"
 
 static struct module modules[MAX_MODULES];
 static int modcount = 0;
 static pthread_mutex_t lock;
 
 void* dlookup(void* handle, char* modname, char* name) {
-	void* ptr = dlsym(handle, name);
-	char* error = dlerror();
+	void* ptr = loadcore_sym(handle, name);
+	char* error = loadcore_error();
 	if (error) {
-		dlclose(handle);
+		loadcore_close(handle);
 		eprintf("Failed to find symbol '%s' in %s: %s\n", name, modname, error);
 		exit(5);
 	}
@@ -56,10 +56,10 @@ int modules_loadmod(module* mod, char name[256], char* modpath) {
 	util_strlcpy(mod->name, &name[4], len - 6); // could malloc it, but whatever.
 
 	// Load the module.
-	dlerror();
-	void* handle = dlopen(modpath, RTLD_LAZY | RTLD_GLOBAL);
+	loadcore_error();
+	void* handle = loadcore_open(modpath);
 	if (!handle) {
-		eprintf("\nFailed to load %s: %s", name, dlerror());
+		eprintf("\nFailed to load %s: %s", name, loadcore_error());
 		return 4;
 	}
 	mod->lib = handle;
@@ -77,7 +77,7 @@ int modules_loadmod(module* mod, char name[256], char* modpath) {
 		mod->wait_until_break = dlookup(handle, modpath, "wait_until_break");
 	} else {
 		// Optional!
-		mod->reset = dlsym(handle, "reset");
+		mod->reset = loadcore_sym(handle, "reset");
 		mod->draw = dlookup(handle, modpath, "draw");
 	}
 	return 0;
@@ -209,7 +209,7 @@ int modules_init(int * outmodno) {
 					} else {
 						printf(" Ignored by request of plugin.\n");
 					}
-					dlclose(modules[mod].lib);
+					loadcore_close(modules[mod].lib);
 					// Since this failed to init, just nuke it from orbit
 					modcount--;
 					if (*outmodno == mod) {
