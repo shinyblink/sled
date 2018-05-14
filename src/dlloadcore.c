@@ -1,3 +1,8 @@
+// Our own "dlopen-and-friends" wrappers.
+// Useful for replacing them, as they are one of the biggest deps on a unix system,
+// along with pipes.
+// Plus, well, static linking?
+
 #include <dlfcn.h>
 #include "loadcore.h"
 #include <assert.h>

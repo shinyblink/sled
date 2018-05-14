@@ -43,7 +43,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void randomize_balls() {
+void randomize_balls(void) {
 	int ball;
 	int mx = matrix_getx();
 	int my = matrix_gety();
@@ -58,7 +58,7 @@ void randomize_balls() {
 	}
 }
 
-void update_balls() {
+void update_balls(void) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
 

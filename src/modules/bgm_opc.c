@@ -33,18 +33,18 @@
 #include "asl.h"
 
 // It is *IMPOSSIBLE* for an OPC client to send a length that escapes this buffer.
-byte opc_array[65536];
+static byte opc_array[65536];
 // Where data goes that we ignore
-byte opc_scratch_array[65536];
+static byte opc_scratch_array[65536];
 
-int opc_shutdown_fd_mt, opc_shutdown_fd_ot;
+static int opc_shutdown_fd_mt, opc_shutdown_fd_ot;
 // opc_mtcountdown is the time until we decide to end. It's main-thread-only.
-int opc_moduleno, opc_mtcountdown;
-ulong opc_mtlastframe;
+static int opc_moduleno, opc_mtcountdown;
+static ulong opc_mtlastframe;
 #define OPC_MTCOUNTDOWN_MAX 100
 #define FRAMETIME 10000
 #define OPC_SNAKE
-pthread_t opc_thread;
+static pthread_t opc_thread;
 
 typedef struct {
 	byte channel;
@@ -63,7 +63,7 @@ typedef struct {
 } opc_client_t;
 
 // Returns true to remove the client.
-int opc_client_update(opc_client_t * client) {
+static int opc_client_update(opc_client_t * client) {
 	// Read
 	ssize_t r = read(client->socket, client->position, client->position_remain);
 	if (r < 0) {
@@ -109,7 +109,7 @@ int opc_client_update(opc_client_t * client) {
 }
 
 // Allows or closes the socket.
-int opc_client_new(opc_client_t ** list, int sock) {
+static int opc_client_new(opc_client_t ** list, int sock) {
 	opc_client_t * c = malloc(sizeof(opc_client_t));
 	if (!c) {
 		close(sock);
@@ -127,13 +127,13 @@ int opc_client_new(opc_client_t ** list, int sock) {
 }
 
 // Makes an FD nonblocking
-void opc_nbs(int sock) {
+static void opc_nbs(int sock) {
 	int flags = fcntl(sock, F_GETFL, 0);
 	flags |= O_NONBLOCK;
 	fcntl(sock, F_SETFL, flags);
 }
 
-void * opc_thread_func(void * n) {
+static void * opc_thread_func(void * n) {
 	opc_client_t * list = 0;
 	int server;
 	struct sockaddr_in sa_bpwr;

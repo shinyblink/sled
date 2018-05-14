@@ -11,16 +11,12 @@
 
 #include "text.h"
 
-#define FRAMETIME (T_SECOND)
-#define FRAMES (10)
-#define CHARS_FULL 8 // 20:15:09, must also hold 20:15 (small)
-
 static text **lines = NULL;
 static int linecount = 0;
 static int columncount = 0;
 static const char *ignored_interfaces;
 
-void reset_lines()
+static void reset_lines(void)
 {
 	for(int i = 0; i < linecount; i++) {
 		text_free(lines[i]);
@@ -44,7 +40,7 @@ int init(int modno, char *argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
     char buff[INET6_ADDRSTRLEN];
 	char displaybuff[columncount];
 	buff[0] = 0;
@@ -103,7 +99,7 @@ int draw(int argc, char **argv) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	reset_lines();
 	return 0;
 }

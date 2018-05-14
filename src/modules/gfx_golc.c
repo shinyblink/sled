@@ -63,7 +63,7 @@ static GOL_InternalStatus gol_stat = {
 /*====== helper functions =====*/
 
 /* Simulates a 3D array. Calculates the cell number in the malloc'd buffer by: buffer number, X, Y. */
-long ixy(int buffer_index, int x, int y) {
+static long ixy(int buffer_index, int x, int y) {
   long pos = (buffer_index * kMatrixWidth * kMatrixHeight) + (x * kMatrixHeight) + y;
   assert(pos >= 0);
   assert(pos < gol_bufsize);
@@ -71,33 +71,33 @@ long ixy(int buffer_index, int x, int y) {
 }
 
 /* custom modulo function -- works even for negative numbers. */
-int _mod(int x, int m) {
+static int _mod(int x, int m) {
   while( x >= m ) x -= m;
   while( x <  0 ) x += m;
   return x;
 }
 
 /* returns the minimum of two floats */
-inline float _min(float a, float b) {
+static inline float _min(float a, float b) {
   return (a > b) ? b : a;
 }
 
 /*========== Game of Life specific helper functions =================*/
 
 /* binary "value" of a cell for counting alive cells */
-byte gol_valueof(byte b, int x, int y) {
+static byte gol_valueof(byte b, int x, int y) {
   // keep in mind that a cell is alive if it has a value != 0
   // keep in mind that we're operating on a toroidal board.
   return gol_stat_buf[ixy(b, _mod(x,kMatrixWidth), _mod(y,kMatrixHeight))] > 0 ? 1 : 0;
 }
 
 /* boolean representation of gol_valueof */
-bool gol_alive(byte b, int x, int y) {
+static bool gol_alive(byte b, int x, int y) {
   return (gol_valueof(b,x,y) & 0x01) > 0;
 }
 
 /* get color of cell */
-byte gol_colorof(byte b, int x, int y) {
+static byte gol_colorof(byte b, int x, int y) {
   // keep in mind that a cell is dead if it's value == 0
   // A value != 0 encodes its color (hue) and that it is alive
   // keep in mind that we're operating on a toroidal board.
@@ -105,7 +105,7 @@ byte gol_colorof(byte b, int x, int y) {
 }
 
 /* count alive neighbors */
-int gol_neighborsalive(byte b, int x, int y) {
+static int gol_neighborsalive(byte b, int x, int y) {
   // keep in mind that we're operating on a toroidal board.
   int count = 0;
   for( int xi = x-1; xi <= x+1; xi++ ) {
@@ -120,7 +120,7 @@ int gol_neighborsalive(byte b, int x, int y) {
 }
 
 /* calculate the mean of the three neighbors */
-byte gol_meanneighborcolor(byte b, int x, int y) {
+static byte gol_meanneighborcolor(byte b, int x, int y) {
   float cos_sum = 0.0;
   float sin_sum = 0.0;
   for( int xi = x-1; xi <= x+1; xi++ ) {
@@ -143,7 +143,7 @@ byte gol_meanneighborcolor(byte b, int x, int y) {
 }
 
 /* reinitialize the board */
-void gol_randomize_buffers() {
+static void gol_randomize_buffers() {
   for( int x = 0; x < kMatrixWidth; x++ ) {
     for( int y = 0; y < kMatrixHeight; y++ ) {
       gol_stat_buf[ixy(GOL_LAST, x, y)] = 0;
@@ -162,7 +162,7 @@ void gol_randomize_buffers() {
 }
 
 /* compare two board buffers for equality */
-bool gol_buf_compare(int b1, int b2) {
+static bool gol_buf_compare(int b1, int b2) {
   for( int x = 0; x < kMatrixWidth; x++ ) {
     for( int y = 0; y < kMatrixHeight; y++ ) {
       if( (gol_stat_buf[ixy(b1, x, y)] == 0) != (gol_stat_buf[ixy(b2, x, y)] == 0) ) {
@@ -174,7 +174,7 @@ bool gol_buf_compare(int b1, int b2) {
 }
 
 
-int gol_generation(int from, int to) {
+static int gol_generation(int from, int to) {
   int currentlyalive = 0;
   for( int x = 0; x < kMatrixWidth; x++ ) {
     for( int y = 0; y < kMatrixHeight; y++ ) {
@@ -208,7 +208,7 @@ int gol_generation(int from, int to) {
   return currentlyalive;
 }
 
-void gol_generation_control() {
+static void gol_generation_control() {
   // swap the current buffer with the last buffer. The reason this works is in the #defines.
   GOL_CUR = GOL_LAST;
 
@@ -239,7 +239,7 @@ void gol_generation_control() {
 }
 
 /* fader function to fade between two generations ... and display the whole thing ^.^ */
-void gol_fader(int cstep) {
+static void gol_fader(int cstep) {
   int spd = GOL_ROUNDTIME_MS / 2;
   if( cstep >= 0  ) {
     for( int x = 0; x < kMatrixWidth; x++ ) {
@@ -257,8 +257,7 @@ void gol_fader(int cstep) {
 }
 
 /* main Game of Life control loop. controls whether to reinitialize, calculate the next generation or run the fader. */
-void gol_loop()
-{
+static void gol_loop() {
   // 1024 microseconds or 1000 microseconds per millisecond, where's the difference? ;)
   ulong ms = udate() >> 10;
 
@@ -304,7 +303,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	frame = 0;
 }

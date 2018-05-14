@@ -27,7 +27,7 @@ static const int twinkle_level_tab[TWINKLE_LEVELS] = {
 static int *twinkle_levels;
 static int twinkle_moduleno;
 static ulong twinkle_nexttick;
-int twinkle_framecount = 0;
+static int twinkle_framecount = 0;
 
 int init(int moduleno, char* argstr) {
 	twinkle_levels = malloc(matrix_getx() * matrix_gety() * sizeof(int));
@@ -37,7 +37,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	twinkle_nexttick = udate();
 	twinkle_framecount = 0;
 	memset(twinkle_levels, 0, matrix_getx() * matrix_gety() * sizeof(int));
@@ -82,7 +82,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	free(twinkle_levels);
 	return 0;
 }

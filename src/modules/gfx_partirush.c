@@ -15,8 +15,8 @@ static int modno;
 static int frame;
 static ulong nexttick;
 
-int mx;
-int my;
+static int mx;
+static int my;
 
 typedef struct particle {
 	RGB color;
@@ -80,7 +80,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	matrix_clear();
 

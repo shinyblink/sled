@@ -34,10 +34,10 @@ static int sdl_event_break;
 #define WIN_W (MATRIX_X * SDL_SCALE_FACTOR)
 #define WIN_H (MATRIX_Y * SDL_SCALE_FACTOR)
 
-SDL_Window *window;
-SDL_Renderer *renderer;
-SDL_Texture *texture;
-SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
+static SDL_Window *window;
+static SDL_Renderer *renderer;
+static SDL_Texture *texture;
+static SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 
 int init(int modno, char *argstr) {
 	if (SDL_Init(SDL_INIT_VIDEO))

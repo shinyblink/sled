@@ -28,7 +28,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	frame = 0;
 	step = 0;
@@ -64,6 +64,6 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	return 0;
 }

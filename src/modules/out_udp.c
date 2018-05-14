@@ -33,7 +33,7 @@ static char* envdup;
 
 // Message will be:
 // 0xAA <R,G,B bytes..> <2 bytes checksum, unsigned short, hi, low>
-byte* message;
+static byte* message;
 
 int init(int modno, char* argstr) {
 	// Partially initialize the socket.

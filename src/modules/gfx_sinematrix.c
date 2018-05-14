@@ -92,26 +92,26 @@ int init(int moduleno, char* argstr) {
 
 /*** base "image" function ***/
 
-inline float sinecircle3D(float x, float y) {
+static inline float sinecircle3D(float x, float y) {
 	return (cosf(x) * sinf(y) * cosf(sqrtf((x*x) + (y*y))));
 }
 
 /*** math helper functions ***/
 
-inline float addmod(float x, float mod, float delta) {
+static inline float addmod(float x, float mod, float delta) {
 	x = x + delta;
 	while( x >= mod ) x -= mod;
 	while( x <  0.0 ) x += mod;
 	return x;
 }
 
-inline float addmodpi(float x, float delta) {
+static inline float addmodpi(float x, float delta) {
 	return addmod(x, 2 * M_PI, delta);
 }
 
 /*** main drawing loop ***/
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	frame = 0;
 }
@@ -194,6 +194,6 @@ int draw(int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-int deinit() {
+int deinit(void) {
 	return 0;
 }

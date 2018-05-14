@@ -24,7 +24,7 @@ typedef struct {
 
 #define WORLD_X 128
 #define WORLD_Y 128
-matrixdriver_t matrices[] = {
+static matrixdriver_t matrices[] = {
 	{"/dev/spidev0.0", 0, 0, 128, 64},
 	{"/dev/spidev0.1", 0, 128, 128, 64},
 	{NULL}

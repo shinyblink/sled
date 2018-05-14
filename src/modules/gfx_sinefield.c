@@ -40,7 +40,7 @@ int init(int moduleno, char* argstr) {
 }
 
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	frame = 0;
 }

@@ -44,7 +44,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void gol_shuffle_board(void) {
+static void gol_shuffle_board(void) {
 	int x;
 	int y;
 	for (x=0; x < matrix_getx(); ++x)
@@ -52,13 +52,13 @@ void gol_shuffle_board(void) {
 			board[POS(x, y)] = ((randn(8) == 0) ? ALIVE : DEAD);
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	gol_shuffle_board();
 	frame = 0;
 }
 
-int gol_adj(int x, int y) {
+static int gol_adj(int x, int y) {
 	int r;
 	int c;
 	int count = -board[POS(x, y)]; // if it's alive, substract one from the count.
@@ -79,7 +79,7 @@ int gol_adj(int x, int y) {
 	return count;
 }
 
-void gol_cycle(void) {
+static void gol_cycle(void) {
 	// Actual GoL rules.
 	// 1) If a cell's neighbours are two, it'll keep it's state.
 	// 2) If a cell's neighbours are three, it'll be alive, regardless of state.
@@ -122,7 +122,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	free(board);
 	free(new);
 	return 0;

@@ -55,7 +55,7 @@ static float matrix[] = {
 
 // The full transform pipeline we're using here.
 // matrix is the modelview matrix, projection gets done here.
-float * transform3d(float * x, float * y, float * src, float aspectx, float aspecty, float mw, float mh) {
+static float * transform3d(float * x, float * y, float * src, float aspectx, float aspecty, float mw, float mh) {
 	float sx, sy, sz, dz;
 	sx = *(src++);
 	sy = *(src++);
@@ -95,7 +95,7 @@ int init(int _moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	framecount = 0;
 }
 

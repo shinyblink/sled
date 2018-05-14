@@ -31,11 +31,11 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-float dist(float x0, float y0, float x1, float y1) {
+static float dist(float x0, float y0, float x1, float y1) {
 	return sqrtf(((x0 - x1) * (x0 - x1)) + ((y0 - y1) * (y0 - y1)));
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	pos = randn(255);
 
@@ -76,7 +76,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	free(colbuf);
 	return 0;
 }

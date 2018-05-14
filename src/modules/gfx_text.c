@@ -33,7 +33,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	text_free(rendered);
 	text_position = 0;
 }
@@ -80,7 +80,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	// This acts conditionally on rendered being non-NULL.
 	text_free(rendered);
 	return 0;

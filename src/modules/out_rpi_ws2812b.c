@@ -38,7 +38,7 @@
 #include <pwm.h>
 #include <ws2811.h>
 
-ws2811_t leds = {
+static ws2811_t leds = {
 	.freq = WS2811_TARGET_FREQ,
 	.dmanum = RPI_DMA,
 	.channel = {

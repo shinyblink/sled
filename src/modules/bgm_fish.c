@@ -23,21 +23,21 @@
 #include "modloader.h"
 #include "asl.h"
 
-int fish_fifo;
-pthread_t fish_thread;
+static int fish_fifo;
+static pthread_t fish_thread;
 // NOTE: fish_shutdown is maintained by the FISh thread,
 //  and is set by fish_pollshutdown.
-int fish_getch_buffer, fish_shutdown, fish_moduleno;
+static int fish_getch_buffer, fish_shutdown, fish_moduleno;
 // Shutdown FDs, by owner. MT is main thread.
-int fish_shutdown_mt, fish_shutdown_ot;
-char fish_getch_bufferval;
+static int fish_shutdown_mt, fish_shutdown_ot;
+static char fish_getch_bufferval;
 
-void fish_panic(char * reason) {
+static void fish_panic(char * reason) {
 	printf("FISh died: %s\n", reason);
 	pthread_exit(0);
 }
 
-void fish_pollshutdown() {
+static void fish_pollshutdown() {
 	char ch = 0;
 	if (read(fish_shutdown_ot, &ch, 1) > 0) {
 		printf(" fish: bye! -");
@@ -46,7 +46,7 @@ void fish_pollshutdown() {
 }
 
 // This is the function where FISh spends most of its time blocking.
-char fish_getch() {
+static char fish_getch() {
 	if (fish_getch_buffer) {
 		fish_getch_buffer = 0;
 		return fish_getch_bufferval;
@@ -65,7 +65,7 @@ char fish_getch() {
 	}
 	return ch;
 }
-void fish_ungetch(char c) {
+static void fish_ungetch(char c) {
 	// "Should be impossible". But that means nothing.
 	if (fish_getch_buffer)
 		fish_panic("Double ungetch.");
@@ -73,7 +73,7 @@ void fish_ungetch(char c) {
 	fish_getch_buffer = 1;
 }
 
-void fish_skipws() {
+static void fish_skipws() {
 	while (1) {
 		char c = fish_getch();
 		if ((c > ' ') || (c == 10)) {
@@ -90,7 +90,7 @@ void fish_skipws() {
 // A simple state machine that can parse stuff like:
 // "We are all equals here, we fight for dominion tonight..."
 // and "Apostrophes, such as ', are useful, but can annoy "'certain parsers that alias " and \'.'
-char * fish_word(int * hitnl) {
+static char * fish_word(int * hitnl) {
 	char * str = NULL;
 	int escape = 0;
 	char quotes = 0;
@@ -138,7 +138,7 @@ char * fish_word(int * hitnl) {
 }
 
 // transfers 'ownership' of args to this.
-void fish_execute(char * module, int argc, char ** argv) {
+static void fish_execute(char * module, int argc, char ** argv) {
 	int i;
 	int mcount = modules_count();
 	int routing_rov = 0;
@@ -193,7 +193,7 @@ void fish_execute(char * module, int argc, char ** argv) {
 	asl_free_argv(argc, argv);
 }
 
-void * fish_thread_func(void * arg) {
+static void * fish_thread_func(void * arg) {
 	fish_getch_buffer = 0;
 	fish_shutdown = 0;
 	// Make the FIFO and the shutdown pipe non-blocking.

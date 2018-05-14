@@ -31,7 +31,7 @@ int init(int modno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	frame = 0;
 }

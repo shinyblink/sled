@@ -54,7 +54,7 @@ static int rescale(int x, int maxn, int newn) {
 
 #define SCALE(i, n) ((float) i / (float) n)
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	matrix_clear();
 	frame = 0;
@@ -111,7 +111,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	free(iters);
 	return 0;
 }

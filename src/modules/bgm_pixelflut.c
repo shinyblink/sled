@@ -33,25 +33,23 @@
 #include "asl.h"
 
 // It is *IMPOSSIBLE* for a px client to send a length that escapes this buffer.
-byte px_array[65536];
+static byte px_array[65536];
 // Where data goes that we ignore
-byte px_scratch_array[65536];
+static byte px_scratch_array[65536];
 
-int px_shutdown_fd_mt, px_shutdown_fd_ot;
+static int px_shutdown_fd_mt, px_shutdown_fd_ot;
 // px_mtcountdown is the time until we decide to end. It's main-thread-only.
-int px_moduleno, px_mtcountdown;
-int px_pixelcount, px_clientcount;
+static int px_moduleno, px_mtcountdown;
+static int px_pixelcount, px_clientcount;
 
-int px_mx, px_my;
-ulong px_mtlastframe;
-pthread_t px_thread;
+static int px_mx, px_my;
+static ulong px_mtlastframe;
+static pthread_t px_thread;
 
 #define PX_MTCOUNTDOWN_MAX 100
 #define FRAMETIME 10000
 #define PX_PORT 1337
 //#define PX_SNAKE
-
-
 
 typedef struct {
 	int socket; // The socket
@@ -99,18 +97,18 @@ static inline uint32_t fast_strtoul16(const char *str, const char **endptr) {
 }
 // end shamelessly ripped from pixelnuke
 
-void net_send(px_client_t * client, char * str) {
+static void net_send(px_client_t * client, char * str) {
 	send(client->socket, str, strlen(str), 0);
 	send(client->socket, "\n", 1, 0);
 }
 
-void net_err(px_client_t * client, char * str) {
+static void net_err(px_client_t * client, char * str) {
 	send(client->socket, "ERROR: ", 7, 0);
 	send(client->socket, str, strlen(str), 0);
 	send(client->socket, "\n", 1, 0);
 }
 
-void poke_main_thread(void) {
+static void poke_main_thread(void) {
 	char ** argv = malloc(sizeof(char*));
 	if (argv) {
 		*argv = strdup("--start");
@@ -124,12 +122,12 @@ void poke_main_thread(void) {
 }
 
 // returns 0 on successful line read
-int px_client_readln(px_client_t * client, char * line, size_t maxread) {
+static int px_client_readln(px_client_t * client, char * line, size_t maxread) {
 	char * line_read = line;
 	do {
 		ssize_t r = read(client->socket, line_read, 1);
 		if (r <= 0) return -1;
-			
+
 		line_read++;
 		maxread--;
 	} while (maxread != 0 && *(line_read-1) != '\n');
@@ -137,7 +135,7 @@ int px_client_readln(px_client_t * client, char * line, size_t maxread) {
 }
 
 // Returns true to remove the client.
-int px_client_update(px_client_t * client) {
+static int px_client_update(px_client_t * client) {
 	char line[20];
 	if (px_client_readln(client, line, sizeof(line))) {
 		if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
@@ -268,7 +266,7 @@ STATS: Return statistics");
 }
 
 // Allows or closes the socket.
-int px_client_new(px_client_t ** list, int sock) {
+static int px_client_new(px_client_t ** list, int sock) {
 	px_client_t * c = malloc(sizeof(px_client_t));
 	if (!c) {
 		close(sock);
@@ -285,13 +283,13 @@ int px_client_new(px_client_t ** list, int sock) {
 }
 
 // Makes an FD nonblocking
-void px_nbs(int sock) {
+static void px_nbs(int sock) {
 	int flags = fcntl(sock, F_GETFL, 0);
 	flags |= O_NONBLOCK;
 	fcntl(sock, F_SETFL, flags);
 }
 
-void * px_thread_func(void * n) {
+static void * px_thread_func(void * n) {
 	px_client_t * list = 0;
 	int server;
 	struct sockaddr_in sa_bpwr;

@@ -117,7 +117,7 @@ void reset(void) {
 	// Nothing?
 }
 
-int deinit() {
+int deinit(void) {
 	// This acts conditionally on rendered being non-NULL.
 	int i;
 	for (i = 0; i < NUMTEXT; i++) {

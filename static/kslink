@@ -47,7 +47,7 @@ echo "	assert(basis);"
 RVLI=0
 for name in $RVL; do
  echo "	assert((basis[$RVLI] = strdup(\"$name\")));"
- let RVLI=RVLI+1
+ RVLI=`expr $RVLI + 1`
 done
 echo "	*argc = $RVLI;"
 echo "	return basis;"

@@ -24,7 +24,7 @@ static ulong nexttick;
 
 /*** matrix info (initialized in init()) ***/
 
-int mx, my;		// matrix size
+static int mx, my;		// matrix size
 
 /*** base effect coefficients. This is where you want to play around. ***/
 
@@ -63,12 +63,12 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	frame = 0;
 }
 
-inline float addmod(float x, float mod, float delta) {
+static inline float addmod(float x, float mod, float delta) {
   x = x + delta;
   while( x >= mod ) {
     x -= mod;
@@ -79,13 +79,13 @@ inline float addmod(float x, float mod, float delta) {
   return x;
 }
 
-void increment_runvars() {
+static void increment_runvars(void) {
   for( int i = 0; i < runvar_count; i++ ) {
     runvar[i] = addmod(runvar[i], runmod[i], runinc[i]);
   }
 }
 
-inline float _abs(float x) {
+static inline float _abs(float x) {
   if( x < 0 ) {
     return -x;
   } else {
@@ -93,15 +93,15 @@ inline float _abs(float x) {
   }
 }
 
-float sinestuff(float x, float y, float v0, float v1) {
+static float sinestuff(float x, float y, float v0, float v1) {
   return ( cosf(v1+x) * sinf(v1+y) * cosf((mx*0.5*sinf(v0)) + sqrtf(x*x + y*y)) );
 }
 
-inline float sinecircle3D(float x, float y) {
+static inline float sinecircle3D(float x, float y) {
         return (cosf(x) * sinf(y) * cosf(sqrtf((x*x) + (y*y))));
 }
 
-inline int _min(int x, int y) {
+static inline int _min(int x, int y) {
 	return x>y ? y : x;
 }
 

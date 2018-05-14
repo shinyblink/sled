@@ -16,8 +16,8 @@ static int modno;
 static int frame;
 static ulong nexttick;
 
-int mx;
-int my;
+static int mx;
+static int my;
 
 typedef struct line {
 	RGB color;
@@ -92,7 +92,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset() {
+void reset(void) {
 	nexttick = udate();
 	matrix_clear();
 
@@ -131,7 +131,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(void) {
 	free(lines);
 	return 0;
 }

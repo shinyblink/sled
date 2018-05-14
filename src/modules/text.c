@@ -28,7 +28,7 @@ int text_point(text* rendered, int x, int y) {
 	return rendered->buffer[x] & (1 << y);
 }
 
-int text_render_core(const char* txt, byte* outp) {
+static int text_render_core(const char* txt, byte* outp) {
 	int columns = 0;
 	int first = 1;
 	while (*txt) {
