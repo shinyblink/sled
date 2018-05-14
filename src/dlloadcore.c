@@ -6,8 +6,45 @@
 #include <stdlib.h>
 #include "asl.h"
 
+static char * dirprefix;
+
+char ** loadcore_init(char * dir, int * argcno) {
+	dirprefix = dir;
+	*argcno = 0;
+	struct dirent * file;
+	DIR * moduledir = opendir(dir); // for now.
+	if (!moduledir)
+		return 0;
+	char ** list = 0;
+	while ((file = readdir(moduledir)) != NULL) {
+		int xlen = strlen(file->d_name);
+		if (xlen >= 3) {
+			// Check that it ends with .so
+			if (strcmp(file->d_name + xlen - 3, ".so"))
+				continue;
+			char * p = strdup(file->d_name);
+			assert(p);
+			// Cut off the ".so"
+			p[xlen - 3] = 0;
+			list = asl_growav((*argcno)++, list, p);
+		}
+	}
+	closedir(moduledir);
+	return list;
+}
+
 void * loadcore_open(const char * modname) {
-	return dlopen(modname, RTLD_LAZY | RTLD_GLOBAL);
+	// dirprefix + 1 "/" + modname + 3 ".so" + 1 zero terminator
+	char * name2 = malloc(strlen(dirprefix) + 1 + strlen(modname) + 3 + 1);
+	assert(name2);
+	*name2 = 0;
+	strcat(name2, dirprefix);
+	strcat(name2, "/");
+	strcat(name2, modname);
+	strcat(name2, ".so");
+	void * r = dlopen(name2, RTLD_LAZY | RTLD_GLOBAL);
+	free(name2);
+	return r;
 }
 
 void * loadcore_sym(void * handle, const char * name) {
@@ -20,23 +57,4 @@ char * loadcore_error() {
 
 void loadcore_close(void * handle) {
 	dlclose(handle);
-}
-
-char ** loadcore_getdir(char * dir, int * argcno) {
-	*argcno = 0;
-	struct dirent * file;
-	DIR * moduledir = opendir(dir); // for now.
-	if (!moduledir)
-		return 0;
-	char ** list = 0;
-	while ((file = readdir(moduledir)) != NULL) {
-		char * p = strdup(file->d_name);
-		if (p) {
-			list = asl_growav((*argcno)++, list, p);
-		} else {
-			asl_free_argv(*argcno, list);
-		}
-	}
-	closedir(moduledir);
-	return list;
 }

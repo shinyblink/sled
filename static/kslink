@@ -41,9 +41,20 @@ for name in $RVL; do
  # --
  echo "};"
 done
+echo "char ** loadcore_init(char * dir, int * argc) {"
+echo "	char ** basis = malloc(sizeof(char*) * `echo $RVL | wc -w`);"
+echo "	assert(basis);"
+RVLI=0
+for name in $RVL; do
+ echo "	assert((basis[$RVLI] = strdup(\"$name\")));"
+ let RVLI=RVLI+1
+done
+echo "	*argc = $RVLI;"
+echo "	return basis;"
+echo "}"
 echo "void * loadcore_open(const char * str) {"
 for name in $RVL; do
- echo "	if (!strcmp(str, \"./modules/"$name".so\"))"
+ echo "	if (!strcmp(str, \""$name"\"))"
  echo "		return &kslink_"$name"_MOD;"
 done
 echo "	return NULL;"
@@ -60,17 +71,4 @@ echo "char * loadcore_error() {"
 echo "	return 0;"
 echo "}"
 echo "void loadcore_close(void * targ) {"
-echo "}"
-echo "void loadcore_setdir(char * sd) {"
-echo "}"
-echo "char ** loadcore_getdir(int * argc) {"
-echo "	char ** basis = malloc(sizeof(char*) * `echo $RVL | wc -w`);"
-echo "	assert(basis);"
-RVLI=0
-for name in $RVL; do
- echo "	assert((basis[$RVLI] = strdup(\"$name.so\")));"
- let RVLI=RVLI+1
-done
-echo "	*argc = $RVLI;"
-echo "	return basis;"
 echo "}"

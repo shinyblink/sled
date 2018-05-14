@@ -27,7 +27,7 @@ typedef struct module {
 
 extern void* dlookup(void* handle, char* modname, char* name);
 extern int modules_deinit(void);
-extern int modules_loadmod(module* mod, char name[256], char* modpath);
+extern int modules_loadmod(module* mod, char name[256]);
 extern int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtnames,
 int* filtno, int* filters);
 extern int modules_init(int* outmodno);
