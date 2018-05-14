@@ -10,3 +10,4 @@ tags
 .#*
 /modules
 src/slloadcore.gen.c
+static/modwraps/*
