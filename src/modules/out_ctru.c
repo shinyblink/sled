@@ -1,4 +1,4 @@
-// Supposedly a libctru output, but...
+// Actually now a libctru output
 
 #include <types.h>
 #include <timers.h>
@@ -7,16 +7,18 @@
 #include <string.h>
 
 #define SCREEN_ID GFX_TOP
+#define CONSOLE_ID GFX_BOTTOM
 static u16 matrix_w, matrix_h;
 static u8 *current_fb = NULL;
 
 int init(void) {
 	gfxInitDefault();
-	// consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(CONSOLE_ID, NULL);
 	gfxSet3D(false);
 	gfxSetScreenFormat(SCREEN_ID, GSP_RGBA8_OES);
 	gfxSetDoubleBuffering(SCREEN_ID, true);
-	current_fb = gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &matrix_w, &matrix_h);
+	// Deliberately in reverse order.
+	gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &matrix_h, &matrix_w);
 	return 0;
 }
 
@@ -35,8 +37,9 @@ int set(int x, int y, RGB *color) {
 		return 1;
 		if (x >= matrix_w || y >= matrix_h)
 		return 2; */
-
-	u32 * base = (u32*)(current_fb + ((x + (y * matrix_w)) * 4));
+	y = matrix_h - (1 + y);
+	// In reverse order
+	u32 * base = (u32*)(current_fb + ((y + (x * matrix_h)) * 4));
 	base[0] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
 	return 0;
 }

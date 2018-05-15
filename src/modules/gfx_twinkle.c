@@ -11,18 +11,28 @@
 #include <string.h>
 #include <assert.h>
 
-#define TWINKLE_LEVELS 8
-#define TWINKLE_FRAMETIME 100 * T_MILLISECOND
-#define TWINKLE_FRAMES RANDOM_TIME * 10
-static const int twinkle_level_tab[TWINKLE_LEVELS] = {
-	0,
-	32,
-	192,
-	224,
-	255,
-	192,
-	128,
-	64
+#define TWINKLE_LEVELS 16
+#define TWINKLE_FRAMETIME 50 * T_MILLISECOND
+#define TWINKLE_FRAMES RANDOM_TIME * 20
+
+#define TWINKLE_COL(v) {.red = ((v) * 3) / 4, .green = ((v) * 3) / 4, .blue = v}
+static const RGB twinkle_level_tab[TWINKLE_LEVELS] = {
+	TWINKLE_COL(0),
+	TWINKLE_COL(16),
+	TWINKLE_COL(32),
+	TWINKLE_COL(116),
+	TWINKLE_COL(192),
+	TWINKLE_COL(208),
+	TWINKLE_COL(224),
+	TWINKLE_COL(240),
+	TWINKLE_COL(255),
+	TWINKLE_COL(224),
+	TWINKLE_COL(192),
+	TWINKLE_COL(160),
+	TWINKLE_COL(128),
+	TWINKLE_COL(96),
+	TWINKLE_COL(64),
+	TWINKLE_COL(32)
 };
 static int *twinkle_levels;
 static int twinkle_moduleno;
@@ -55,19 +65,17 @@ int draw(int argc, char* argv[]) {
 			if (!twinkle_levels[i]) {
 				// This "curtain" effect is intentional.
 				// Can't self-sustain because lineactivity only increases as we go through the line.
-				if ((!endsoon) || (lineactivity > (matrix_getx() / 129)))
-					if (randn(512) == 0)
+				if ((!endsoon) || (lineactivity > (matrix_getx() / 129))) {
+					if (!(rand() & 511))
 						twinkle_levels[i] = 1;
+				}
 			} else {
 				lineactivity++;
 				endnow = 0;
 				twinkle_levels[i]++;
 				twinkle_levels[i] %= TWINKLE_LEVELS;
 			}
-			int vB = twinkle_level_tab[twinkle_levels[i++]];
-			int vG = (vB * 3) / 4;
-			RGB color = { .red = vG, .green = vG, .blue = vB};
-			matrix_set(x, y, &color);
+			matrix_set(x, y, twinkle_level_tab + twinkle_levels[i++]);
 		}
 	}
 

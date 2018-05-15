@@ -40,7 +40,7 @@ int matrix_gety(void) {
 	return outmod->gety();
 }
 
-int matrix_set(int x, int y, RGB *color) {
+int matrix_set(int x, int y, const RGB *color) {
 	return outmod->set(x, y, color);
 }
 

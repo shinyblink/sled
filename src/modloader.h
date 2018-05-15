@@ -14,7 +14,7 @@ typedef struct module {
 	int (*deinit)(void);
 	void (*reset)(void);
 	int (*draw)(int argc, char* argv[]);
-	int (*set)(int x, int y, RGB *color);
+	int (*set)(int x, int y, const RGB *color);
 	int (*clear)(void);
 	int (*render)(void);
 	int (*getx)(void);
