@@ -29,19 +29,19 @@ static int mx, my;		// matrix size
 /*** base effect coefficients. This is where you want to play around. ***/
 
 #define runvar_count 16
-static float runinc[runvar_count] = { 
-  0.00123,   0.00651,  0.000471,  0.000973,   
-  0.000223,  0.000751,  0.000879,  0.000443,   
-  0.000373,  0.000459,  0.000321,  0.000247,   
-  0.000923,  0.00253,  0.00173,  0.000613   
+static float runinc[runvar_count] = {
+  0.00123,   0.00651,  0.000471,  0.000973,
+  0.000223,  0.000751,  0.000879,  0.000443,
+  0.000373,  0.000459,  0.000321,  0.000247,
+  0.000923,  0.00253,  0.00173,  0.000613
 };
-float runvar[runvar_count] = { 
-  0,        0,        0,        0, 
-  0,        0,        0,        0, 
-  0,        0,        0,        0, 
-  0,        0,        0,        0 
+float runvar[runvar_count] = {
+  0,        0,        0,        0,
+  0,        0,        0,        0,
+  0,        0,        0,        0,
+  0,        0,        0,        0
 };
-static float runmod[runvar_count] = { 
+static float runmod[runvar_count] = {
   1.0,      2*M_PI,     2*M_PI,     2*M_PI,
   2*M_PI,     2*M_PI,     2*M_PI,     2*M_PI,
   2*M_PI,     2*M_PI,     2*M_PI,     2*M_PI,
@@ -59,7 +59,6 @@ int init(int moduleno, char* argstr) {
 	if (my < 2)
 		return 1;
 	modno = moduleno;
-	printf("affinematrix init\n");
 	return 0;
 }
 
@@ -117,8 +116,8 @@ int draw(int argc, char* argv[]) {
 		rotation3(sin(runvar[14]) * M_PI),
 		translation3(sin(runvar[6])*mx*0.125, cos(runvar[7])*my*0.125),
 		rotation3(runvar[15]),
-		scale3(0.25+sin(runvar[8])/6.0, 0.25+cos(runvar[9])/6.0) 
-	); 
+		scale3(0.25+sin(runvar[8])/6.0, 0.25+cos(runvar[9])/6.0)
+	);
 	for( int x = 0; x < mx; x++ ) {
 		for( int y = 0; y < my; y++ ) {
 			vec2 v = multm3v2(m, vec2(x-(mx/2), y-(mx/2)));

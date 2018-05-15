@@ -37,7 +37,7 @@ void oscore_event_signal(oscore_event ev) {
 	write(oei->send, &discard, 1);
 }
 
-oscore_event oscore_event_new() {
+oscore_event oscore_event_new(void) {
 	oscore_event_i * oei = malloc(sizeof(oscore_event_i));
 	int fd[2];
 	assert(oei);
@@ -56,7 +56,7 @@ void oscore_event_free(oscore_event ev) {
 
 // -- mutex
 
-oscore_mutex oscore_mutex_new() {
+oscore_mutex oscore_mutex_new(void) {
 	pthread_mutex_t * mutex = malloc(sizeof(pthread_mutex_t));
 	assert(mutex);
 	assert(!pthread_mutex_init(mutex, NULL));
