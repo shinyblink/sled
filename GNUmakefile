@@ -145,9 +145,6 @@ else
  # To build all modwraps, run kslink
  $(MODULES_WC) src/slloadcore.gen.c: $(MODULES_C) static/kslink
 	cd static ; ./kslink $(addsuffix .c, $(addprefix ../src/modules/, $(MODULES))) > ../src/slloadcore.gen.c
- # To build a module.o, compile the modwraps
- static/modwraps/%.o: static/modwraps/%.c
-	$(CC) $(CFLAGS) -c -o $@ $^
 endif
 
 # --- The actual build begins here ---
