@@ -115,8 +115,6 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 				continue;
 			}
 			char* name = &d_name[4];
-			int flen = strlen(name);
-			name[flen - 3] = '\0';
 			fflush(stdin);
 			int i;
 			int found = 0;
@@ -126,7 +124,6 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 					fltindex = i;
 					break;
 				}
-			name[flen - 3] = '.';
 			if (found == 0) {
 				printf(" Skipping unused filter module.\n");
 				continue;
