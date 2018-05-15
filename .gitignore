@@ -12,3 +12,5 @@ sledconf
 /modules
 src/slloadcore.gen.c
 static/modwraps/*
+sled.3dsx
+sled.map

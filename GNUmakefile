@@ -127,7 +127,7 @@ else
 endif
 
 clean:
-	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o
+	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
 
 # --- Generic object conversion rule begins here ---
 
