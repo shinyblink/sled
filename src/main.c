@@ -24,7 +24,7 @@ static int main_rmod_override = -1;
 static int main_rmod_override_argc;
 static char* *main_rmod_override_argv;
 
-const char default_moduledir[] = "./modules";
+const char default_moduledir[] = DEFAULT_MODULEDIR;
 static char* modpath = NULL;
 
 static int deinit(void) {

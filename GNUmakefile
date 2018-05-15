@@ -17,7 +17,7 @@ OUTMODS_AVAILABLE += out_sf75_bi_spidev
 
 # Include local configuration.
 
-include SLEDconfig
+include sledconf
 
 # Default configuration starts here. This all uses ?=, so SLEDconfig makes the final decision.
 
@@ -35,6 +35,7 @@ STATIC ?= 0
 PLATFORM ?= unix
 
 DEFAULT_OUTMOD ?= sdl2
+DEFAULT_MODULEDIR ?= "./modules"
 
 # The list of modules that will be compiled in this build.
 # By default, all modules will be compiled, along with the currently selected default output module.
@@ -79,7 +80,8 @@ LDSOFLAGS ?= -shared
 
 # --- Non-user-configurable source info begins here ---
 
-CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR) -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\"
+CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR) 
+CFLAGS += -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\" -DDEFAULT_MODULEDIR=\"$(DEFAULT_MODULEDIR)\"
 
 SOURCES := src/asl.c    src/main.c        src/matrix.c  src/random.c     src/timers.c
 SOURCES += src/color.c  src/graphics.c    src/mathey.c  src/modloader.c  src/util.c

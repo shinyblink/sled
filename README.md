@@ -33,8 +33,7 @@ Common:
 
 Platforms might need additional dependencies, check below.
 
-Your local SLED configuration (if any) should be in `SLEDconfig`.
-
+Your local SLED configuration is in `sledconf`, which is thus .gitignore'd by default.
 It can override various settings:
 
 * `PROJECT`
@@ -57,6 +56,19 @@ It can override various settings:
 	- Set to 1 to use static linking.
 	- Set to 0 to use -ldl based linking.
 	- Defaults to 0.
+
+* `DEFAULT_OUTMOD`
+	- The default -o parameter.
+	- Defaults to "sdl2".
+
+* `DEFAULT_MODULEDIR`
+	- The default -m parameter.
+	- Defaults to "./modules".
+
+* `MODULES`
+	- The modules being compiled.
+	- `MODULES_AVAILABLE` contains all available GFX modules.
+	- Default is this & DEFAULT_OUTMOD prefixed with `out_`.
 
 Compile with simply `make`.
 
