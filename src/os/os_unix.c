@@ -1,5 +1,4 @@
-// Timers.
-// Very basic, but enough for this.
+// os_unix
 
 #include <types.h>
 #include <oscore.h>
@@ -7,6 +6,9 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <pthread.h>
+
+// -- event
 
 typedef struct {
 	int send;
@@ -50,4 +52,29 @@ void oscore_event_free(oscore_event ev) {
 	close(oei->send);
 	close(oei->recv);
 	free(oei);
+}
+
+// -- mutex
+
+oscore_mutex oscore_mutex_new() {
+	pthread_mutex_t * mutex = malloc(sizeof(pthread_mutex_t));
+	assert(mutex);
+	assert(!pthread_mutex_init(mutex, NULL));
+	return mutex;
+}
+
+void oscore_mutex_lock(oscore_mutex m) {
+	pthread_mutex_t * mutex = m;
+	pthread_mutex_lock(mutex);
+}
+
+void oscore_mutex_unlock(oscore_mutex m) {
+	pthread_mutex_t * mutex = m;
+	pthread_mutex_unlock(mutex);
+}
+
+void oscore_mutex_free(oscore_mutex m) {
+	pthread_mutex_t * mutex = m;
+	pthread_mutex_destroy(mutex);
+	free(mutex);
 }

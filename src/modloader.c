@@ -6,14 +6,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include "util.h"
-#include <pthread.h>
 #include "modloader.h"
 #include "loadcore.h"
+#include "oscore.h"
 #include "asl.h"
 
 static struct module modules[MAX_MODULES];
 static int modcount = 0;
-static pthread_mutex_t lock;
+static oscore_mutex lock;
 
 void* dlookup(void* handle, char* modname, char* name) {
 	void* ptr = loadcore_sym(handle, name);
@@ -30,7 +30,7 @@ int modules_deinit(void) {
 	int i;
 	int ret;
 	printf("Deinitializing %i modules...\n", modcount);
-	pthread_mutex_lock(&lock);
+	oscore_mutex_lock(lock);
 	for (i = 0; i < modcount; i++) {
 		printf("\t- %s...", modules[i].name);
 		ret = modules[i].deinit();
@@ -42,11 +42,8 @@ int modules_deinit(void) {
 		printf(" Done.\n");
 	}
 	printf("Done.\n");
-	pthread_mutex_unlock(&lock);
-	if (pthread_mutex_destroy(&lock)) {
-		printf("Couldn't destroy modules mutex now no pesky background threads are around.\n");
-		return 1;
-	}
+	oscore_mutex_unlock(lock);
+	oscore_mutex_free(lock);
 	return 0;
 }
 
@@ -171,14 +168,11 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 }
 
 int modules_init(int * outmodno) {
-	if (pthread_mutex_init(&lock, 0)) {
-		printf("Couldn't begin to initialize modules as the background thread safety mutex couldn't be initialized.\n");
-		return 1;
-	}
+	lock = oscore_mutex_new();
 	int mod;
 	int ret;
 	printf("Initializing modules...\n");
-	pthread_mutex_lock(&lock);
+	oscore_mutex_lock(lock);
 	for (mod = 0; mod < modcount; ++mod) {
 		int rerun = 1;
 		while (rerun) {
@@ -200,7 +194,7 @@ int modules_init(int * outmodno) {
 						// just in case
 						eprintf("How did THIS end up the output module? Stopping.\n");
 						modcount = mod;
-						pthread_mutex_unlock(&lock);
+						oscore_mutex_unlock(lock);
 						return 1;
 					} else if (*outmodno > mod) {
 						(*outmodno)--;
@@ -215,7 +209,7 @@ int modules_init(int * outmodno) {
 			}
 		}
 	}
-	pthread_mutex_unlock(&lock);
+	oscore_mutex_unlock(lock);
 	printf("\nDone.");
 	return 0;
 }

@@ -11,4 +11,11 @@ int oscore_event_wait(oscore_event ev, ulong usecs);
 // Signal the event.
 void oscore_event_signal(oscore_event ev);
 void oscore_event_free(oscore_event ev);
+
+typedef void * oscore_mutex;
+oscore_mutex oscore_mutex_new();
+void oscore_mutex_free(oscore_mutex ev);
+void oscore_mutex_lock(oscore_mutex ev);
+void oscore_mutex_unlock(oscore_mutex ev);
+
 #endif

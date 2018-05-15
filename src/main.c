@@ -11,14 +11,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#include "oscore.h"
 
 static int modcount;
 
-static pthread_mutex_t rmod_lock;
+static oscore_mutex rmod_lock;
 // Usually -1.
 static int main_rmod_override = -1;
 static int main_rmod_override_argc;
@@ -36,7 +36,7 @@ static int deinit(void) {
 		return ret;
 	if ((ret = timers_deinit()) != 0)
 		return ret;
-	pthread_mutex_destroy(&rmod_lock);
+	oscore_mutex_free(rmod_lock);
 	if (main_rmod_override != -1)
 		asl_free_argv(main_rmod_override_argc, main_rmod_override_argv);
 
@@ -47,14 +47,14 @@ static int deinit(void) {
 }
 
 static int pick_other(int mymodno, ulong in) {
-	pthread_mutex_lock(&rmod_lock);
+	oscore_mutex_lock(rmod_lock);
 	if (main_rmod_override != -1) {
 		int res = timer_add(in, main_rmod_override, main_rmod_override_argc, main_rmod_override_argv);
 		main_rmod_override = -1;
-		pthread_mutex_unlock(&rmod_lock);
+		oscore_mutex_unlock(rmod_lock);
 		return res;
 	}
-	pthread_mutex_unlock(&rmod_lock);
+	oscore_mutex_unlock(rmod_lock);
 	int mod;
 	int lastvalidmod = 0;
 	int usablemodcount = 0;
@@ -85,15 +85,15 @@ static int pick_other(int mymodno, ulong in) {
 
 void main_force_random(int mnum, int argc, char ** argv) {
 	while (!timers_quitting) {
-		pthread_mutex_lock(&rmod_lock);
+		oscore_mutex_lock(rmod_lock);
 		if (main_rmod_override == -1) {
 			main_rmod_override = mnum;
 			main_rmod_override_argc = argc;
 			main_rmod_override_argv = argv;
-			pthread_mutex_unlock(&rmod_lock);
+			oscore_mutex_unlock(rmod_lock);
 			return;
 		}
-		pthread_mutex_unlock(&rmod_lock);
+		oscore_mutex_unlock(rmod_lock);
 		usleep(5000);
 	}
 	// Quits out without doing anything to prevent deadlock.
@@ -133,17 +133,7 @@ static void interrupt_handler(int sig) {
 
 int main(int argc, char* argv[]) {
 	int ch;
-#ifdef PLATFORM_SDL2
-	char outmod[256] = "sdl2";
-#elif defined(PLATFORM_RPI_WS2812B)
-	char outmod[256] = "rpi_ws2812b";
-#elif defined(PLATFORM_RPI_HUB75)
-	char outmod[256] = "rpi_hub75";
-#elif defined(PLATFORM_UDP)
-	char outmod[256] = "udp";
-#else
-	char outmod[256] = "dummy"; // dunno.
-#endif
+	char outmod[256] = DEFAULT_OUTMOD;
 
 	char* filternames[MAX_MODULES];
 	char* filterargs[MAX_MODULES];
@@ -201,11 +191,7 @@ int main(int argc, char* argv[]) {
 	argv += optind;
 
 	int ret;
-	ret = pthread_mutex_init(&rmod_lock, NULL);
-	if (ret) {
-		printf("rmod mutex failed to initialize.\n");
-		return ret;
-	}
+	rmod_lock = oscore_mutex_new();
 
 	// Initialize pseudo RNG.
 	random_seed();
@@ -230,7 +216,7 @@ int main(int argc, char* argv[]) {
 	ret = timers_init(outmodno);
 	if (ret) {
 		printf("Timers failed to initialize.\n");
-		pthread_mutex_destroy(&rmod_lock);
+		oscore_mutex_free(rmod_lock);
 		return ret;
 	}
 
@@ -240,7 +226,7 @@ int main(int argc, char* argv[]) {
 		// Fail.
 		printf("Matrix: Output plugin failed to initialize.\n");
 		timers_deinit();
-		pthread_mutex_destroy(&rmod_lock);
+		oscore_mutex_free(rmod_lock);
 		return ret;
 	}
 

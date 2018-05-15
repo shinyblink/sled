@@ -34,10 +34,12 @@ STATIC ?= 0
 # Available: 'unix', possibly '3ds'
 PLATFORM ?= unix
 
-# The list of modules that will be compiled in this build.
-# By default, all modules will be compiled, along with the SDL2 output module.
+DEFAULT_OUTMOD ?= sdl2
 
-MODULES ?= $(MODULES_AVAILABLE) out_sdl2
+# The list of modules that will be compiled in this build.
+# By default, all modules will be compiled, along with the currently selected default output module.
+
+MODULES ?= $(MODULES_AVAILABLE) out_$(DEFAULT_OUTMOD)
 
 # Those backends that emulate a matrix should use a matrix of this size.
 
@@ -58,11 +60,9 @@ else
 endif
 CFLAGS ?= -O2 -march=native
 
-# NOTE: This is overridable because a user with POSIX=0 might also not be able to rely on -lm.
+# NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
 LIBS ?= -lm
-
-LIBS += -lpthread
 
 ifeq ($(STATIC),0)
  OS := $(shell uname)
@@ -79,7 +79,7 @@ LDSOFLAGS ?= -shared
 
 # --- Non-user-configurable source info begins here ---
 
-CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
+CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR) -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\"
 
 SOURCES := src/asl.c    src/main.c        src/matrix.c  src/random.c     src/timers.c
 SOURCES += src/color.c  src/graphics.c    src/mathey.c  src/modloader.c  src/util.c
@@ -111,6 +111,8 @@ MODULES_WC := $(addprefix static/modwraps/, $(addsuffix .c, $(MODULES)))
 MODULES_WCO := $(addprefix static/modwraps/, $(addsuffix .o, $(MODULES)))
 MODULES_LIBS := $(addprefix src/modules/, $(addsuffix .libs, $(MODULES)))
 
+PLATFORM_LIBS := src/os/os_$(PLATFORM).libs
+
 OBJECTS := $(SOURCES:.c=.o)
 ML_OBJECTS := $(ML_SOURCES:.c=.o)
 
@@ -123,7 +125,7 @@ else
 endif
 
 clean:
-	rm -f $(PROJECT) $(OBJECTS) $(MODULES_SO) $(MODULES_O) $(MODULES_WC) $(MODULES_WCO) $(ML_OBJECTS)
+	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o
 
 # --- Generic object conversion rule begins here ---
 
@@ -150,9 +152,9 @@ endif
 
 ifeq ($(STATIC),0)
  sled: $(OBJECTS)
-	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null` $(LIBS)
 else
  sled: $(OBJECTS) $(MODULES_WCO) $(ML_OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(MODULES_LIBS) 2>/dev/null`
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null`
 endif
 

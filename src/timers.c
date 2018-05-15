@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <pthread.h>
 #include <string.h>
 #include "modloader.h"
 #include "asl.h"
@@ -25,7 +24,7 @@ static int timer_count = 0;
 
 int timers_quitting = 0;
 
-static pthread_mutex_t tlock;
+static oscore_mutex tlock;
 
 module* outmod;
 
@@ -71,24 +70,24 @@ void wait_until_break(void) {
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
 	struct timer t = { .moduleno = moduleno, .time = usec, .argc = argc, .argv = argv };
 
-	pthread_mutex_lock(&tlock);
+	oscore_mutex_lock(tlock);
 	if (timer_count >= MAX_TIMERS) {
-		pthread_mutex_unlock(&tlock);
+		oscore_mutex_unlock(tlock);
 		return 1;
 	}
 	TIMERS[timer_count] = t;
 	timer_count++;
-	pthread_mutex_unlock(&tlock);
+	oscore_mutex_unlock(tlock);
 	return 0;
 }
 
 // Select the soonest timer, return it and clean up the spot it left.
 timer timer_get(void) {
-	pthread_mutex_lock(&tlock);
+	oscore_mutex_lock(tlock);
 
 	timer t = { .moduleno = -1, .time = 0};
 	if (timer_count == 0) {
-		pthread_mutex_unlock(&tlock);
+		oscore_mutex_unlock(tlock);
 		return t;
 	}
 
@@ -119,13 +118,12 @@ timer timer_get(void) {
 		timer_count--;
 	}
 
-	pthread_mutex_unlock(&tlock);
+	oscore_mutex_unlock(tlock);
 	return t;
 }
 
 int timers_init(int outmodno) {
-	if (pthread_mutex_init(&tlock, NULL))
-		return 1;
+	tlock = oscore_mutex_new();
 	breakpipe = oscore_event_new();
 	outmod = modules_get(outmodno);
 	return 0;
@@ -137,7 +135,7 @@ void timers_doquit(void) {
 }
 
 int timers_deinit(void) {
-	pthread_mutex_destroy(&tlock);
+	oscore_mutex_free(tlock);
 	int i;
 	for (i = 0; i < timer_count; i++)
 		asl_free_argv(TIMERS[i].argc, TIMERS[i].argv);
