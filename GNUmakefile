@@ -132,7 +132,7 @@ clean:
 # --- Generic object conversion rule begins here ---
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ `cat $(@:.c=.incs) 2>/dev/null` $^
+	$(CC) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null` $^
 
 # --- Module compile info begins here ---
 
