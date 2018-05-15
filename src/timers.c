@@ -10,6 +10,7 @@
 #include <string.h>
 #include "modloader.h"
 #include "asl.h"
+#include "oscore.h"
 
 typedef struct timer {
 	int moduleno;
@@ -28,7 +29,7 @@ static pthread_mutex_t tlock;
 
 module* outmod;
 
-static int breakpipe_fds[2];
+static oscore_event breakpipe;
 
 ulong udate(void) {
 	struct timeval tv;
@@ -44,37 +45,17 @@ ulong wait_until_core(ulong desired_usec) {
 	ulong tnow = udate();
 	if (tnow >= desired_usec)
 		return tnow;
-	useconds_t sleeptime = desired_usec - tnow;
-	struct timeval timeout;
-	timeout.tv_sec = sleeptime / 1000000;
-	timeout.tv_usec = sleeptime % 1000000;
-	fd_set set;
-	FD_ZERO(&set);
-	FD_SET(breakpipe_fds[0], &set);
-	if (select(FD_SETSIZE, &set, NULL, NULL, &timeout)) {
-		char buf[512];
-		read(breakpipe_fds[0], buf, 512);
+	if (oscore_event_wait(breakpipe, desired_usec - tnow))
 		return udate();
-	}
 	return desired_usec;
 }
 
 void wait_until_break_cleanup_core(void) {
-	struct timeval timeout;
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 0;
-	fd_set set;
-	FD_ZERO(&set);
-	FD_SET(breakpipe_fds[0], &set);
-	if (select(FD_SETSIZE, &set, NULL, NULL, &timeout)) {
-		char buf[512];
-		read(breakpipe_fds[0], buf, 512);
-	}
+	oscore_event_wait(breakpipe, 0);
 }
 
 void wait_until_break_core(void) {
-	char discard = 0;
-	write(breakpipe_fds[1], &discard, 1);
+	oscore_event_signal(breakpipe);
 }
 
 // This code calls into the output module's wait_until impl.
@@ -145,9 +126,8 @@ timer timer_get(void) {
 int timers_init(int outmodno) {
 	if (pthread_mutex_init(&tlock, NULL))
 		return 1;
-	pipe(breakpipe_fds);
+	breakpipe = oscore_event_new();
 	outmod = modules_get(outmodno);
-
 	return 0;
 }
 

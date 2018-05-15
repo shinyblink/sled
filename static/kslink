@@ -13,6 +13,7 @@ for x in "$@"; do
  # repeated later
  FUNCS=$GFX_FUNCS
  echo $name | grep "^out_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
+ echo $name | grep "^flt_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
  # --
  # File to write this wrapper to
  FN="modwraps/$name.c"
@@ -43,6 +44,7 @@ for name in $RVL; do
  # this is repeated from the previous
  FUNCS=$GFX_FUNCS
  echo $name | grep "^out_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
+ echo $name | grep "^flt_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
  for y in $FUNCS; do
   echo " .$y = &kslink_"$name"_$y,"
  done

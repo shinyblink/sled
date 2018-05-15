@@ -1,6 +1,7 @@
 sled
 sled.fish
 tags
+SLEDconfig
 *.o
 *.so
 *.core

@@ -33,27 +33,47 @@ Common:
 
 Platforms might need additional dependencies, check below.
 
-Compile with `make PLATFORM=<PLATFORM> MATRIX_X=<X size> MATRIX_Y=<Y size>`
+Your local SLED configuration (if any) should be in `SLEDconfig`.
 
-`MATRIX_X` and `MATRIX_Y` are optional, defaults are there. However, you probably want to change them.
+It can override various settings:
 
-# Platforms
+* `PROJECT`
+	- The name of the final binary.
+	- Defaults to 'sled'.
 
-* `SDL2`
-	- SDL2-based virtual matrix for development.
+* `PLATFORM`
+	- The platform being compiled for.
+	- Defaults to 'unix'.
+	- See src/os_unix.c and similar.
 
 * `DEBUG`
-	- Alias to SDL2 + some debugging-friendly compiler options.
+	- Set to 1 to add debug information to all files and disable -O2.
+	- Defaults to 0.
 
-* `RPI_WS2812B`
+* `CFLAGS`
+	- Defaults to `-O2 -march=native` or `-march=native -Og -ggdb` dependent on `DEBUG`.
+
+* `STATIC`
+	- Set to 1 to use static linking.
+	- Set to 0 to use -ldl based linking.
+	- Defaults to 0.
+
+Compile with simply `make`.
+
+# Output modules
+
+* `out_sdl2`
+	- SDL2-based virtual matrix for development.
+
+* `out_rpi_ws2812b`
 	- Uses https://github.com/jgarff/rpi_ws281x to drive the strips.
 	- Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
 
-* `UDP`
+* `out_udp`
 	- UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
 	- An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
 
-* `RPI_HUB75`
+* `out_rpi_hub75`
 	- A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
 	- Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
 	- Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
@@ -75,7 +95,7 @@ They are the following:
 	- "Hack me" greeting by default, obviously. 8x8 or bigger required.
 
 * `bgm_fish`: FIfo Shell. A small FIFO-based queue manipulator. Made by @20kdc.
-	- Uses a little background CPU usage. Creates `sled.fish` FIFO in the sled tree.
+	- Shouldn't have background CPU usage as of the select abuse. Creates `sled.fish` FIFO in the sled tree.
 
 * `gfx_gol`: A simple black and white Conway's Game of Life clone.
 
