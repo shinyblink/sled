@@ -15,6 +15,15 @@ MODULES_AVAILABLE += flt_rot_90 flt_smapper
 OUTMODS_AVAILABLE := out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
 OUTMODS_AVAILABLE += out_sf75_bi_spidev
 
+# List of modules to compile.
+MODULES_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
+MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
+MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
+MODULES_DEFAULT += gfx_affinematrix gfx_ip
+
+MODULES_DEFAULT += bgm_fish bgm_pixelflut
+MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
+
 # Include local configuration.
 
 include sledconf
@@ -40,7 +49,7 @@ DEFAULT_MODULEDIR ?= "./modules"
 # The list of modules that will be compiled in this build.
 # By default, all modules will be compiled, along with the currently selected default output module.
 
-MODULES ?= $(MODULES_AVAILABLE) out_$(DEFAULT_OUTMOD)
+MODULES ?= $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
 
 # Those backends that emulate a matrix should use a matrix of this size.
 
