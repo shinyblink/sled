@@ -21,10 +21,14 @@ static u32* fb = NULL;
 
 int init(void) {
 	gfxInitDefault();
+
 	consoleInit(CONSOLE_ID, NULL);
+
 	gfxSet3D(false);
 	gfxSetScreenFormat(SCREEN_ID, GSP_RGBA8_OES);
 	gfxSetDoubleBuffering(SCREEN_ID, false);
+	gfxSwapBuffersGpu();
+	gspWaitForVBlank();
 
 	// Get our real framebuffer and alloc our own.
 	// w/h is switched on purpose.
@@ -66,7 +70,7 @@ int render(void) {
 	gspWaitForVBlank();
 
 	GSPGPU_FlushDataCache(fb, fb_w * fb_h * 4);
-	GX_DisplayTransfer(fb, GX_BUFFER_DIM(fb_w, fb_h), lcd_fb, GX_BUFFER_DIM(lcd_w, lcd_h), DISPLAY_TRANSFER_FLAGS);
+	GX_DisplayTransfer(fb, GX_BUFFER_DIM((u32) fb_w, (u32) fb_h), lcd_fb, GX_BUFFER_DIM((u32) lcd_w, (u32) lcd_h), DISPLAY_TRANSFER_FLAGS);
 	gspWaitForPPF();
 
 	// Check if start is pressed, if it is, exit.
