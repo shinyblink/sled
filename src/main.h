@@ -8,3 +8,8 @@
 //  the results will be ordered and the thread will do a lot of sleeping.
 // (FISh uses this for the "/then" command.)
 extern void main_force_random(int moduleno, int argc, char ** argv);
+
+// Our main method.
+// Does the arg parsing and such.
+// Since we might have a different main thing, we need to be called externally.
+extern int sled_main(int argc, char** argv);

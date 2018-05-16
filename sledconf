@@ -1,4 +1,4 @@
-
+# Makefile for sled running on the nintendo 3ds.
 PROJECT := sled
 
 LIBS := -L/opt/devkitpro/libctru/lib -lctru -lm
@@ -13,7 +13,7 @@ LDFLAGS := -specs=3dsx.specs -Wl,-Map,$(PROJECT).map
 
 # This can't work on any setting except static
 STATIC := 1
-PLATFORM := dummy
+PLATFORM := 3ds
 
 DEFAULT_OUTMOD := ctru
 DEFAULT_MODULEDIR := "./modules"
