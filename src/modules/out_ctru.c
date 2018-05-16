@@ -9,7 +9,7 @@
 #define SCREEN_ID GFX_TOP
 #define CONSOLE_ID GFX_BOTTOM
 static u16 matrix_w, matrix_h;
-static u8 *current_fb = NULL;
+static u32 *current_fb = NULL;
 
 int init(void) {
 	gfxInitDefault();
@@ -17,8 +17,8 @@ int init(void) {
 	gfxSet3D(false);
 	gfxSetScreenFormat(SCREEN_ID, GSP_RGBA8_OES);
 	gfxSetDoubleBuffering(SCREEN_ID, true);
-	// Deliberately in reverse order.
-	gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &matrix_h, &matrix_w);
+	// W/H are deliberately in reverse order.
+	current_fb = (u32*) gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &matrix_h, &matrix_w);
 	return 0;
 }
 
@@ -37,10 +37,9 @@ int set(int x, int y, RGB *color) {
 		return 1;
 		if (x >= matrix_w || y >= matrix_h)
 		return 2; */
+	// W/H are in reverse order and this occurs for 90-degree rotation.
 	y = matrix_h - (1 + y);
-	// In reverse order
-	u32 * base = (u32*)(current_fb + ((y + (x * matrix_h)) * 4));
-	base[0] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
+	current_fb[y + (x * matrix_h)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
 	return 0;
 }
 
@@ -56,7 +55,7 @@ int render(void) {
 	gfxSwapBuffers();
 	u8 * nfb = gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, NULL, NULL);
 	memcpy(nfb, cfb, matrix_w * (size_t) matrix_h * (size_t) 4);
-	current_fb = nfb;
+	current_fb = (u32 *) nfb;
 	hidScanInput();
 	// Raise the shutdown alarm.
 	if ((!aptMainLoop()) || (hidKeysDown() & KEY_START))
