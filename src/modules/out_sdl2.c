@@ -66,10 +66,11 @@ static int matrix_ppos(int x, int y) {
 }
 
 int set(int x, int y, RGB *color) {
-	if (x < 0 || y < 0)
-		return 1;
-	if (x >= MATRIX_X || y >= MATRIX_Y)
-		return 2;
+	// Detect OOB access.
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < MATRIX_X);
+	assert(y < MATRIX_Y);
 
 	int pos = matrix_ppos(x, y) * 3;
 	BUFFER[pos + 0] = color->red;

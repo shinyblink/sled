@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 static byte* buf;
 
@@ -165,14 +166,11 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
-	if (x < 0)
-		return 1;
-	if (y < 0)
-		return 1;
-	if (x >= fbdev_w)
-		return 1;
-	if (y >= fbdev_h)
-		return 1;
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < fbdev_w);
+	assert(y < fbdev_h);
+
 	if (!(fbdev_flags & SLEDFB_PLANAR)) {
 		int i = (x + (y * fbdev_w)) * ((fbdev_flags & SLEDFB_P4EN) ? 4 : 3);
 		if (fbdev_flags & SLEDFB_P4AF)

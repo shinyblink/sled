@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <graphics.h>
 #include <stdlib.h>
+#include <string.h>
 #include <mathey.h>
 
 
@@ -21,11 +22,16 @@ static int pos;
 static int frame;
 static ulong nexttick;
 
+int mx, my;
+
 int init(int moduleno, char* argstr) {
 	if (matrix_getx() < 3)
 		return 1;
 	modno = moduleno;
 	frame = 0;
+
+	mx = matrix_getx();
+	my = matrix_gety();
 	return 0;
 }
 
@@ -44,12 +50,21 @@ int draw(int argc, char* argv[]) {
 
 	for (p.x = -1; p.x <= XSCALE; p.x++) {
 		p.y = - round((YSCALE - 1) / 2 * (sin((p.x + pos) * M_PI * 2.0f / (double) XSCALE) - 1));
-		matrix_set(p.x, p.y, &white);
+
+		if (p.x >= 0 && p.x < mx)
+			if (p.y >= 0 && p.y < my)
+				matrix_set(p.x, p.y, &white);
+
 		vec2 d = vadd(_p, vmul(p, -1));
 		dy = round(d.y);
 		d = vmul(d, 1.0/d.y);
-		for (int i = 1; abs(dy)>1, i<abs(dy); ++i)
-			matrix_set((int) ((p.x==0&&dy>0)?_p.x:p.x + i*d.x), (int) (fmin(p.y,_p.y) + i*d.y), &white);
+		for (int i = 1; abs(dy)>1, i<abs(dy); ++i) {
+			int x = (int) ((p.x==0&&dy>0)?_p.x:p.x + i*d.x);
+			int y = (int) (fmin(p.y,_p.y) + i*d.y);
+			if (x >= 0 && x < mx)
+				if (y >= 0 && y < my)
+					matrix_set(x, y, &white);
+		}
 		memcpy(&_p, &p, sizeof(p));
 	}
 

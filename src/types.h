@@ -15,19 +15,8 @@ typedef unsigned long ulong;
 #define ARRAY_SIZE(stuff) (sizeof(stuff) / sizeof(stuff[0]))
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
-// Platform, since the below depends on it.
-
-#ifdef PLATFORM_DEBUG // It's just an alias.
-#define PLATFORM_SDL2
-#endif
-
-#ifdef PLATFORM_SDL2
-// SDL-based platform.
-#define COLOR_ORDER_RGB
-#define MATRIX_ORDER_PLAIN
-#undef COLOR_ORDER_GRB
-#undef MATRIX_ORDER_SNAKE
-#endif
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
 // Colors
 typedef struct RGB {

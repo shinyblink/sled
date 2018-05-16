@@ -104,7 +104,7 @@ matrix3_3 multm3(matrix3_3 m1, matrix3_3 m2) {
       .v1_1 = m1.v1_1*m2.v1_1 + m1.v1_2*m2.v2_1 + m1.v1_3*m2.v3_1,
       .v1_2 = m1.v1_1*m2.v1_2 + m1.v1_2*m2.v2_2 + m1.v1_3*m2.v3_2,
       .v1_3 = m1.v1_1*m2.v1_3 + m1.v1_2*m2.v2_3 + m1.v1_3*m2.v3_3,
-      
+
       .v2_1 = m1.v2_1*m2.v1_1 + m1.v2_2*m2.v2_1 + m1.v2_3*m2.v3_1,
       .v2_2 = m1.v2_1*m2.v1_2 + m1.v2_2*m2.v2_2 + m1.v2_3*m2.v3_2,
       .v2_3 = m1.v2_1*m2.v1_3 + m1.v2_2*m2.v2_3 + m1.v2_3*m2.v3_3,
@@ -134,13 +134,13 @@ matrix3_3 identity3() {
 matrix3_3 composem3(int n, ...) {
   va_list valist;
   va_start(valist, n);
-  
+
   matrix3_3 r = identity3();
   for (int i = 0; i < n; i++) {
     matrix3_3 x = va_arg(valist, matrix3_3);
     r = multm3(r,x);
   }
-  
+
   va_end(valist);
   return r;
 }
@@ -243,4 +243,3 @@ vec2 multm3v2(matrix3_3 m, vec2 v) {
   vec3 r = multm3v3(m, vec2tovec3(v));
   return vec3tovec2(r);
 }
-

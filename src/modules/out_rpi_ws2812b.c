@@ -19,7 +19,6 @@
 
 #include <types.h>
 #include <string.h>
-#include <assert.h>
 #include <timers.h>
 #include <matrix.h>
 
@@ -89,11 +88,7 @@ int ppos(int x, int y) {
 }
 
 int set(int x, int y, RGB *color) {
-	if (x < 0 || y < 0)
-		return 1;
-	if (x >= MATRIX_X || y >= MATRIX_Y)
-		return 2;
-
+	// No OOB check, because performance.
 #ifdef COLOR_ORDER_RGB
 	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;
 #elif defined(COLOR_ORDER_GBR)

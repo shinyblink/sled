@@ -28,10 +28,13 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
-	if (x < 0 || y < 0)
+	// Ideally we'd want this to be here, however, since we want decent performance even on the old 3DS,
+	// this check just isn't in the budget.
+	/*
+		if (x < 0 || y < 0)
 		return 1;
-	if (x >= matrix_w || y >= matrix_h)
-		return 2;
+		if (x >= matrix_w || y >= matrix_h)
+		return 2; */
 
 	u32 * base = (u32*)(current_fb + ((x + (y * matrix_w)) * 4));
 	base[0] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
@@ -50,7 +53,7 @@ int render(void) {
 	gfxSwapBuffers();
 	u8 * nfb = gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, NULL, NULL);
 	memcpy(nfb, cfb, matrix_w * (size_t) matrix_h * (size_t) 4);
-        current_fb = nfb;
+	current_fb = nfb;
 	hidScanInput();
 	// Raise the shutdown alarm.
 	if ((!aptMainLoop()) || (hidKeysDown() & KEY_START))
