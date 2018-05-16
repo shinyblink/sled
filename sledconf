@@ -4,9 +4,9 @@ PROJECT := sled
 LIBS := -L/opt/devkitpro/libctru/lib -lctru -lm
 
 CFLAGS := -g
-CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
+CFLAGS += -march=armv6k+fp -mcpu=mpcore -mtune=mpcore -mfloat-abi=hard -mtp=soft
 CFLAGS += -DARM11 -D_3DS
-CFLAGS += -Wall -O4 -mword-relocations -fomit-frame-pointer -ffunction-sections
+CFLAGS += -Wall -O4 -mword-relocations -fomit-frame-pointer -ffunction-sections -ffast-math
 CFLAGS += -I/opt/devkitpro/libctru/include
 
 LDFLAGS := -specs=3dsx.specs -Wl,-Map,$(PROJECT).map
