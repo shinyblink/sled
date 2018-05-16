@@ -17,19 +17,20 @@ static u32* fb = NULL;
 #define DISPLAY_TRANSFER_FLAGS \
     (GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
     GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
-    GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_XY))
+    GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
 int init(void) {
 	gfxInitDefault();
 	consoleInit(CONSOLE_ID, NULL);
 	gfxSet3D(false);
 	gfxSetScreenFormat(SCREEN_ID, GSP_RGBA8_OES);
-	gfxSetDoubleBuffering(SCREEN_ID, true);
+	gfxSetDoubleBuffering(SCREEN_ID, false);
 
 	// Get our real framebuffer and alloc our own.
-	lcd_fb = (u32*) gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &lcd_w, &lcd_h);
-	fb_w = lcd_w / 2;
-	fb_h = lcd_h / 2;
+	// w/h is switched on purpose.
+	lcd_fb = (u32*) gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &lcd_h, &lcd_w);
+	fb_w = lcd_w; /// 2;
+	fb_h = lcd_h; /// 2;
 
 	fb = linearAlloc(fb_w * fb_h * 4); // RGBA8
 	return 0;
@@ -51,8 +52,8 @@ int set(int x, int y, RGB *color) {
 		if (x >= matrix_w || y >= matrix_h)
 		return 2; */
 	// W/H are in reverse order and this occurs for 90-degree rotation.
-	y = fb_w - (1 + y);
-	fb[y + (x * fb_w)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
+	y = fb_h - (1 + y);
+	fb[y + (x * fb_h)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
 	return 0;
 }
 
@@ -65,9 +66,7 @@ int render(void) {
 	gspWaitForVBlank();
 
 	GSPGPU_FlushDataCache(fb, fb_w * fb_h * 4);
-	GX_DisplayTransfer(fb, GX_BUFFER_DIM(fb_w, fb_h),
-										 lcd_fb, GX_BUFFER_DIM(lcd_w, lcd_h),
-										 DISPLAY_TRANSFER_FLAGS);
+	GX_DisplayTransfer(fb, GX_BUFFER_DIM(fb_w, fb_h), lcd_fb, GX_BUFFER_DIM(lcd_w, lcd_h), DISPLAY_TRANSFER_FLAGS);
 	gspWaitForPPF();
 
 	// Check if start is pressed, if it is, exit.
