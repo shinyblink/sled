@@ -8,8 +8,16 @@
 
 #define SCREEN_ID GFX_TOP
 #define CONSOLE_ID GFX_BOTTOM
-static u16 matrix_w, matrix_h;
-static u32 *current_fb = NULL;
+static u16 lcd_w, lcd_h;
+static u16 fb_w, fb_h;
+static u32* lcd_fb = NULL;
+static u32* fb = NULL;
+
+// Set up flags for scaled transfer
+#define DISPLAY_TRANSFER_FLAGS \
+    (GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
+    GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
+    GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_XY))
 
 int init(void) {
 	gfxInitDefault();
@@ -17,16 +25,21 @@ int init(void) {
 	gfxSet3D(false);
 	gfxSetScreenFormat(SCREEN_ID, GSP_RGBA8_OES);
 	gfxSetDoubleBuffering(SCREEN_ID, true);
-	// W/H are deliberately in reverse order.
-	current_fb = (u32*) gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &matrix_h, &matrix_w);
+
+	// Get our real framebuffer and alloc our own.
+	lcd_fb = (u32*) gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, &lcd_w, &lcd_h);
+	fb_w = lcd_w / 2;
+	fb_h = lcd_h / 2;
+
+	fb = linearAlloc(fb_w * fb_h * 4); // RGBA8
 	return 0;
 }
 
 int getx(void) {
-	return matrix_w;
+	return fb_w;
 }
 int gety(void) {
-	return matrix_h;
+	return fb_h;
 }
 
 int set(int x, int y, RGB *color) {
@@ -38,24 +51,26 @@ int set(int x, int y, RGB *color) {
 		if (x >= matrix_w || y >= matrix_h)
 		return 2; */
 	// W/H are in reverse order and this occurs for 90-degree rotation.
-	y = matrix_h - (1 + y);
-	current_fb[y + (x * matrix_h)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
+	y = fb_w - (1 + y);
+	fb[y + (x * fb_w)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
 	return 0;
 }
 
 int clear(void) {
-	memset(current_fb, 0, matrix_w * (size_t) matrix_h * (size_t) 4);
+	memset(fb, 0, fb_w * (size_t) fb_h * (size_t) 4);
 	return 0;
 };
 
 int render(void) {
 	gspWaitForVBlank();
-	gfxFlushBuffers();
-	u8 * cfb = gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, NULL, NULL);
-	gfxSwapBuffers();
-	u8 * nfb = gfxGetFramebuffer(SCREEN_ID, GFX_LEFT, NULL, NULL);
-	memcpy(nfb, cfb, matrix_w * (size_t) matrix_h * (size_t) 4);
-	current_fb = (u32 *) nfb;
+
+	GSPGPU_FlushDataCache(fb, fb_w * fb_h * 4);
+	GX_DisplayTransfer(fb, GX_BUFFER_DIM(fb_w, fb_h),
+										 lcd_fb, GX_BUFFER_DIM(lcd_w, lcd_h),
+										 DISPLAY_TRANSFER_FLAGS);
+	gspWaitForPPF();
+
+	// Check if start is pressed, if it is, exit.
 	hidScanInput();
 	// Raise the shutdown alarm.
 	if ((!aptMainLoop()) || (hidKeysDown() & KEY_START))
