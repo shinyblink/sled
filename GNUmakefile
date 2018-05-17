@@ -58,7 +58,6 @@ MATRIX_Y ?= 64
 SDL_SCALE_FACTOR ?= 4
 
 # Basic compiler information, and we add the debug here.
-
 CC ?= cc
 ifeq ($(DEBUG),0)
  # Not going to use tabs here, it's a Makefile...
@@ -88,8 +87,7 @@ endif
 LDSOFLAGS ?= -shared
 
 # --- Non-user-configurable source info begins here ---
-
-CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR) 
+CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 CFLAGS += -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\" -DDEFAULT_MODULEDIR=\"$(DEFAULT_MODULEDIR)\"
 
 SOURCES := src/asl.c    src/main.c        src/matrix.c  src/random.c     src/timers.c
@@ -113,8 +111,6 @@ else
  SOURCES += src/slloadcore.gen.c
 endif
 
-# ---
-
 MODULES_SO := $(addprefix modules/, $(addsuffix .so, $(MODULES)))
 MODULES_C := $(addprefix src/modules/, $(addsuffix .c, $(MODULES)))
 
@@ -124,13 +120,13 @@ MODULES_LIBS := $(addprefix src/modules/, $(addsuffix .libs, $(MODULES)))
 
 PLATFORM_LIBS := src/os/os_$(PLATFORM).libs
 
-PICAFILES += src/modules/out_ctru.v.pica
-
-OBJECTS := $(SOURCES:.c=.o) $(PICAFILES:.v.pica=.shbin.o)
+OBJECTS := $(SOURCES:.c=.o)
 ML_OBJECTS := $(ML_SOURCES:.c=.o)
 
-# --- All/Cleaning begins here ---
+# --- Include other makefiles ---
+include Makefiles/3ds.GNUmakefile
 
+# --- All/Cleaning begins here ---
 ifeq ($(STATIC),0)
  all: $(PROJECT) $(MODULES_SO)
 else
@@ -141,39 +137,10 @@ clean:
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
 
 # --- Generic object conversion rule begins here ---
-
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null` $^
 
-#---------------------------------------------------------------------------------
-# rules for assembling GPU shaders
-#---------------------------------------------------------------------------------
-define shader-as
-	$(eval CURBIN := $*.shbin)
-	$(eval DEPSFILE := $*.shbin.d)
-	echo "$(CURBIN).o: $< $1" > $(DEPSFILE)
-	echo "extern const u8" `(echo $(notdir $(CURBIN)) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
-	echo "extern const u8" `(echo $(notdir $(CURBIN)) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
-	echo "extern const u32" `(echo $(notdir $(CURBIN)) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
-	picasso -o $(CURBIN) $1
-	bin2s $(CURBIN) | $(AS) -o $*.shbin.o
-endef
-
-%.shbin.o %_shbin.h : %.v.pica %.g.pica
-	@echo $(notdir $^)
-	@$(call shader-as,$^)
-
-%.shbin.o %_shbin.h : %.v.pica
-	@echo $(notdir $<)
-	@$(call shader-as,$<)
-
-%.shbin.o %_shbin.h : %.shlist
-	@echo $(notdir $<)
-	@$(call shader-as,$(foreach file,$(shell cat $<),$(dir $<)$(file)))
-	@$(call shader-as,$<)
-
 # --- Module compile info begins here ---
-
 ifeq ($(STATIC),0)
  # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
  modules/%.so: src/modules/%.o $(ML_OBJECTS)
@@ -186,7 +153,6 @@ else
 endif
 
 # --- The actual build begins here ---
-
 ifeq ($(STATIC),0)
  sled: $(OBJECTS)
 	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null` $(LIBS)
@@ -194,4 +160,3 @@ else
  sled: $(OBJECTS) $(MODULES_WCO) $(ML_OBJECTS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null`
 endif
-
