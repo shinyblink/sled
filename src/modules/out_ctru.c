@@ -137,10 +137,10 @@ int init(void) {
 }
 
 int getx(void) {
-	return fb_w;
+	return fb_h;
 }
 int gety(void) {
-	return fb_h;
+	return fb_w;
 }
 
 int set(int x, int y, RGB *color) {
@@ -151,7 +151,9 @@ int set(int x, int y, RGB *color) {
 		return 1;
 		if (x >= matrix_w || y >= matrix_h)
 		return 2; */
-	fb[x + (y * tex_w)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
+
+	y = fb_w - y - 1;
+	fb[y + (x * tex_w)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
 	return 0;
 }
 
