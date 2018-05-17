@@ -1,7 +1,7 @@
 # Makefile for sled running on the nintendo 3ds.
 PROJECT := sled
 
-LIBS := -L/opt/devkitpro/libctru/lib -lctru -lm
+LIBS := -L/opt/devkitpro/libctru/lib -lcitro3d -lctru -lm
 
 CFLAGS := -g
 CFLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
@@ -24,3 +24,4 @@ MATRIX_Y := 64
 SDL_SCALE_FACTOR := 4
 
 CC := /opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc
+AS := /opt/devkitpro/devkitARM/bin/arm-none-eabi-as

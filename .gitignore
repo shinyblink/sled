@@ -15,3 +15,5 @@ src/slloadcore.gen.c
 static/modwraps/*
 sled.3dsx
 sled.map
+src/modules/out_ctru.shbin
+src/modules/out_ctru_shbin*

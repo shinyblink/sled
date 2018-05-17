@@ -124,7 +124,9 @@ MODULES_LIBS := $(addprefix src/modules/, $(addsuffix .libs, $(MODULES)))
 
 PLATFORM_LIBS := src/os/os_$(PLATFORM).libs
 
-OBJECTS := $(SOURCES:.c=.o)
+PICAFILES += src/modules/out_ctru.v.pica
+
+OBJECTS := $(SOURCES:.c=.o) $(PICAFILES:.v.pica=.shbin.o)
 ML_OBJECTS := $(ML_SOURCES:.c=.o)
 
 # --- All/Cleaning begins here ---
@@ -142,6 +144,33 @@ clean:
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null` $^
+
+#---------------------------------------------------------------------------------
+# rules for assembling GPU shaders
+#---------------------------------------------------------------------------------
+define shader-as
+	$(eval CURBIN := $*.shbin)
+	$(eval DEPSFILE := $*.shbin.d)
+	echo "$(CURBIN).o: $< $1" > $(DEPSFILE)
+	echo "extern const u8" `(echo $(notdir $(CURBIN)) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u8" `(echo $(notdir $(CURBIN)) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u32" `(echo $(notdir $(CURBIN)) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
+	picasso -o $(CURBIN) $1
+	bin2s $(CURBIN) | $(AS) -o $*.shbin.o
+endef
+
+%.shbin.o %_shbin.h : %.v.pica %.g.pica
+	@echo $(notdir $^)
+	@$(call shader-as,$^)
+
+%.shbin.o %_shbin.h : %.v.pica
+	@echo $(notdir $<)
+	@$(call shader-as,$<)
+
+%.shbin.o %_shbin.h : %.shlist
+	@echo $(notdir $<)
+	@$(call shader-as,$(foreach file,$(shell cat $<),$(dir $<)$(file)))
+	@$(call shader-as,$<)
 
 # --- Module compile info begins here ---
 
