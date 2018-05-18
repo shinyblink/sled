@@ -43,7 +43,7 @@ static u16 npo2(u16 v) {
 	return v;
 }
 
-int init(void) {
+int init(int moduleno, char* argstr) {
 	gfxInitDefault();
 	consoleInit(CONSOLE_ID, NULL);
 

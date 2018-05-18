@@ -21,7 +21,6 @@ typedef struct module {
 	int (*gety)(void);
 
 	ulong (*wait_until)(ulong desired_usec);
-	// Interrupts any ongoing wait_until. Use *after* the timer operation to ensure this works correctly.
 	void (*wait_until_break)();
 } module;
 

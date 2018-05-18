@@ -3,7 +3,7 @@ PROJECT := sled
 
 LIBS := -L/opt/devkitpro/libctru/lib -lcitro3d -lctru -lm
 
-CFLAGS := -g
+CFLAGS := -g -flto
 CFLAGS += -march=armv6k -mcpu=mpcore -mtune=mpcore -mfloat-abi=hard -mtp=soft
 CFLAGS += -DARM11 -D_3DS
 CFLAGS += -Wall -O4 -mword-relocations -fomit-frame-pointer -ffunction-sections -ffast-math
