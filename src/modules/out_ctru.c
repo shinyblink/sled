@@ -153,6 +153,7 @@ int set(int x, int y, RGB *color) {
 		return 2; */
 
 	y = fb_w - y - 1;
+	x = fb_h - x - 1;
 	fb[y + (x * tex_w)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
 	return 0;
 }
