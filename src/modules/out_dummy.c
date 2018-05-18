@@ -2,6 +2,7 @@
 
 #include <types.h>
 #include <timers.h>
+#include <assert.h>
 
 // Matrix size
 #ifndef MATRIX_X
@@ -26,10 +27,10 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB *color) {
-	if (x < 0 || y < 0)
-		return 1;
-	if (x >= MATRIX_X || y >= MATRIX_Y)
-		return 2;
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < MATRIX_X);
+	assert(y < MATRIX_Y);
 
 	// Setting pixels? Nah, we're good.
 	return 0;

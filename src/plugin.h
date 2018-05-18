@@ -73,6 +73,10 @@ int gety(void);
 // you can just `return wait_until_core(desired_usec);`.
 ulong wait_until(ulong desired_usec);
 
+// FOR "out" and "flt" TYPE PLUGINS:
+// Interrupts any ongoing wait_until. Use *after* the timer operation to ensure this works correctly.
+void wait_until_break(void);
+
 // Deinit the plugin.
 // Free your shit, we need to go.
 // It's quite sad, but it's alright, though.

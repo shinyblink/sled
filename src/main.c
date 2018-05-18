@@ -131,7 +131,7 @@ static void interrupt_handler(int sig) {
 	interrupt_count++;
 }
 
-int main(int argc, char* argv[]) {
+int sled_main(int argc, char** argv) {
 	int ch;
 	char outmod[256] = DEFAULT_OUTMOD;
 

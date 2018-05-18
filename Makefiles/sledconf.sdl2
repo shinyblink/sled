@@ -1,4 +1,4 @@
-# Example SLED configuration. These are the same as the defaults.
+# Example SLED configuration for SDL2. These are the same as the defaults.
 # There may be other overridable things, see GNUmakefile for the absolute list.
 
 PROJECT := sled

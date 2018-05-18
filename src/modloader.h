@@ -14,14 +14,13 @@ typedef struct module {
 	int (*deinit)(void);
 	void (*reset)(void);
 	int (*draw)(int argc, char* argv[]);
-	int (*set)(int x, int y, RGB *color);
+	int (*set)(int x, int y, const RGB *color);
 	int (*clear)(void);
 	int (*render)(void);
 	int (*getx)(void);
 	int (*gety)(void);
 
 	ulong (*wait_until)(ulong desired_usec);
-	// Interrupts any ongoing wait_until. Use *after* the timer operation to ensure this works correctly.
 	void (*wait_until_break)();
 } module;
 

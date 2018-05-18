@@ -15,6 +15,15 @@ MODULES_AVAILABLE += flt_rot_90 flt_smapper
 OUTMODS_AVAILABLE := out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
 OUTMODS_AVAILABLE += out_sf75_bi_spidev
 
+# List of modules to compile.
+MODULES_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
+MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
+MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
+MODULES_DEFAULT += gfx_affinematrix gfx_ip
+
+MODULES_DEFAULT += bgm_fish bgm_pixelflut
+MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
+
 # Include local configuration.
 
 include sledconf
@@ -40,7 +49,7 @@ DEFAULT_MODULEDIR ?= "./modules"
 # The list of modules that will be compiled in this build.
 # By default, all modules will be compiled, along with the currently selected default output module.
 
-MODULES ?= $(MODULES_AVAILABLE) out_$(DEFAULT_OUTMOD)
+MODULES ?= $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
 
 # Those backends that emulate a matrix should use a matrix of this size.
 
@@ -49,7 +58,6 @@ MATRIX_Y ?= 64
 SDL_SCALE_FACTOR ?= 4
 
 # Basic compiler information, and we add the debug here.
-
 CC ?= cc
 ifeq ($(DEBUG),0)
  # Not going to use tabs here, it's a Makefile...
@@ -79,8 +87,7 @@ endif
 LDSOFLAGS ?= -shared
 
 # --- Non-user-configurable source info begins here ---
-
-CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR) 
+CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 CFLAGS += -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\" -DDEFAULT_MODULEDIR=\"$(DEFAULT_MODULEDIR)\"
 
 SOURCES := src/asl.c    src/main.c        src/matrix.c  src/random.c     src/timers.c
@@ -104,8 +111,6 @@ else
  SOURCES += src/slloadcore.gen.c
 endif
 
-# ---
-
 MODULES_SO := $(addprefix modules/, $(addsuffix .so, $(MODULES)))
 MODULES_C := $(addprefix src/modules/, $(addsuffix .c, $(MODULES)))
 
@@ -118,8 +123,10 @@ PLATFORM_LIBS := src/os/os_$(PLATFORM).libs
 OBJECTS := $(SOURCES:.c=.o)
 ML_OBJECTS := $(ML_SOURCES:.c=.o)
 
-# --- All/Cleaning begins here ---
+# --- Include other makefiles ---
+include Makefiles/3ds.GNUmakefile
 
+# --- All/Cleaning begins here ---
 ifeq ($(STATIC),0)
  all: $(PROJECT) $(MODULES_SO)
 else
@@ -127,15 +134,13 @@ else
 endif
 
 clean:
-	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o
+	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
 
 # --- Generic object conversion rule begins here ---
-
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null` $^
 
 # --- Module compile info begins here ---
-
 ifeq ($(STATIC),0)
  # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
  modules/%.so: src/modules/%.o $(ML_OBJECTS)
@@ -148,7 +153,6 @@ else
 endif
 
 # --- The actual build begins here ---
-
 ifeq ($(STATIC),0)
  sled: $(OBJECTS)
 	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null` $(LIBS)
@@ -156,4 +160,3 @@ else
  sled: $(OBJECTS) $(MODULES_WCO) $(ML_OBJECTS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null`
 endif
-

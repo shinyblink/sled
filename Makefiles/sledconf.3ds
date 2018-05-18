@@ -1,0 +1,31 @@
+# Makefile for sled running on the nintendo 3ds.
+PROJECT := sled
+
+LIBS := -L/opt/devkitpro/libctru/lib -lcitro3d -lctru -lm
+
+CFLAGS := -g -flto
+CFLAGS += -march=armv6k -mcpu=mpcore -mtune=mpcore -mfloat-abi=hard -mtp=soft
+CFLAGS += -DARM11 -D_3DS
+CFLAGS += -Wall -O4 -mword-relocations -fomit-frame-pointer -ffunction-sections -ffast-math
+CFLAGS += -I/opt/devkitpro/libctru/include
+
+LDFLAGS := -specs=3dsx.specs -Wl,-Map,$(PROJECT).map
+
+# This can't work on any setting except static
+STATIC := 1
+PLATFORM := 3ds
+
+DEFAULT_OUTMOD := ctru
+DEFAULT_MODULEDIR := "./modules"
+
+MODULES := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
+MODULES += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
+MODULES += gfx_matrix gfx_cube gfx_golc gfx_sinefield gfx_affinematrix
+MODULES += out_ctru
+
+MATRIX_X := 64
+MATRIX_Y := 64
+SDL_SCALE_FACTOR := 4
+
+CC := /opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc
+AS := /opt/devkitpro/devkitARM/bin/arm-none-eabi-as

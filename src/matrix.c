@@ -40,7 +40,7 @@ int matrix_gety(void) {
 	return outmod->gety();
 }
 
-int matrix_set(int x, int y, RGB *color) {
+int matrix_set(int x, int y, const RGB *color) {
 	return outmod->set(x, y, color);
 }
 
@@ -54,8 +54,8 @@ int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB *color) {
 	int x;
 	int y;
 
-	for (y=start_y; y <= end_y; y++)
-		for (x=start_x; x <= end_x; x++) {
+	for (y = MAX(start_y, 0); y <= MIN(end_y, matrix_gety()); y++)
+		for (x = MAX(start_x, 0); x <= MIN(end_x, matrix_getx()); x++) {
 			matrix_set(x, y, color);
 		}
 	return 0;
@@ -63,9 +63,7 @@ int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB *color) {
 
 // Zeroes the stuff.
 int matrix_clear(void) {
-	RGB color = { .red = 0, .green = 0, .blue = 0 };
-	matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, &color);
-	return 0;
+	return outmod->clear();
 }
 
 int matrix_render(void) {

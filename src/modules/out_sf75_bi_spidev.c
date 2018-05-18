@@ -75,6 +75,7 @@ int set(int x, int y, RGB *color) {
 		return 1;
 	if (x >= WORLD_X || y >= WORLD_Y)
 		return 2;
+
 	int i = 0;
 	while (matrices[i].filename) {
 		if ((x < matrices[i].x || x >= (matrices[i].x + matrices[i].w)) ||
