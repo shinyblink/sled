@@ -74,7 +74,7 @@ int init(void) {
 	// linearAlloc allocates contiguous memory.
 	// The GPU works on physical memory, so we use it instead of malloc.
 	fb = linearAlloc(tex_w * tex_h * 4); // RGBA8
-	memset(fb, 255, tex_w * tex_h * 4);
+	memset(fb, 0, tex_w * tex_h * 4);
 
 	// Vertex Layout: x/u, y/v
 	// We have 2 floats per vertex, where each element describes the position and texture coordinate.
@@ -159,14 +159,7 @@ int set(int x, int y, RGB *color) {
 }
 
 int clear(void) {
-	GX_MemoryFill(
-		fb,
-		GX_BUFFER_DIM((u32)tex_w, (u32)tex_h),
-		fb + (tex_w * (size_t) tex_h * (size_t) 4),
-		GX_FILL_32BIT_DEPTH | GX_FILL_TRIGGER,
-		NULL, 0, NULL, 0
-	);
-	gspWaitForPSC0();
+	memset(fb, 0, tex_w * tex_h * 4);
 	return 0;
 }
 

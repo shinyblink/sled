@@ -27,7 +27,7 @@ oscore_event oscore_event_new(void) {
 }
 
 int oscore_event_wait(oscore_event ev, ulong sleeptime) {
-	Result res = svcWaitSynchronization(TOHANDLE(ev), sleeptime);
+	Result res = svcWaitSynchronization(TOHANDLE(ev), sleeptime * 1000);
 	if (R_FAILED(res))
 		return 1;
 
