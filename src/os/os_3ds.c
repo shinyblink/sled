@@ -39,6 +39,7 @@ void oscore_event_signal(oscore_event ev) {
 }
 
 void oscore_event_free(oscore_event ev) {
+	svcCloseHandle(TOHANDLE(ev));
 	free(ev);
 }
 

@@ -34,6 +34,7 @@ Common:
 Platforms might need additional dependencies, check below.
 
 Your local SLED configuration is in `sledconf`, which is thus .gitignore'd by default.
+Examples are given in the Makefiles directory, check `sledconf.*`.
 It can override various settings:
 
 * `PROJECT`
