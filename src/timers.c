@@ -41,16 +41,13 @@ ulong udate(void) {
 
 // The critical wait_until code
 ulong wait_until_core(ulong desired_usec) {
-	ulong tnow = udate();
-	if (tnow >= desired_usec)
-		return tnow;
-	if (oscore_event_wait(breakpipe, desired_usec - tnow))
+	if (oscore_event_wait_until(breakpipe, desired_usec))
 		return udate();
 	return desired_usec;
 }
 
 void wait_until_break_cleanup_core(void) {
-	oscore_event_wait(breakpipe, 0);
+	oscore_event_wait_until(breakpipe, 0);
 }
 
 void wait_until_break_core(void) {

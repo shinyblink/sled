@@ -4,6 +4,7 @@
 #include "../types.h"
 #include "../oscore.h"
 #include "../main.h"
+#include "../timers.h"
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
@@ -19,7 +20,12 @@ oscore_event oscore_event_new(void) {
 	return NULL;
 }
 
-int oscore_event_wait(oscore_event ev, ulong sleeptime) {
+int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
+	ulong tnow = udate();
+	if (tnow >= desired_usec)
+		return tnow;
+	ulong sleeptime = desired_usec - tnow;
+
 	usleep(sleeptime);
 	return 1;
 }

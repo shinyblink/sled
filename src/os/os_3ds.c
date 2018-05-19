@@ -4,6 +4,7 @@
 #include "../types.h"
 #include "../oscore.h"
 #include "../main.h"
+#include "../timers.h"
 #include <3ds.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -26,12 +27,17 @@ oscore_event oscore_event_new(void) {
 	return event;
 }
 
-int oscore_event_wait(oscore_event ev, ulong sleeptime) {
+int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
+	ulong tnow = udate();
+	if (tnow >= desired_usec)
+		return tnow;
+	ulong sleeptime = desired_usec - tnow;
+
 	Result res = svcWaitSynchronization(TOHANDLE(ev), sleeptime * 1000);
 	if (R_FAILED(res))
-		return 1;
+		return 0; // timeout
 
-	return 0;
+	return 1; // signal
 }
 
 void oscore_event_signal(oscore_event ev) {

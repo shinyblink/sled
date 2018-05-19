@@ -6,8 +6,8 @@ typedef void * oscore_event;
 // Create a new event. Failure results in assertion failed.
 oscore_event oscore_event_new(void);
 // NOTE: usecs == 0 is useful to clear the event.
-// Returns 1 if the wait was undisturbed, else 0.
-int oscore_event_wait(oscore_event ev, ulong usecs);
+// Returns 0 if the wait was undisturbed, anything not zero is an interrupt.
+int oscore_event_wait_until(oscore_event ev, ulong desired_usec);
 // Signal the event.
 void oscore_event_signal(oscore_event ev);
 void oscore_event_free(oscore_event ev);

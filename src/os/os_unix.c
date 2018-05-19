@@ -4,6 +4,7 @@
 #include "../types.h"
 #include "../oscore.h"
 #include "../main.h"
+#include "../timers.h"
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>
@@ -21,7 +22,12 @@ typedef struct {
 	int recv;
 } oscore_event_i;
 
-int oscore_event_wait(oscore_event ev, ulong sleeptime) {
+int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
+	ulong tnow = udate();
+	if (tnow >= desired_usec)
+		return tnow;
+	ulong sleeptime = desired_usec - tnow;
+
 	oscore_event_i * oei = (oscore_event_i *) ev;
 	struct timeval timeout;
 	timeout.tv_sec = sleeptime / 1000000;
@@ -32,9 +38,9 @@ int oscore_event_wait(oscore_event ev, ulong sleeptime) {
 	if (select(FD_SETSIZE, &set, NULL, NULL, &timeout)) {
 		char buf[512];
 		read(oei->recv, buf, 512);
-		return 0;
+		return 1; // we got an interrupt
 	}
-	return 1;
+	return 0; // timeout
 }
 
 void oscore_event_signal(oscore_event ev) {
