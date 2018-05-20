@@ -45,6 +45,16 @@ void oscore_event_signal(oscore_event ev) {
 void oscore_event_free(oscore_event ev) {
 }
 
+// Time keeping.
+// Since we don't have a RTC, presumably,
+// we'll use the uptime.
+// This aligns with the above.
+ulong oscore_udate(void) {
+	// Ticks * portTICK_RATE_MS gives us ticks in msecs, we need usecs.
+	// Even if we fake it.
+	return xTaskGetTickCount() * 1000 * portTICK_RATE_MS;
+}
+
 // -- mutex
 #define TOMUT(m) (* (SemaphoreHandle_t*) (m))
 oscore_mutex oscore_mutex_new(void) {
