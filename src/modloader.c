@@ -84,9 +84,9 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 	printf("Loading modules...\n");
 	int dargc = 0;
 	char ** dargv = loadcore_init(moddir, &dargc);
-	while (dargc > 0) {
-		char * d_name = dargv[dargc - 1];
-		dargc--;
+	int dargi = 0;
+	while (dargi < dargc) {
+		char * d_name = dargv[dargi++];
 		size_t len = strlen(d_name);
 		printf("\t- %s...", d_name);
 		fflush(stdin);

@@ -129,6 +129,7 @@ void timers_doquit(void) {
 
 int timers_deinit(void) {
 	oscore_mutex_free(tlock);
+	oscore_event_free(breakpipe);
 	int i;
 	for (i = 0; i < timer_count; i++)
 		asl_free_argv(TIMERS[i].argc, TIMERS[i].argv);

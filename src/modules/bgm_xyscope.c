@@ -158,6 +158,9 @@ static void * thread_func(void * ign) {
 			wait_until_break();
 		}
 	}
+	snd_pcm_close(scope_pcm);
+	free(bufferA);
+	free(bufferC);
 	return 0;
 }
 
