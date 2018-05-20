@@ -40,6 +40,7 @@ RGB white = { .red = 255, .green = 255, .blue = 255 };
 void reset(void) {
 	nexttick = udate();
 	frame = 0;
+	pos = 0;
 }
 
 int draw(int argc, char* argv[]) {
@@ -58,7 +59,7 @@ int draw(int argc, char* argv[]) {
 		vec2 d = vadd(_p, vmul(p, -1));
 		dy = round(d.y);
 		d = vmul(d, 1.0/d.y);
-		for (int i = 1; abs(dy)>1, i<abs(dy); ++i) {
+		for (int i = 1; abs(dy)>1 && i<abs(dy); ++i) {
 			int x = (int) ((p.x==0&&dy>0)?_p.x:p.x + i*d.x);
 			int y = (int) (fmin(p.y,_p.y) + i*d.y);
 			if (x >= 0 && x < mx)
@@ -72,7 +73,6 @@ int draw(int argc, char* argv[]) {
 
 	if (frame >= FRAMES) {
 		frame = 0;
-		pos = 0;
 		return 1;
 	}
 
