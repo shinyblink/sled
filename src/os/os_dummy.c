@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 // Main entry point.
 int main(int argc, char** argv) {
@@ -34,6 +35,17 @@ void oscore_event_signal(oscore_event ev) {
 }
 
 void oscore_event_free(oscore_event ev) {
+}
+
+// Time keeping.
+// Note, this should be replaced.
+ulong oscore_udate(void) {
+	struct timeval tv;
+	if (gettimeofday(&tv, NULL) == -1) {
+		printf("Failed to get the time???\n");
+		exit(1);
+	}
+	return T_SECOND * tv.tv_sec + tv.tv_usec;
 }
 
 // -- mutex

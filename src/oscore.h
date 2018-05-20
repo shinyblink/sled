@@ -12,6 +12,10 @@ int oscore_event_wait_until(oscore_event ev, ulong desired_usec);
 void oscore_event_signal(oscore_event ev);
 void oscore_event_free(oscore_event ev);
 
+// Get the real time in usecs,
+// failing that, get the uptime.
+ulong oscore_udate(void);
+
 typedef void * oscore_mutex;
 oscore_mutex oscore_mutex_new(void);
 void oscore_mutex_free(oscore_mutex ev);

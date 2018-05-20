@@ -2,7 +2,6 @@
 // Very basic, but enough for this.
 
 #include "types.h"
-#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -30,13 +29,10 @@ module* outmod;
 
 static oscore_event breakpipe;
 
+// udate has been replaced by oscore.
+// No, this is not pretty.
 ulong udate(void) {
-	struct timeval tv;
-	if (gettimeofday(&tv, NULL) == -1) {
-		printf("Failed to get the time???\n");
-		exit(1);
-	}
-	return T_SECOND * tv.tv_sec + tv.tv_usec;
+	return oscore_udate();
 }
 
 // The critical wait_until code

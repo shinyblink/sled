@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define TOHANDLE(ev) (* (Handle*) (ev))
 
@@ -47,6 +48,16 @@ void oscore_event_signal(oscore_event ev) {
 void oscore_event_free(oscore_event ev) {
 	svcCloseHandle(TOHANDLE(ev));
 	free(ev);
+}
+
+// Time keeping.
+ulong oscore_udate(void) {
+	struct timeval tv;
+	if (gettimeofday(&tv, NULL) == -1) {
+		printf("Failed to get the time???\n");
+		exit(1);
+	}
+	return T_SECOND * tv.tv_sec + tv.tv_usec;
 }
 
 // -- mutex
