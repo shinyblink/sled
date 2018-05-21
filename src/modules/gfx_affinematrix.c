@@ -1,5 +1,5 @@
 /*
- * sinematrix port, much stolen from https://github.com/orithena/Arduino-LED-experiments/blob/master/MatrixDemo/MatrixDemo.ino
+ * affinematrix port, much donated by @orithena from https://github.com/orithena/Arduino-LED-experiments/blob/master/MatrixDemo/XAffineFields.ino
  *
  * This is an effect that basically paints a "base canvas" via a function and then defines a "camera" that
  * moves, rotates and zooms seemingly randomly over that canvas, showing what that "camera" sees.
@@ -30,19 +30,18 @@ static int mx2, my2;		// matrix half size
 
 /*** base effect coefficients. This is where you want to play around. ***/
 
+// how many run variables?
 #define runvar_count 16
+
+// run variable increments per frame
 static float runinc[runvar_count] = {
   0.00123,   0.00651,  0.000471,  0.000973,
   0.000223,  0.000751,  0.000879,  0.000443,
   0.000373,  0.000459,  0.000321,  0.000247,
   0.000923,  0.00253,  0.00173,  0.000613
 };
-float runvar[runvar_count] = {
-  0,        0,        0,        0,
-  0,        0,        0,        0,
-  0,        0,        0,        0,
-  0,        0,        0,        0
-};
+
+// variable overflow limits (basically the modulus of the ring the run variable runs in)
 static float runmod[runvar_count] = {
   1.0,      2*M_PI,     2*M_PI,     2*M_PI,
   2*M_PI,     2*M_PI,     2*M_PI,     2*M_PI,
@@ -50,6 +49,13 @@ static float runmod[runvar_count] = {
   2*M_PI,     2*M_PI,     2*M_PI,     2*M_PI
 };
 
+// the actual run variables
+float runvar[runvar_count] = {
+  0,        0,        0,        0,
+  0,        0,        0,        0,
+  0,        0,        0,        0,
+  0,        0,        0,        0
+};
 
 /*** module init ***/
 
@@ -71,6 +77,16 @@ void reset(void) {
 	frame = 0;
 }
 
+
+/* The "canvas" function.
+ */
+static inline float sinestuff(float x, float y, float v0, float v1) {
+  return ( cosf(v1+x) * sinf(v1+y) * cosf(v0 + sqrtf(x*x + y*y)) );
+}
+
+
+/* helper function: add on a ring
+ */
 static inline float addmod(float x, float mod, float delta) {
   x = x + delta;
   while( x >= mod ) {
@@ -82,28 +98,34 @@ static inline float addmod(float x, float mod, float delta) {
   return x;
 }
 
+/* increment all run variables while taking care of overflow
+ */
 static void increment_runvars(void) {
   for( int i = 0; i < runvar_count; i++ ) {
     runvar[i] = addmod(runvar[i], runmod[i], runinc[i]);
   }
 }
 
+/* helper function: returns the absolute value of a float
+ */
 static inline float _abs(float x) {
   return x < 0 ? -x : x;
 }
 
-static inline float sinestuff(float x, float y, float v0, float v1) {
-  return ( cosf(v1+x) * sinf(v1+y) * cosf(v0 + sqrtf(x*x + y*y)) );
-}
-
+/* helper function: returns the minimum of two ints
+ */
 static inline int _min(int x, int y) {
 	return x>y ? y : x;
 }
 
-
+/* central drawing function
+ */
 int draw(int argc, char* argv[]) {
 	perf_start(modno);
 	increment_runvars();
+	
+	// compose transformation matrix out of 9 input matrices 
+	// which are calculated from some of the run variables
 	matrix3_3 m = composem3( 9,
 		rotation3(cos(runvar[12]) * M_PI),
 		translation3(cos(runvar[2])*mx*0.125, sin(runvar[3])*my*0.125),
@@ -115,28 +137,48 @@ int draw(int argc, char* argv[]) {
 		rotation3(runvar[15]),
 		scale3(0.25+sin(runvar[8])/6.0, 0.25+cos(runvar[9])/6.0)
 	);
-	// pre-calculating some variables
+	
+	// pre-calculate some variables outside the loop
 	float pc1 = cosf(runvar[1]);
+	float pc01 = runvar[0] + pc1;
 	float pc10 = (mx2*sinf(runvar[10]));
 	
-	perf_print(modno, "Composed Matrix");
+	perf_print(modno, "Composition");
+	
+	// actual pixel loop
 	for( int x = 0; x < mx; x++ ) {
 		for( int y = 0; y < my; y++ ) {
+
+			// transform x,y coordinates by the pre-composed matrix
 			vec2 v = multm3v2(m, vec2(x-(mx2), y-(my2)));
+
+			// calculate sine curve point
 			float sc = sinestuff(v.x, v.y, pc10, runvar[11]);
-			float hue = runvar[0] + pc1 + (sc * 0.5);
-			RGB color = HSV2RGB(HSV( ((int)(hue*256) & 0xFF), 255, _min(255,(int)(_abs(sc)*512)) ));
-			//RGB color = RGB( ((int)(hue*255) & 0xFF), (int)(runvar[0] * hue * 255) & 0xFF, _min(255,(int)(_abs(sc)*512)) );
+
+			// add changing base hue to sine curve point
+			float hue = pc01 + (sc * 0.5);
+
+			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
+			byte b_hue = ((int)(hue*256) & 0xFF);
+
+			// calculate byte value of HSV float value
+			byte b_val = _min(255,(int)(_abs(sc)*512));
+
+			// convert HSV to RGB
+			RGB color = HSV2RGB(HSV( b_hue, 255, b_val ));
+			// alternate effect: RGB color = RGB( ((int)(hue*255) & 0xFF), (int)(runvar[0] * hue * 255) & 0xFF, _min(255,(int)(_abs(sc)*512)) );
+
+			// set pixel in matrix framebuffer
 			matrix_set(x,y, &color);
 		}
 	}
-	perf_print(modno, "Drew Matrix");
-
+	
+	perf_print(modno, "Drawing");
 
 	// render it out
 	matrix_render();
 	
-	perf_print(modno, "Rendered Matrix");
+	perf_print(modno, "Rendering");
 
 	// manage framework variables
 	if (frame >= FRAMES) {
