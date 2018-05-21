@@ -240,6 +240,9 @@ vec3 multm3v3(matrix3_3 m, vec3 v) {
 }
 
 vec2 multm3v2(matrix3_3 m, vec2 v) {
-  vec3 r = multm3v3(m, vec2tovec3(v));
-  return vec3tovec2(r);
+  vec2 r = {
+      .x = (m.v1_1*v.x) + (m.v1_2*v.y) + (m.v1_3),
+      .y = (m.v2_1*v.x) + (m.v2_2*v.y) + (m.v2_3)
+  };
+  return r;
 }

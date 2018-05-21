@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <mathey.h>
 #include <math.h>
+#include "perf.h"
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
@@ -25,6 +26,7 @@ static ulong nexttick;
 /*** matrix info (initialized in init()) ***/
 
 static int mx, my;		// matrix size
+static int mx2, my2;		// matrix half size
 
 /*** base effect coefficients. This is where you want to play around. ***/
 
@@ -58,6 +60,8 @@ int init(int moduleno, char* argstr) {
 		return 1;
 	if (my < 2)
 		return 1;
+	mx2 = mx/2;
+	my2 = my/2;
 	modno = moduleno;
 	return 0;
 }
@@ -85,19 +89,11 @@ static void increment_runvars(void) {
 }
 
 static inline float _abs(float x) {
-  if( x < 0 ) {
-    return -x;
-  } else {
-    return x;
-  }
+  return x < 0 ? -x : x;
 }
 
-static float sinestuff(float x, float y, float v0, float v1) {
-  return ( cosf(v1+x) * sinf(v1+y) * cosf((mx*0.5*sinf(v0)) + sqrtf(x*x + y*y)) );
-}
-
-static inline float sinecircle3D(float x, float y) {
-        return (cosf(x) * sinf(y) * cosf(sqrtf((x*x) + (y*y))));
+static inline float sinestuff(float x, float y, float v0, float v1) {
+  return ( cosf(v1+x) * sinf(v1+y) * cosf(v0 + sqrtf(x*x + y*y)) );
 }
 
 static inline int _min(int x, int y) {
@@ -106,6 +102,7 @@ static inline int _min(int x, int y) {
 
 
 int draw(int argc, char* argv[]) {
+	perf_start(modno);
 	increment_runvars();
 	matrix3_3 m = composem3( 9,
 		rotation3(cos(runvar[12]) * M_PI),
@@ -118,19 +115,28 @@ int draw(int argc, char* argv[]) {
 		rotation3(runvar[15]),
 		scale3(0.25+sin(runvar[8])/6.0, 0.25+cos(runvar[9])/6.0)
 	);
+	// pre-calculating some variables
+	float pc1 = cosf(runvar[1]);
+	float pc10 = (mx2*sinf(runvar[10]));
+	
+	perf_print(modno, "Composed Matrix");
 	for( int x = 0; x < mx; x++ ) {
 		for( int y = 0; y < my; y++ ) {
-			vec2 v = multm3v2(m, vec2(x-(mx/2), y-(mx/2)));
-			float sc = sinestuff(v.x, v.y, runvar[10], runvar[11]);
-			float hue = runvar[0] + cosf(runvar[1]) + (sc * 0.5);
-			RGB color = HSV2RGB(HSV( ((int)(hue*255) & 0xFF), 255, _min(255,(int)(_abs(sc)*512)) ));
+			vec2 v = multm3v2(m, vec2(x-(mx2), y-(my2)));
+			float sc = sinestuff(v.x, v.y, pc10, runvar[11]);
+			float hue = runvar[0] + pc1 + (sc * 0.5);
+			RGB color = HSV2RGB(HSV( ((int)(hue*256) & 0xFF), 255, _min(255,(int)(_abs(sc)*512)) ));
+			//RGB color = RGB( ((int)(hue*255) & 0xFF), (int)(runvar[0] * hue * 255) & 0xFF, _min(255,(int)(_abs(sc)*512)) );
 			matrix_set(x,y, &color);
 		}
 	}
+	perf_print(modno, "Drew Matrix");
 
 
 	// render it out
 	matrix_render();
+	
+	perf_print(modno, "Rendered Matrix");
 
 	// manage framework variables
 	if (frame >= FRAMES) {
