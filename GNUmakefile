@@ -96,6 +96,7 @@ SOURCES += src/os/os_$(PLATFORM).c
 
 HEADERS := src/graphics.h  src/main.h  src/matrix.h    src/plugin.h     src/timers.h
 HEADERS += src/util.h      src/asl.h   src/loadcore.h  src/mathey.h     src/modloader.h
+HEADERS += src/perf.h
 HEADERS += src/random.h    src/types.h src/oscore.h
 
 # Module libraries.
