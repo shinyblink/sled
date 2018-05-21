@@ -57,6 +57,20 @@ float runvar[runvar_count] = {
   0,        0,        0,        0
 };
 
+/* helper function: add on a ring
+ */
+static inline float addmod(float x, float mod, float delta) {
+  x = x + delta;
+  while( x >= mod ) {
+    x -= mod;
+  }
+  while( x <  0.0 ) {
+    x += mod;
+  }
+  return x;
+}
+
+
 /*** module init ***/
 
 int init(int moduleno, char* argstr) {
@@ -69,6 +83,10 @@ int init(int moduleno, char* argstr) {
 	mx2 = mx/2;
 	my2 = my/2;
 	modno = moduleno;
+	ulong d = udate();
+	for( int i = 0; i < runvar_count; i++ ) {
+		runvar[i] = addmod(runvar[i], runmod[i], (d>>(i/2))/197.0);
+	}
 	return 0;
 }
 
@@ -84,19 +102,6 @@ static inline float sinestuff(float x, float y, float v0, float v1) {
   return ( cosf(v1+x) * sinf(v1+y) * cosf(v0 + sqrtf(x*x + y*y)) );
 }
 
-
-/* helper function: add on a ring
- */
-static inline float addmod(float x, float mod, float delta) {
-  x = x + delta;
-  while( x >= mod ) {
-    x -= mod;
-  }
-  while( x <  0.0 ) {
-    x += mod;
-  }
-  return x;
-}
 
 /* increment all run variables while taking care of overflow
  */
@@ -129,13 +134,13 @@ int draw(int argc, char* argv[]) {
 	matrix3_3 m = composem3( 9,
 		rotation3(cos(runvar[12]) * M_PI),
 		translation3(cos(runvar[2])*mx*0.125, sin(runvar[3])*my*0.125),
-		scale3(16.0/mx, 16.0/my),
+		scale3(14.0/mx, 14.0/mx),
 		rotation3(runvar[13]),
 		translation3(sin(runvar[4])*mx*0.25, cos(runvar[5])*my*0.25),
 		rotation3(sin(runvar[14]) * M_PI),
 		translation3(sin(runvar[6])*mx*0.125, cos(runvar[7])*my*0.125),
 		rotation3(runvar[15]),
-		scale3(0.25+sin(runvar[8])/6.0, 0.25+cos(runvar[9])/6.0)
+		scale3(0.25+sin(runvar[8])/4.0, 0.25+cos(runvar[9])/4.0)
 	);
 	
 	// pre-calculate some variables outside the loop
@@ -147,10 +152,11 @@ int draw(int argc, char* argv[]) {
 	
 	// actual pixel loop
 	for( int x = 0; x < mx; x++ ) {
+		vec2 kernel_x = multm3v2_partx(m, x-(mx2));
 		for( int y = 0; y < my; y++ ) {
 
 			// transform x,y coordinates by the pre-composed matrix
-			vec2 v = multm3v2(m, vec2(x-(mx2), y-(my2)));
+			vec2 v = multm3v2_partxy(m, kernel_x, y-(my2));
 
 			// calculate sine curve point
 			float sc = sinestuff(v.x, v.y, pc10, runvar[11]);

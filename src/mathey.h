@@ -61,3 +61,19 @@ vec3 vec2tovec3(vec2 v);
 vec2 vec3tovec2(vec3 a);
 vec3 multm3v3(matrix3_3 m, vec3 v);
 vec2 multm3v2(matrix3_3 m, vec2 v);
+
+inline vec2 multm3v2_partx(matrix3_3 m, float v_x) {
+  vec2 r = {
+      .x = (m.v1_1*v_x) + (m.v1_3),
+      .y = (m.v2_1*v_x) + (m.v2_3)
+  };
+  return r;
+}
+
+inline vec2 multm3v2_partxy(matrix3_3 m, vec2 kern_x, float v_y) {
+  vec2 r = {
+      .x = kern_x.x + (m.v1_2*v_y),
+      .y = kern_x.y + (m.v2_2*v_y)
+  };
+  return r;
+}
