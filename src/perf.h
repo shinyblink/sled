@@ -1,6 +1,7 @@
 
 #include "types.h"
 #include "timers.h"
+#include <stdio.h>
 
 #ifdef PERF
 // one timer for each module, assuming there are never more than 64 modules loaded
@@ -17,7 +18,7 @@ inline void perf_start(int n) {
 inline void perf_print(int n, char* msg) {
 #ifdef PERF
   ulong cur = udate();
-  printf("\t%02d: %16d %16d - %s\n", n, cur - perf_timer[n*2], cur - perf_timer[(n*2)+1], msg);
+  printf("\t%02d: %16lu %16lu - %s\n", n, cur - perf_timer[n*2], cur - perf_timer[(n*2)+1], msg);
   perf_timer[(n*2)+1] = udate();
 #endif
 }
