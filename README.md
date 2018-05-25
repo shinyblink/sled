@@ -130,6 +130,8 @@ They are the following:
 
 * `gfx_affinematrix`: A billowing matrix manipulation effect, made by @orithena.
 
+* `gfx_candyflow`: A tweak of gfx_affinematrix to look like candy colored lava, made by @orithena.
+
 * `gfx_sinefield`: A strange effect that emerged while whacking random math functions into a loop, made by @orithena.
 
 * `bgm_opc`: An OpenPixelControl server, displays things when it is written to.
