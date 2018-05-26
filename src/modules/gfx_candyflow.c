@@ -100,7 +100,7 @@ void reset(void) {
 /* The "canvas" function.
  */
 static inline float sinestuff(float x, float y, float v0, float v1) {
-  return ( cosf(v1+x) * sinf(v1+y) + cosf(v0 + sqrtf(x*x + y*y)) );
+  return sinf(( (cosf(v1+x)+sinf(x*1.731)) * (sinf(v1+y)+cosf(y*1.673)) + cosf(v0 + sqrtf(x*x + y*y)) )/2);
 }
 
 
@@ -141,7 +141,7 @@ int draw(int argc, char* argv[]) {
 		rotation3(sin(runvar[14]) * M_PI),
 		translation3(sin(runvar[6])*mx*0.125, cos(runvar[7])*my*0.125),
 		rotation3(runvar[15]),
-		scale3(0.7+sin(runvar[8])/4.0, 0.7+cos(runvar[9])/4.0)
+		scale3(0.6+sin(runvar[8])/4.0, 0.6+cos(runvar[9])/4.0)
 	);
 	
 	// pre-calculate some variables outside the loop
@@ -163,13 +163,13 @@ int draw(int argc, char* argv[]) {
 			float sc = sinestuff(v.x, v.y, pc10, runvar[11]);
 
 			// add changing base hue to sine curve point
-			float hue = pc01 + (sc * 0.5 * sinf(runvar[11]) + sinf(v.x/3));
+			float hue = pc01 + (sc * 0.5 * sinf(runvar[11]) + sinf((v.x+v.y)/2));
 
 			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
 			byte b_hue = ((int)(hue*256) & 0xFF);
 
 			// calculate int value of HSV float value
-			int b_val = (int)(_abs(sc+0.5)*192);
+			int b_val = (int)(_abs(sc+0.125)*320);
 
 			// convert HSV to RGB
 			RGB color = HSV2RGB(HSV( (b_hue+b_val) & 0xFF, 255, _min(255, b_val) ));
