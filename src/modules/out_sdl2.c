@@ -44,7 +44,15 @@ int init(int modno, char *argstr) {
 		return 2;
 	sdl_event_break = SDL_RegisterEvents(1);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
+	#ifdef SDLFULLSCREEN
+	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	int ww, wh = 0;
+	SDL_GetWindowSize(window, &ww, &wh);
+	dest.x = (ww - WIN_W)/2;
+	dest.y = (wh - WIN_H)/2;
+	#else
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, 0);
+	#endif
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
 
