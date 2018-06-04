@@ -165,7 +165,7 @@ int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filt
 	return 0;
 }
 
-int modules_init(int **outmodno) {
+int modules_init(int *outmodno) {
 	lock = oscore_mutex_new();
 	static int mod = 0;
 	int ret;
@@ -191,8 +191,8 @@ int modules_init(int **outmodno) {
 			if (mod == modcount)
 				break;
 			memcpy(m, m + 1, sizeof(struct module) * (modcount - mod));
-			if (**outmodno > mod) {
-				outmod = modules_get(--(**outmodno));
+			if (*outmodno > mod) {
+				outmod = modules_get(--(*outmodno));
 			} else {
 				mod--;
 			}
