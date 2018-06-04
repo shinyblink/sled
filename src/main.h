@@ -1,4 +1,10 @@
 // Utilties provided by main.c for control of the main loop.
+#ifndef MAIN_H__
+#define MAIN_H__
+
+#include "modloader.h"
+
+extern struct module *outmod;
 
 // Changes the outcome of the next random module selection.
 // If the outcome has already been changed, waits for that to occur, then tries to grab the random module selection again.
@@ -13,3 +19,5 @@ extern void main_force_random(int moduleno, int argc, char ** argv);
 // Does the arg parsing and such.
 // Since we might have a different main thing, we need to be called externally.
 extern int sled_main(int argc, char** argv);
+
+#endif
