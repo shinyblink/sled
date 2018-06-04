@@ -17,6 +17,8 @@
 #include "oscore.h"
 
 static int modcount;
+int *outmodno;
+struct module *outmod;
 
 static oscore_mutex rmod_lock;
 // Usually -1.
@@ -41,6 +43,7 @@ static int deinit(void) {
 		asl_free_argv(main_rmod_override_argc, main_rmod_override_argv);
 
 	free(modpath);
+	free(outmodno);
 
 	printf("Goodbye. :(\n");
 	return 0;
@@ -133,7 +136,7 @@ static void interrupt_handler(int sig) {
 
 int sled_main(int argc, char** argv) {
 	int ch;
-	char outmod[256] = DEFAULT_OUTMOD;
+	char outmod_c[256] = DEFAULT_OUTMOD;
 
 	char* filternames[MAX_MODULES];
 	char* filterargs[MAX_MODULES];
@@ -159,7 +162,7 @@ int sled_main(int argc, char** argv) {
 				outarg = strdup(arg);
 			else
 				modname = optarg;
-			util_strlcpy(outmod, modname, 256);
+			util_strlcpy(outmod_c, modname, 256);
 			free(tmp);
 			break;
 		}
@@ -206,14 +209,22 @@ int sled_main(int argc, char** argv) {
 		for (i = 0; i < filterno; ++i)
 			filters[i] = -1;
 	}
-	int outmodno = -1;
-	if ((ret = modules_loaddir(modpath, outmod, &outmodno, filternames, &filterno, filters)) != 0) {
+	int *outmodno = NULL;
+	outmodno = malloc(sizeof(int));
+	if (outmodno == NULL) {
+		deinit();
+		return 1;
+	}
+
+	if ((ret = modules_loaddir(modpath, outmod_c, outmodno, filternames, &filterno, filters)) != 0) {
 		deinit();
 		return ret;
 	}
 
+	outmod = modules_get(*outmodno);
+
 	// Initialize Timers.
-	ret = timers_init(outmodno);
+	ret = timers_init(*outmodno);
 	if (ret) {
 		printf("Timers failed to initialize.\n");
 		oscore_mutex_free(rmod_lock);
@@ -221,7 +232,7 @@ int sled_main(int argc, char** argv) {
 	}
 
 	// Initialize Matrix.
-	ret = matrix_init(outmodno, filters, filterno, outarg, filterargs);
+	ret = matrix_init(*outmodno, filters, filterno, outarg, filterargs);
 	if (ret) {
 		// Fail.
 		printf("Matrix: Output plugin failed to initialize.\n");
