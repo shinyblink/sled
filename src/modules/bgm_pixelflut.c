@@ -337,6 +337,7 @@ static void * px_thread_func(void * n) {
 		FD_SET(px_shutdown_fd_ot, &rset);
 		FD_SET(server, &rset);
 		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
+		oscore_task_yield();
 	}
 	// Close & Deallocate
 	while (list) {

@@ -157,6 +157,7 @@ static void * thread_func(void * ign) {
 			timer_add(0, moduleno, 0, NULL);
 			wait_until_break();
 		}
+		oscore_task_yield();
 	}
 	snd_pcm_close(scope_pcm);
 	free(bufferA);

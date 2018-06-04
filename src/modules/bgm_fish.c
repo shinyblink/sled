@@ -221,6 +221,7 @@ static void * fish_thread_func(void * arg) {
 			argc = 0;
 		// Ready.
 		fish_execute(module, argc, argv);
+		oscore_task_yield();
 	}
 	return NULL;
 }
