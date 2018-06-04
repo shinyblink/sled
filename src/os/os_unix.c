@@ -85,7 +85,7 @@ ulong oscore_udate(void) {
 // Threading
 oscore_task oscore_task_create(char* name, oscore_task_function func, void* ctx) {
 	pthread_t* thread = calloc(sizeof(pthread_t), 1);
-	pthread_create(thread, NULL, func, ctx);
+	pthread_create(thread, NULL, (void*) func, ctx);
 
 #if defined(__linux__) || defined(__NetBSD__)
         pthread_setname_np(*thread, name);
@@ -104,16 +104,13 @@ void oscore_task_exit(int status) {
 };
 
 int oscore_task_join(oscore_task task) {
-	int* retval = calloc(sizeof(int), 1);
-	if (pthread_join(task, (void*) retval)) {
+	int retval = 0;
+	if (pthread_join(task, (void*) &retval)) {
 		free(task);
-		free(retval);
 		return -1;
 	}
 	free(task);
-	int ret = *retval;
-	free(retval);
-	return ret;
+	return retval;
 };
 
 

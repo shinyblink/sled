@@ -20,7 +20,7 @@ ulong oscore_udate(void);
 // While the "tasks" are usually multithreaded, they might be singletasking and therefore
 // there must be a function to yield in such cases.
 typedef void* oscore_task;
-typedef void *(*oscore_task_function)(void *);
+typedef void (*oscore_task_function)(void *);
 
 oscore_task oscore_task_create(char* name, oscore_task_function func, void* ctx);
 void oscore_task_yield(void);

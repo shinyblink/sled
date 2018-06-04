@@ -189,7 +189,7 @@ static void fish_execute(char * module, int argc, char ** argv) {
 	asl_free_argv(argc, argv);
 }
 
-static void * fish_thread_func(void * arg) {
+static void fish_thread_func(void * arg) {
 	fish_getch_buffer = 0;
 	fish_shutdown = 0;
 	// Make the FIFO and the shutdown pipe non-blocking.
@@ -223,7 +223,6 @@ static void * fish_thread_func(void * arg) {
 		fish_execute(module, argc, argv);
 		oscore_task_yield();
 	}
-	return NULL;
 }
 
 int init(int moduleno, char* argstr) {
