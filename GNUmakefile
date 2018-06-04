@@ -139,14 +139,14 @@ clean:
 
 # --- Generic object conversion rule begins here ---
 %.o: %.c
-	$(CC) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null` $^
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null` $^
 
 # --- Module compile info begins here ---
 ifeq ($(STATIC),0)
  # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
  modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
-	$(CC) $(CFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
 else
  # To build all modwraps, run kslink
  $(MODULES_WC) src/slloadcore.gen.c: $(MODULES_C) static/kslink

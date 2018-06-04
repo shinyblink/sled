@@ -1,5 +1,5 @@
-/* 
- * This is basically a slightly modified version of the affinematrix port, 
+/*
+ * This is basically a slightly modified version of the affinematrix port,
  * much donated by @orithena from https://github.com/orithena/Arduino-LED-experiments/blob/master/MatrixDemo/XAffineFields.ino
  *
  * This is an effect that basically paints a "base canvas" via a function and then defines a "camera" that
@@ -51,7 +51,7 @@ static float runmod[runvar_count] = {
 };
 
 // the actual run variables
-float runvar[runvar_count] = {
+static float runvar[runvar_count] = {
   0,        0,        0,        0,
   0,        0,        0,        0,
   0,        0,        0,        0,
@@ -122,8 +122,8 @@ static inline int _min(int x, int y) {
 int draw(int argc, char* argv[]) {
 	perf_start(modno);
 	increment_runvars();
-	
-	// compose transformation matrix out of 9 input matrices 
+
+	// compose transformation matrix out of 9 input matrices
 	// which are calculated from some of the run variables
 	matrix3_3 m = composem3( 9,
 		rotation3(cos(runvar[12]) * M_PI),
@@ -136,14 +136,14 @@ int draw(int argc, char* argv[]) {
 		rotation3(runvar[15]),
 		scale3(0.6+sin(runvar[8])/4.0, 0.6+cos(runvar[9])/4.0)
 	);
-	
+
 	// pre-calculate some variables outside the loop
 	float pc1 = cosf(runvar[1]);
 	float pc01 = runvar[0] + pc1;
 	float pc10 = (mx2*sinf(runvar[10]));
-	
+
 	perf_print(modno, "Composition");
-	
+
 	// actual pixel loop
 	for( int x = 0; x < mx; x++ ) {
 		vec2 kernel_x = multm3v2_partx(m, x-(mx2));
@@ -171,12 +171,12 @@ int draw(int argc, char* argv[]) {
 			matrix_set(x,y, &color);
 		}
 	}
-	
+
 	perf_print(modno, "Drawing");
 
 	// render it out
 	matrix_render();
-	
+
 	perf_print(modno, "Rendering");
 
 	// manage framework variables

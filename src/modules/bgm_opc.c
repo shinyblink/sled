@@ -16,14 +16,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <pthread.h>
+#include <oscore.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
-#include <pthread_np.h>
-#endif
 
 
 #include "timers.h"
@@ -44,7 +40,7 @@ static ulong opc_mtlastframe;
 #define OPC_MTCOUNTDOWN_MAX 100
 #define FRAMETIME 10000
 #define OPC_SNAKE
-static pthread_t opc_thread;
+static oscore_task opc_task;
 
 typedef struct {
 	byte channel;
@@ -209,14 +205,9 @@ int init(int moduleno, char* argstr) {
 	opc_shutdown_fd_mt = tmp[1];
 	opc_shutdown_fd_ot = tmp[0];
 	opc_moduleno = moduleno;
-	pthread_create(&opc_thread, NULL, opc_thread_func, NULL);
 
-	// Name our thread.
-#if defined(__linux__) || defined(__NetBSD__)
-	pthread_setname_np(opc_thread, "bgm_opc");
-#elif defined(__FreeBSD__) || defined(__OpenBSD__)
-	pthread_set_name_np(opc_thread, "bgm_opc");
-#endif
+	opc_task = oscore_task_create("bgm_opc", opc_thread_func, NULL);
+
 	return 0;
 }
 
@@ -262,7 +253,7 @@ void reset(void) {
 int deinit() {
 	char blah = 0;
 	if (write(opc_shutdown_fd_mt, &blah, 1) != -1)
-		pthread_join(opc_thread, NULL);
+		oscore_task_join(opc_task);
 	close(opc_shutdown_fd_mt);
 	close(opc_shutdown_fd_ot);
 	return 0;

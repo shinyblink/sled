@@ -16,7 +16,18 @@ void oscore_event_free(oscore_event ev);
 // failing that, get the uptime.
 ulong oscore_udate(void);
 
-typedef void * oscore_mutex;
+// Tasks
+// While the "tasks" are usually multithreaded, they might be singletasking and therefore
+// there must be a function to yield in such cases.
+typedef void* oscore_task;
+typedef void *(*oscore_task_function)(void *);
+
+oscore_task oscore_task_create(char* name, oscore_task_function func, void* ctx);
+void oscore_task_yield(void);
+void oscore_task_exit(int status);
+int oscore_task_join(oscore_task task);
+
+typedef void* oscore_mutex;
 oscore_mutex oscore_mutex_new(void);
 void oscore_mutex_free(oscore_mutex ev);
 void oscore_mutex_lock(oscore_mutex ev);

@@ -7,11 +7,11 @@
 #include <matrix.h>
 #include <timers.h>
 #include <graphics.h>
+#include <oscore.h>
 #include <stdio.h>
 #include <random.h>
 #include <alsa/asoundlib.h>
 #include <math.h>
-#include <pthread.h>
 
 #define SAMPLE_RATE 48000
 #define BUFFER_FRAMES 4096
@@ -53,7 +53,7 @@ static int moduleno;
 static int doshutdown;
 static int dotimeout;
 
-static pthread_t scope_thread;
+static oscore_task scope_task;
 
 #define SM_ALGORITHM(sample, shr, sub) (((byte) (sample >> shr)) - sub)
 #define LD_ALGORITHM(typ, shr, sub) \
@@ -277,13 +277,8 @@ int init(int modulen, char* argstr) {
 		free(bufferC);
 		return 1;
 	}
-	pthread_create(&scope_thread, NULL, thread_func, NULL);
-	// Name our thread.
-#if defined(__linux__) || defined(__NetBSD__)
-	pthread_setname_np(scope_thread, "bgm_xyscope");
-#elif defined(__FreeBSD__) || defined(__OpenBSD__)
-	pthread_set_name_np(scope_thread, "bgm_xyscope");
-#endif
+
+	scope_thread = oscore_task_create("bgm_xyscope", thread_func, NULL);
 	return 0;
 }
 
@@ -333,6 +328,6 @@ int draw(int argc, char* argv[]) {
 
 int deinit(void) {
 	doshutdown = 1;
-	pthread_join(scope_thread, NULL);
+	oscore_task_join(scope_task);
 	return 0;
 }

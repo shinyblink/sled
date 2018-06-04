@@ -16,15 +16,10 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <pthread.h>
+#include <oscore.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
-#include <pthread_np.h>
-#endif
-
 
 #include "timers.h"
 #include "matrix.h"
@@ -42,7 +37,7 @@ static int px_pixelcount, px_clientcount;
 
 static int px_mx, px_my;
 static ulong px_mtlastframe;
-static pthread_t px_thread;
+static oscore_task px_task;
 
 #define PX_MTCOUNTDOWN_MAX 100
 #define FRAMETIME 10000
@@ -367,14 +362,8 @@ int init(int moduleno, char* argstr) {
 	px_shutdown_fd_mt = tmp[1];
 	px_shutdown_fd_ot = tmp[0];
 	px_moduleno = moduleno;
-	pthread_create(&px_thread, NULL, px_thread_func, NULL);
+	px_task = oscore_task_create("bgm_pixelflut", px_thread_func, NULL);
 
-	// Name our thread.
-#if defined(__linux__) || defined(__NetBSD__)
-	pthread_setname_np(px_thread, "bgm_pixelflut");
-#elif defined(__FreeBSD__) || defined(__OpenBSD__)
-	pthread_set_name_np(px_thread, "bgm_pixelflut");
-#endif
 	return 0;
 }
 
@@ -420,7 +409,7 @@ void reset(void) {
 int deinit() {
 	char blah = 0;
 	if (write(px_shutdown_fd_mt, &blah, 1) != -1)
-		pthread_join(px_thread, NULL);
+		oscore_task_join(px_task);
 	close(px_shutdown_fd_mt);
 	close(px_shutdown_fd_ot);
 	return 0;
