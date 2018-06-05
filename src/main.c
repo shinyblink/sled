@@ -17,6 +17,7 @@
 #include "oscore.h"
 
 static int modcount;
+struct module *outmod;
 
 static oscore_mutex rmod_lock;
 // Usually -1.
@@ -133,7 +134,7 @@ static void interrupt_handler(int sig) {
 
 int sled_main(int argc, char** argv) {
 	int ch;
-	char outmod[256] = DEFAULT_OUTMOD;
+	char outmod_c[256] = DEFAULT_OUTMOD;
 
 	char* filternames[MAX_MODULES];
 	char* filterargs[MAX_MODULES];
@@ -159,7 +160,7 @@ int sled_main(int argc, char** argv) {
 				outarg = strdup(arg);
 			else
 				modname = optarg;
-			util_strlcpy(outmod, modname, 256);
+			util_strlcpy(outmod_c, modname, 256);
 			free(tmp);
 			break;
 		}
@@ -206,11 +207,14 @@ int sled_main(int argc, char** argv) {
 		for (i = 0; i < filterno; ++i)
 			filters[i] = -1;
 	}
+
 	int outmodno = -1;
-	if ((ret = modules_loaddir(modpath, outmod, &outmodno, filternames, &filterno, filters)) != 0) {
+	if ((ret = modules_loaddir(modpath, outmod_c, &outmodno, filternames, &filterno, filters)) != 0) {
 		deinit();
 		return ret;
 	}
+
+	outmod = modules_get(outmodno);
 
 	// Initialize Timers.
 	ret = timers_init(outmodno);

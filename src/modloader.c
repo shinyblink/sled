@@ -10,6 +10,7 @@
 #include "loadcore.h"
 #include "oscore.h"
 #include "asl.h"
+#include "main.h"
 
 static struct module modules[MAX_MODULES];
 static int modcount = 0;
@@ -79,7 +80,7 @@ int modules_loadmod(module* mod, char name[256]) {
 	return 0;
 }
 
-int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtnames, int* filtno, int* filters) {
+int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filtnames, int* filtno, int* filters) {
 	int found_filters = 0;
 	printf("Loading modules...\n");
 	int dargc = 0;
@@ -103,7 +104,7 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 		char type[4];
 		util_strlcpy(type, d_name, 4);
 
-		if (strcmp(type, "out") == 0 && strncmp(&d_name[4], outmod, len - 4) != 0) { // 4 for the type.
+		if (strcmp(type, "out") == 0 && strncmp(&d_name[4], outmod_c, len - 4) != 0) { // 4 for the type.
 			printf(" Skipping unused output module.\n");
 			continue;
 		}
@@ -164,45 +165,36 @@ int modules_loaddir(char* moddir, char outmod[256], int* outmodno, char** filtna
 	return 0;
 }
 
-int modules_init(int * outmodno) {
+int modules_init(int *outmodno) {
 	lock = oscore_mutex_new();
-	int mod;
+	static int mod = 0;
 	int ret;
+	module *m;
 	printf("Initializing modules...\n");
 	oscore_mutex_lock(lock);
-	for (mod = 0; mod < modcount; ++mod) {
-		int rerun = 1;
-		while (rerun) {
-			rerun = 0;
-			if (strcmp(modules[mod].type, "out") != 0 && strcmp(modules[mod].type, "flt") != 0){
-				printf("\t- %s...", modules[mod].name);
-				ret = modules[mod].init(mod, NULL);
-				if (ret > 0) {
-					if (ret != 1) {
-						printf("\n");
-						eprintf("Initializing module %s failed: Returned %i.", modules[mod].name, ret);
-					} else {
-						printf(" Ignored by request of plugin.\n");
-					}
-					loadcore_close(modules[mod].lib);
-					// Since this failed to init, just nuke it from orbit
-					modcount--;
-					if (*outmodno == mod) {
-						// just in case
-						eprintf("How did THIS end up the output module? Stopping.\n");
-						modcount = mod;
-						oscore_mutex_unlock(lock);
-						return 1;
-					} else if (*outmodno > mod) {
-						(*outmodno)--;
-					}
-					if (mod != modcount) {
-						memmove(&modules[mod], &modules[mod + 1], sizeof(struct module) * (modcount - mod));
-						rerun = 1;
-					}
-				} else {
-					printf(" Done.\n");
-				}
+	for (; mod < modcount; mod++) {
+		m = modules + mod;
+		if (strcmp(m->type, "gfx") != 0)
+			continue;
+		printf("\t- %s...", m->name);
+		if ((ret = m->init(mod, NULL)) == 0)
+			printf(" Done.\n");
+		else {
+			if (ret == 1)
+				printf(" Ignored by request of plugin.\n");
+			else {
+				printf("\n");
+				eprintf("Initializing module %s failed: Returned %i.", modules[mod].name, ret);
+			}
+			loadcore_close(m->lib);
+			modcount--;
+			if (mod == modcount)
+				break;
+			memcpy(m, m + 1, sizeof(struct module) * (modcount - mod));
+			if (*outmodno > mod) {
+				outmod = modules_get(--(*outmodno));
+			} else {
+				mod--;
 			}
 		}
 	}

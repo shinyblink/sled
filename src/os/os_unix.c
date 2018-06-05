@@ -12,6 +12,11 @@
 #include <pthread.h>
 #include <stdio.h>
 
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#include <pthread_np.h>
+#endif
+
+
 // Main method.
 int main(int argc, char** argv) {
 	return sled_main(argc, argv);
@@ -76,6 +81,41 @@ ulong oscore_udate(void) {
 	}
 	return T_SECOND * tv.tv_sec + tv.tv_usec;
 }
+
+// Threading
+oscore_task oscore_task_create(char* name, oscore_task_function func, void* ctx) {
+	pthread_t* thread = calloc(sizeof(pthread_t), 1);
+	pthread_create(thread, NULL, func, ctx);
+
+#if defined(__linux__) || defined(__NetBSD__)
+        pthread_setname_np(*thread, name);
+#elif defined(__FreeBSD__) || defined(__OpenBSD__)
+        pthread_set_name_np(*thread, name);
+#endif
+        return 0;
+}
+
+void oscore_task_yield(void) {
+	// nothing.
+};
+
+void oscore_task_exit(int status) {
+	pthread_exit(&status);
+};
+
+int oscore_task_join(oscore_task task) {
+	int* retval = calloc(sizeof(int), 1);
+	if (pthread_join(task, (void*) retval)) {
+		free(task);
+		free(retval);
+		return -1;
+	}
+	free(task);
+	int ret = *retval;
+	free(retval);
+	return ret;
+};
+
 
 // -- mutex
 oscore_mutex oscore_mutex_new(void) {

@@ -10,12 +10,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <pthread.h>
+#include <oscore.h>
 #include <string.h>
-
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
-#include <pthread_np.h>
-#endif
 
 #include "timers.h"
 #include "matrix.h"
@@ -24,7 +20,7 @@
 #include "asl.h"
 
 static int fish_fifo;
-static pthread_t fish_thread;
+static oscore_task fish_task;
 // NOTE: fish_shutdown is maintained by the FISh thread,
 //  and is set by fish_pollshutdown.
 static int fish_getch_buffer, fish_shutdown, fish_moduleno;
@@ -34,7 +30,7 @@ static char fish_getch_bufferval;
 
 static void fish_panic(char * reason) {
 	printf("FISh died: %s\n", reason);
-	pthread_exit(0);
+	oscore_task_exit(0);
 }
 
 static void fish_pollshutdown() {
@@ -225,6 +221,7 @@ static void * fish_thread_func(void * arg) {
 			argc = 0;
 		// Ready.
 		fish_execute(module, argc, argv);
+		oscore_task_yield();
 	}
 	return NULL;
 }
@@ -247,14 +244,7 @@ int init(int moduleno, char* argstr) {
 	fish_shutdown_mt = tmp[1];
 	fish_shutdown_ot = tmp[0];
 
-	pthread_create(&fish_thread, NULL, fish_thread_func, NULL);
-
-	// Name our thread.
-#if defined(__linux__) || defined(__NetBSD__)
-	pthread_setname_np(fish_thread, "bgm_fish");
-#elif defined(__FreeBSD__) || defined(__OpenBSD__)
-	pthread_set_name_np(fish_thread, "bgm_fish");
-#endif
+	fish_task = oscore_task_create("bgm_fish", fish_thread_func, NULL);
 
 	return 0;
 }
@@ -285,7 +275,7 @@ void reset(void) {
 int deinit() {
 	char ch = 0;
 	write(fish_shutdown_mt, &ch, 1);
-	pthread_join(fish_thread, NULL);
+	oscore_task_join(fish_task);
 	close(fish_fifo);
 	close(fish_shutdown_mt);
 	close(fish_shutdown_ot);

@@ -9,6 +9,7 @@
 #include "modloader.h"
 #include "asl.h"
 #include "oscore.h"
+#include "main.h"
 
 typedef struct timer {
 	int moduleno;
@@ -118,7 +119,6 @@ timer timer_get(void) {
 int timers_init(int outmodno) {
 	tlock = oscore_mutex_new();
 	breakpipe = oscore_event_new();
-	outmod = modules_get(outmodno);
 	return 0;
 }
 

@@ -60,6 +60,25 @@ ulong oscore_udate(void) {
 	return T_SECOND * tv.tv_sec + tv.tv_usec;
 }
 
+// Threading
+oscore_task oscore_thread_create(char* name, oscore_task_function func, void* ctx) {
+	// uuh
+	return NULL;
+}
+
+void oscore_task_yield(void) {
+	// nothing.
+};
+
+void oscore_task_exit(int status) {
+	// nope
+};
+
+int oscore_task_join(oscore_task task) {
+	// ye ok
+	return 0;
+};
+
 // -- mutex
 // TODO: fill this in.
 oscore_mutex oscore_mutex_new(void) {

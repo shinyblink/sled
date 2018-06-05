@@ -6,8 +6,7 @@
 #include <assert.h>
 #include "modloader.h"
 #include "loadcore.h"
-
-static module* outmod;
+#include "main.h"
 
 int* filters;
 int filter_amount = 0;
@@ -16,7 +15,6 @@ int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char**
 	filters = filter_list;
 	filter_amount = filtno;
 
-	outmod = modules_get(outmodno);
 	int ret = outmod->init(outmodno, outarg);
 	if (ret != 0) return ret;
 
