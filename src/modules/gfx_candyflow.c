@@ -12,9 +12,9 @@
 #include <stddef.h>
 #include <mathey.h>
 #include <math.h>
-#include "perf.h"
+#include <perf.h>
 
-#define FPS 60
+#define FPS 600
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (RANDOM_TIME * FPS)
 
@@ -61,7 +61,9 @@ float runvar[runvar_count] = {
 /* helper function: add on a ring
  */
 static inline float addmod(float x, float mod, float delta) {
-	return fmodf(x + delta, mod);
+	x = fmodf(x + delta, mod);
+	x += x<0 ? mod : 0;
+	return x;
 }
 
 
@@ -79,7 +81,7 @@ int init(int moduleno, char* argstr) {
 	modno = moduleno;
 	ulong d = udate();
 	for( int i = 0; i < runvar_count; i++ ) {
-		runvar[i] = addmod(runvar[i], runmod[i], (d>>(i/2))/197.0);
+		runvar[i] = addmod(runvar[i], runmod[i], ((d>>(i/2)) & 0x00FF) / (255/M_PI));
 	}
 	return 0;
 }
@@ -121,29 +123,26 @@ static inline int _min(int x, int y) {
  */
 int draw(int argc, char* argv[]) {
 	perf_start(modno);
-	increment_runvars();
-	
 	// compose transformation matrix out of 9 input matrices 
 	// which are calculated from some of the run variables
 	matrix3_3 m = composem3( 9,
-		rotation3(cos(runvar[12]) * M_PI),
-		translation3(cos(runvar[2])*mx*0.125, sin(runvar[3])*my*0.125),
-		scale3(14.0/mx, 14.0/mx),
+		rotation3(cosf(runvar[12]) * M_PI),
+		translation3(cosf(runvar[2])*mx*0.125, sinf(runvar[3])*my*0.125),
+		scale3(((float)(mx>>2))/mx, ((float)(mx>>2))/mx),
 		rotation3(runvar[13]),
-		translation3(sin(runvar[4])*mx*0.25, cos(runvar[5])*my*0.25),
+		translation3(sinf(runvar[4])*mx*0.25, cosf(runvar[5])*my*0.25),
 		rotation3(sin(runvar[14]) * M_PI),
-		translation3(sin(runvar[6])*mx*0.125, cos(runvar[7])*my*0.125),
+		translation3(sinf(runvar[6])*mx*0.125, cosf(runvar[7])*my*0.125),
 		rotation3(runvar[15]),
-		scale3(0.6+sin(runvar[8])/4.0, 0.6+cos(runvar[9])/4.0)
+		scale3(0.6+sinf(runvar[8])/4.0, 0.6+cosf(runvar[9])/4.0)
 	);
-	
 	// pre-calculate some variables outside the loop
 	float pc1 = cosf(runvar[1]);
+	float pc121 = 0.125+((pc1/4) * sinf(runvar[11]));
 	float pc01 = runvar[0] + pc1;
 	float pc10 = (mx2*sinf(runvar[10]));
 	
 	perf_print(modno, "Composition");
-	
 	// actual pixel loop
 	for( int x = 0; x < mx; x++ ) {
 		vec2 kernel_x = multm3v2_partx(m, x-(mx2));
@@ -156,7 +155,7 @@ int draw(int argc, char* argv[]) {
 			float sc = sinestuff(v.x, v.y, pc10, runvar[11]);
 
 			// add changing base hue to sine curve point
-			float hue = pc01 + (sc * 0.5 * sinf(runvar[11]) + sinf((v.x+v.y)/2));
+			float hue = pc01 + (sc * pc121) + sinf((v.x+v.y)/2);
 
 			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
 			byte b_hue = ((int)(hue*256) & 0xFF);
@@ -171,17 +170,19 @@ int draw(int argc, char* argv[]) {
 			matrix_set(x,y, &color);
 		}
 	}
-	
 	perf_print(modno, "Drawing");
 
 	// render it out
 	matrix_render();
 	
 	perf_print(modno, "Rendering");
+	
+	increment_runvars();
 
 	// manage framework variables
 	if (frame >= FRAMES) {
 		frame = 0;
+		printf("0");
 		return 1;
 	}
 	frame++;

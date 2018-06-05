@@ -60,7 +60,9 @@ float runvar[runvar_count] = {
 /* helper function: add on a ring
  */
 static inline float addmod(float x, float mod, float delta) {
-	return fmodf(x + delta, mod);
+	x = fmodf(x + delta, mod);
+	x += x<0 ? mod : 0;
+	return x;
 }
 
 
