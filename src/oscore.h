@@ -7,6 +7,8 @@ typedef void * oscore_event;
 oscore_event oscore_event_new(void);
 // NOTE: usecs == 0 is useful to clear the event.
 // Returns 0 if the wait was undisturbed, anything not zero is an interrupt.
+// NOTE: If multiple threads are waiting on the same event, it's implementation-dependent.
+// Implementations are free to use a method that ensures only one thread, or all waiting threads, get interrupted.
 int oscore_event_wait_until(oscore_event ev, ulong desired_usec);
 // Signal the event.
 void oscore_event_signal(oscore_event ev);
@@ -22,6 +24,7 @@ ulong oscore_udate(void);
 typedef void* oscore_task;
 typedef void (*oscore_task_function)(void *);
 
+// Can return NULL for error, since frankly a thread not being executed is somewhat less ignorable.
 oscore_task oscore_task_create(char* name, oscore_task_function func, void* ctx);
 void oscore_task_yield(void);
 void oscore_task_exit(int status);
