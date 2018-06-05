@@ -32,7 +32,7 @@ static void tp_putjob(taskpool* pool, taskpool_job job) {
 		oscore_mutex_unlock(pool->lock);
 		// Wait for 5ms as a fallback in case something goes wrong w/ progress.
 		// Should only ever be a problem with multiple writers, but...
-		oscore_event_wait_until(pool->progress, udate() + 5000);
+		oscore_event_wait_until(pool->progress, udate() + 5000UL);
 		oscore_mutex_lock(pool->lock);
 	}
 	// Update the job, and unlock
@@ -48,10 +48,12 @@ static taskpool_job* tp_getjob(taskpool* pool) {
 	if (pool->jobs_reading != pool->jobs_writing) {
 		pool->jobs_reading = (pool->jobs_reading + 1) % pool->queue_size;
 		job = &pool->jobs[pool->jobs_reading];
+		oscore_mutex_unlock(pool->lock); // Note: This should be before the signal in case that has a scheduling effect.
 		// Made progress.
 		oscore_event_signal(pool->progress);
+	} else {
+		oscore_mutex_unlock(pool->lock);
 	}
-	oscore_mutex_unlock(pool->lock);
 	return job;
 }
 
@@ -119,6 +121,20 @@ int taskpool_submit(taskpool* pool, oscore_task_function func, void* ctx) {
 	};
 	tp_putjob(pool, job);
 	return 0;
+}
+
+void taskpool_wait(taskpool* pool) {
+	// We're waiting for tasks to finish.
+	oscore_mutex_lock(pool->lock);
+	// While the task list isn't empty, unlock, wait for progress, then lock again.
+	while (pool->jobs_reading != pool->jobs_writing) {
+		oscore_mutex_unlock(pool->lock);
+		oscore_event_wait_until(pool->progress, udate() + 50000UL);
+		oscore_mutex_lock(pool->lock);
+	}
+	// Clear any remaining progress events.
+	oscore_event_wait_until(pool->progress, 0);
+	oscore_mutex_unlock(pool->lock);
 }
 
 void taskpool_destroy(taskpool* pool) {
