@@ -106,6 +106,7 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 			if (pool->tasks[pool->workers])
 				pool->workers++;
 		}
+		pool->workers = workers;
 	} else {
 		pool->workers = 1;
 	}
@@ -137,7 +138,7 @@ inline void taskpool_submit_array(taskpool* pool, int count, oscore_task_functio
 void taskpool_forloop(taskpool* pool, oscore_task_function func, int start, int end) {
 	int s = (start);
 	int c = (end) - s;
-	int* ctxs = malloc(c * sizeof(int));
+	int* ctxs = malloc(sizeof(int) * c);
 	assert(ctxs);
 
 	int ctx = 0;
@@ -146,7 +147,8 @@ void taskpool_forloop(taskpool* pool, oscore_task_function func, int start, int 
 		ctx++;
 	}
 
-	taskpool_submit_array(pool, c, func, &ctxs, sizeof(int));
+	taskpool_submit_array(pool, c, func, ctxs, sizeof(int));
+	taskpool_wait(pool);
 
 	free(ctxs);
 }
@@ -173,8 +175,9 @@ void taskpool_destroy(taskpool* pool) {
 	// We don't know *which* thread gets it, so we don't know what to join.
 	// (NOTE: If we're faking, this simply does nothing, as workers == 0)
 	oscore_event_signal(pool->wakeup);
-	for (int i = 0; i < pool->workers; i++)
-		oscore_task_join(pool->tasks[i]);
+	if (pool->workers > 1)
+		for (int i = 0; i < pool->workers; i++)
+			oscore_task_join(pool->tasks[i]);
 
 	free(pool->tasks);
 	free(pool->jobs);
