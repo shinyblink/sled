@@ -94,6 +94,7 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 
 	pool->lock = oscore_mutex_new();
 	pool->wakeup = oscore_event_new();
+	pool->progress = oscore_event_new();
 
 	// -- Do this last. It's thread creation. --
 

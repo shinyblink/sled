@@ -27,8 +27,8 @@ static int *iters;
 static int mx;
 static int my;
 
-static int min;
-static int max;
+static volatile int min;
+static volatile int max;
 static oscore_mutex lock;
 
 #define PPOS(x, y) (x + (y * my))
@@ -85,25 +85,26 @@ void drawrow(void* row) {
 			y = 2 * x * y + y0;
 			x = xt;
 			i++;
-			oscore_mutex_lock(lock);
+			// we could lock this here. but performance.
+			// data races are okay here.
+			//oscore_mutex_lock(lock);
 			if (i < min) min = i;
 			if (i > max) max = i;
-			oscore_mutex_unlock(lock);
+			//oscore_mutex_unlock(lock);
 		}
 
 		RGB col = RGB(0, 0, 0);
 		if (i != (ITERATIONS)) {
-			oscore_mutex_lock(lock);
+			//oscore_mutex_lock(lock);
 			if (min == max) max = min + 1;
 			int mmin = min;
 			int mmax = max;
-			oscore_mutex_unlock(lock);
+			//oscore_mutex_unlock(lock);
 			byte scaled = rescale(i - mmin, mmax, 255);
 			col = HSV2RGB(HSV(scaled, 255, 255));
 		}
 		matrix_set(px, py, &col);
 	}
-
 }
 
 int draw(int argc, char* argv[]) {
