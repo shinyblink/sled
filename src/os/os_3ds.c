@@ -61,7 +61,7 @@ ulong oscore_udate(void) {
 }
 
 // Threading
-oscore_task oscore_thread_create(char* name, oscore_task_function func, void* ctx) {
+oscore_task oscore_thread_create(const char* name, oscore_task_function func, void* ctx) {
 	// uuh
 	return NULL;
 }
@@ -78,6 +78,10 @@ int oscore_task_join(oscore_task task) {
 	// ye ok
 	return 0;
 };
+
+int oscore_ncpus(void) {
+	return 1; // For now.
+}
 
 // -- mutex
 // TODO: fill this in.

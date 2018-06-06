@@ -10,6 +10,7 @@
 #include <mathey.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <taskpool.h>
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)

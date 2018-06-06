@@ -3,8 +3,6 @@
 #ifndef __INCLUDED_TIMERS__
 #define __INCLUDED_TIMERS__
 
-#define SECOND 100000
-
 typedef struct timer {
 	// Special values for this:
 	// -1: No timer available

@@ -82,7 +82,7 @@ static void taskpool_function(void* ctx) {
 	}
 }
 
-taskpool* taskpool_create(char* pool_name, int workers, int queue_size) {
+taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	// Create the threads.
 	taskpool* pool = calloc(sizeof(taskpool), 1);
 	pool->queue_size = queue_size;
@@ -100,17 +100,21 @@ taskpool* taskpool_create(char* pool_name, int workers, int queue_size) {
 	// If the oscore has NO thread support, not even faking, we still want basic GFX modules that use taskpool to not break.
 	// So if pool->workers is 0, then we're just pretending.
 	pool->workers = 0;
-	for (int i = 0; i < workers; i++) {
-		pool->tasks[pool->workers] = oscore_task_create(pool_name, taskpool_function, pool);
-		if (pool->tasks[pool->workers])
-			pool->workers++;
+	if (workers > 1) {
+		for (int i = 0; i < workers; i++) {
+			pool->tasks[pool->workers] = oscore_task_create(pool_name, taskpool_function, pool);
+			if (pool->tasks[pool->workers])
+				pool->workers++;
+		}
+	} else {
+		pool->workers = 1;
 	}
 
 	return pool;
 }
 
 int taskpool_submit(taskpool* pool, oscore_task_function func, void* ctx) {
-	if (!pool->workers) {
+	if (pool->workers <= 1) {
 		// We're faking. This isn't a real taskpool.
 		func(ctx);
 		return 0;
@@ -121,6 +125,30 @@ int taskpool_submit(taskpool* pool, oscore_task_function func, void* ctx) {
 	};
 	tp_putjob(pool, job);
 	return 0;
+}
+
+// Hellish stuff to run stuff in parallel.
+inline void taskpool_submit_array(taskpool* pool, int count, oscore_task_function func, void* ctx, size_t size) {
+	for (int i = 0; i < count; i++)
+		taskpool_submit(pool, func, ctx + (i * size));
+}
+
+
+void taskpool_forloop(taskpool* pool, oscore_task_function func, int start, int end) {
+	int s = (start);
+	int c = (end) - s;
+	int* ctxs = malloc(c * sizeof(int));
+	assert(ctxs);
+
+	int ctx = 0;
+	for (int i = s; i < c; i++) {
+		ctxs[ctx] = i;
+		ctx++;
+	}
+
+	taskpool_submit_array(pool, c, func, &ctxs, sizeof(int));
+
+	free(ctxs);
 }
 
 void taskpool_wait(taskpool* pool) {

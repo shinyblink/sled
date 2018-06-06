@@ -25,10 +25,11 @@ typedef void* oscore_task;
 typedef void (*oscore_task_function)(void *);
 
 // Can return NULL for error, since frankly a thread not being executed is somewhat less ignorable.
-oscore_task oscore_task_create(char* name, oscore_task_function func, void* ctx);
+oscore_task oscore_task_create(const char* name, oscore_task_function func, void* ctx);
 void oscore_task_yield(void);
 void oscore_task_exit(int status);
 int oscore_task_join(oscore_task task);
+int oscore_ncpus(void);
 
 typedef void* oscore_mutex;
 oscore_mutex oscore_mutex_new(void);

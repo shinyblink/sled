@@ -1,5 +1,10 @@
 // Taskpool header
+#ifndef __INCLUDED_TASKPOOL__
+#define __INCLUDED_TASKPOOL__
+
 #include "oscore.h"
+#include "stdlib.h"
+#include "assert.h"
 
 typedef struct {
 	void (*func)(void*);
@@ -23,7 +28,17 @@ typedef struct {
 } taskpool; // for now
 
 // Queue size must be at least 2.
-taskpool* taskpool_create(char* pool_name, int workers, int queue_size);
+taskpool* taskpool_create(const char* pool_name, int workers, int queue_size);
 int taskpool_submit(taskpool* pool, oscore_task_function task, void* ctx);
+
 void taskpool_wait(taskpool* pool);
 void taskpool_destroy(taskpool* pool);
+
+taskpool* TP_GLOBAL;
+
+
+// Hellish stuff to run stuff in parallel simpler.
+void taskpool_submit_array(taskpool* pool, int count, oscore_task_function func, void* ctx, size_t size );
+void taskpool_forloop(taskpool* pool, oscore_task_function func, int start, int end);
+
+#endif
