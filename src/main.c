@@ -7,6 +7,8 @@
 #include "random.h"
 #include "util.h"
 #include "asl.h"
+#include "oscore.h"
+#include "taskpool.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +16,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
-#include "oscore.h"
+
 
 static int modcount;
 struct module *outmod;
@@ -233,6 +235,10 @@ int sled_main(int argc, char** argv) {
 		oscore_mutex_free(rmod_lock);
 		return ret;
 	}
+
+	// Initialize global task pool.
+	int ncpus = oscore_ncpus();
+	TP_GLOBAL = taskpool_create("sled-tp", ncpus, ncpus*2);
 
 	// Initialize modules (this can offset outmodno)
 	ret = modules_init(&outmodno);
