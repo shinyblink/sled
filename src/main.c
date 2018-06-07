@@ -255,7 +255,12 @@ int sled_main(int argc, char** argv) {
 			// Queue random.
 			pick_other(lastmod, udate() + RANDOM_TIME * T_SECOND);
 		} else {
-			if (tnext.time > wait_until(tnext.time)) {
+			ulong stoptime = wait_until(tnext.time);
+			
+			// DEBUG TIME
+			printf("\tmain\ttnext.time=%08lx\twait_until=%08lx\n", tnext.time, stoptime);
+			
+			if (tnext.time > stoptime && !(tnext.time > 0xA0000000 && stoptime < 0x50000000) ) {
 				// Early break. Set this timer up for elimination by any 0-time timers that have come along
 				if (tnext.time == 0)
 					tnext.time = 1;

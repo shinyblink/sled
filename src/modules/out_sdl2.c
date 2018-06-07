@@ -105,10 +105,18 @@ ulong wait_until(ulong desired_usec) {
 	SDL_Event ev;
 	while (1) {
 		ulong tnow = udate();
-		if (tnow >= desired_usec)
+		// DEBUG TIME!
+		if( !( tnow > 0x0004000 && tnow < 0x50000000 && desired_usec > 0xA0000000 ) )
+			printf("\tout_sdl2\t\t\t\t\t\t\t\t\t\tnow:%08lx\tdesired:%08lx\n", tnow, desired_usec);
+			
+		if (tnow >= desired_usec || (desired_usec > 0xA0000000 && tnow < 0x50000000))
 			return tnow;
 
 		int sleeptimems = (desired_usec - tnow) / 1000;
+		
+		// DEBUG TIME
+		printf("\tout_sdl2\t\t\t\t\t\t\t\t\t\tsleeptime:0x%08lx us\t= dez: %d ms\n", (desired_usec - tnow), sleeptimems);
+		
 		if (SDL_WaitEventTimeout(&ev, sleeptimems)) {
 			if (ev.type == SDL_QUIT) {
 				timers_doquit();

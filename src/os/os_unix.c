@@ -30,10 +30,17 @@ typedef struct {
 
 int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
 	ulong tnow = udate();
-	if (tnow >= desired_usec)
+	
+	// DEBUG TIME
+	printf("\tos_unix\t\t\t\t\t\t\tnow=%08lx\tdesired=%08lx\n", tnow, desired_usec);
+	if (tnow >= desired_usec || (desired_usec > 0xA0000000 && tnow < 0x50000000) )
 		return tnow;
+		
 	ulong sleeptime = desired_usec - tnow;
-
+	
+	// DEBUG TIME
+	printf("\tos_unix\t\t\t\t\t\t\tsleeptime:0x%08lx = %ld us\n", sleeptime, sleeptime);
+	
 	oscore_event_i * oei = (oscore_event_i *) ev;
 	struct timeval timeout;
 	timeout.tv_sec = sleeptime / 1000000;
@@ -72,6 +79,8 @@ void oscore_event_free(oscore_event ev) {
 	free(oei);
 }
 
+ulong oscore_starttime = 0;
+
 // Time keeping.
 ulong oscore_udate(void) {
 	struct timeval tv;
@@ -79,7 +88,13 @@ ulong oscore_udate(void) {
 		printf("Failed to get the time???\n");
 		exit(1);
 	}
-	return T_SECOND * tv.tv_sec + tv.tv_usec;
+	// DEBUG TIME!
+	if( oscore_starttime == 0) {
+		oscore_starttime = 0xFFFFFFFF - (ulong)(T_SECOND * tv.tv_sec + tv.tv_usec) - 0x00104000;
+		printf("STARTTIME: %08lx\n", oscore_starttime);
+	}
+	return T_SECOND * tv.tv_sec + tv.tv_usec + oscore_starttime;
+	//NORMAL CODE: return T_SECOND * tv.tv_sec + tv.tv_usec;
 }
 
 // Threading

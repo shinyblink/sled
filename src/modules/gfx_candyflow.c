@@ -128,7 +128,7 @@ int draw(int argc, char* argv[]) {
 	matrix3_3 m = composem3( 9,
 		rotation3(cosf(runvar[12]) * M_PI),
 		translation3(cosf(runvar[2])*mx*0.125, sinf(runvar[3])*my*0.125),
-		scale3(((float)(mx>>2))/mx, ((float)(mx>>2))/mx),
+		scale3(((float)(mx>>4))/mx, ((float)(mx>>4))/mx),
 		rotation3(runvar[13]),
 		translation3(sinf(runvar[4])*mx*0.25, cosf(runvar[5])*my*0.25),
 		rotation3(sin(runvar[14]) * M_PI),
@@ -189,7 +189,7 @@ int draw(int argc, char* argv[]) {
 		return 1;
 	}
 	frame++;
-	nexttick += FRAMETIME;
+	nexttick = udate() + FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
 	return 0;
 }
