@@ -34,7 +34,7 @@ int taskpool_submit(taskpool* pool, oscore_task_function task, void* ctx);
 void taskpool_wait(taskpool* pool);
 void taskpool_destroy(taskpool* pool);
 
-taskpool* TP_GLOBAL;
+taskpool* TP_GLOBAL __attribute__((weak));
 
 
 // Hellish stuff to run stuff in parallel simpler.
