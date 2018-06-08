@@ -175,7 +175,7 @@ int draw(int argc, char* argv[]) {
 			RGB color = HSV2RGB(HSV( (b_hue+b_val) & 0xFF, 255, _min(255, b_val) ));
 
 			// set pixel in matrix framebuffer
-			matrix_set(x,y, &color);
+			matrix_set(x,y, color);
 		}
 	}
 

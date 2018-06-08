@@ -318,7 +318,7 @@ int draw(int argc, char* argv[]) {
 		int cm = get_cm(bufferC[i]);
 		if (cm != bufferC[i + (camera_size * 2)]) {
 			bufferC[i + (camera_size * 2)] = cm;
-			matrix_set(i % camera_width, i / camera_width, ddlc + cm);
+			matrix_set(i % camera_width, i / camera_width, ddlc[cm]);
 		}
 	}
 	matrix_render();

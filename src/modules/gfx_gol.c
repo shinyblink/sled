@@ -108,7 +108,7 @@ int draw(int argc, char* argv[]) {
 	int y;
 	for (x=0; x < matrix_getx(); ++x)
 		for (y=0; y < matrix_gety(); ++y)
-			matrix_set(x, y, (board[POS(x, y)] == ALIVE) ? &white : &black);
+			matrix_set(x, y, (board[POS(x, y)] == ALIVE) ? white : black);
 
 	matrix_render();
 	if (frame >= FRAMES) {

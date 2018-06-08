@@ -103,12 +103,12 @@ int draw(int argc, char* argv[]) {
 	int ball;
 	// clear out old balls
 	for (ball = 0; ball < numballs; ++ball)
-		matrix_set(balls[ball].pos_x, balls[ball].pos_y, &black);
+		matrix_set(balls[ball].pos_x, balls[ball].pos_y, black);
 
 	// update the balls and draw them
 	update_balls(); // todo, move back below matrix_render, to get a more consistant framerate
 	for (ball = 0; ball < numballs; ++ball)
-		matrix_set(balls[ball].pos_x, balls[ball].pos_y, &balls[ball].color);
+		matrix_set(balls[ball].pos_x, balls[ball].pos_y, balls[ball].color);
 
 	matrix_render();
 

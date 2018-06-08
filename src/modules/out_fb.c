@@ -165,7 +165,7 @@ int gety(void) {
 	return fbdev_h;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < fbdev_w);
@@ -175,17 +175,17 @@ int set(int x, int y, RGB *color) {
 		int i = (x + (y * fbdev_w)) * ((fbdev_flags & SLEDFB_P4EN) ? 4 : 3);
 		if (fbdev_flags & SLEDFB_P4AF)
 			i++;
-		buf[i] = (fbdev_flags & SLEDFB_BGR) ? color->blue : color->red;
-		buf[i + 1] = color->green;
-		buf[i + 2] = (fbdev_flags & SLEDFB_BGR) ? color->red : color->blue;
+		buf[i] = (fbdev_flags & SLEDFB_BGR) ? color.blue : color.red;
+		buf[i + 1] = color.green;
+		buf[i + 2] = (fbdev_flags & SLEDFB_BGR) ? color.red : color.blue;
 	} else {
 		int i = x + (y * fbdev_w);
 		int p = fbdev_w * fbdev_h;
 		if (fbdev_flags & SLEDFB_P4AF)
 			i += p;
-		buf[i] = (fbdev_flags & SLEDFB_BGR) ? color->blue : color->red;
-		buf[i + p] = color->green;
-		buf[i + (p * 2)] = (fbdev_flags & SLEDFB_BGR) ? color->red : color->blue;
+		buf[i] = (fbdev_flags & SLEDFB_BGR) ? color.blue : color.red;
+		buf[i + p] = color.green;
+		buf[i + (p * 2)] = (fbdev_flags & SLEDFB_BGR) ? color.red : color.blue;
 	}
 	return 0;
 }

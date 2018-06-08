@@ -67,7 +67,7 @@ static void update_lines() {
 			/*int py;
 			for (py = y; py >= (y - lines[line].length); py--)
 				if (py < my)
-				matrix_set(lines[line].pos_x, py, &black);*/
+				matrix_set(lines[line].pos_x, py, black);*/
 			randomize_line(line);
 		} else {
 			lines[line].pos_y = y;
@@ -107,7 +107,7 @@ int draw(int argc, char* argv[]) {
 		int speed;
 		for (speed = 0; speed <= lines[line].speed; speed++)
 			if ((y - speed) >= 0 && (y - speed) < my)
-				matrix_set(lines[line].pos_x, y - speed, &black);
+				matrix_set(lines[line].pos_x, y - speed, black);
 	}
 
 	// update the lines and draw them
@@ -116,7 +116,7 @@ int draw(int argc, char* argv[]) {
 		int y;
 		for (y = lines[line].pos_y - lines[line].length; y <= lines[line].pos_y; y++)
 			if (y >= 0 && y < my)
-				matrix_set(lines[line].pos_x, y, &lines[line].color);
+				matrix_set(lines[line].pos_x, y, lines[line].color);
 	}
 
 	matrix_render();

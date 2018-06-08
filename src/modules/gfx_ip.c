@@ -81,7 +81,7 @@ int draw(int argc, char **argv) {
 	RGB black = RGB(0, 0, 0);
 	for(int y = 0; y < matrix_gety(); y++) {
 		for(int x = 0; x < matrix_getx(); x++) {
-			matrix_set(x, y, &black);
+			matrix_set(x, y, black);
 		}
 	}
 
@@ -92,8 +92,8 @@ int draw(int argc, char **argv) {
 		for (int y = 0; y < matrix_gety() && y < 8; y++) {
 			for (int x = 0; x < matrix_getx(); x++) {
 				int v = text_point(lines[i], x, y) ? 255 : 0;
-				RGB colour = RGB(v, v, v);
-				matrix_set(x, i * 8 + y, &colour);
+				RGB color = RGB(v, v, v);
+				matrix_set(x, i * 8 + y, color);
 			}
 		}
 	}

@@ -23,19 +23,21 @@ typedef struct RGB {
 	byte red;
 	byte green;
 	byte blue;
+	byte pad; // uh. alpha?
 } RGB;
 
 typedef struct HSV {
 	byte h;
 	byte s;
 	byte v;
+	byte pad; // yay, more padding.
 } HSV;
 
 extern RGB HSV2RGB(HSV hsv);
 extern HSV RGB2HSV(RGB rgb);
 
 // Macro for painless colors.
-#define RGB(r, g, b) ((RGB) { .red = (r), .green = (g), .blue = (b) } )
+#define RGB(r, g, b) ((RGB) { .red = (byte) (r), .green = (byte) (g), .blue = (byte) (b) } )
 #define HSV(hue, sat, val) ((HSV) { .h = (hue), .s = (sat), .v = (val) } )
 
 // Module and timer stuff.

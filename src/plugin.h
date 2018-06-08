@@ -52,7 +52,7 @@ int draw(int argc, char* argv[]);
 // FOR "out" and "flt" TYPE PLUGINS:
 // Function that sets a pixel, buffered changes.
 // Only update the displayed info after calling render.
-int set(int x, int y, RGB *color);
+int set(int x, int y, RGB color);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Clears the buffer.

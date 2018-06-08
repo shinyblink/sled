@@ -87,14 +87,14 @@ int ppos(int x, int y) {
 #endif
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	// No OOB check, because performance.
 #ifdef COLOR_ORDER_RGB
-	ws2811_led_t led = (color->red << 16) | (color->green << 8) | color->blue;
+	ws2811_led_t led = (color.red << 16) | (color.green << 8) | color.blue;
 #elif defined(COLOR_ORDER_GBR)
-	ws2811_led_t led = (color->green << 16) | (color->blue << 8) | color->red;
+	ws2811_led_t led = (color.green << 16) | (color.blue << 8) | color.red;
 #elif defined(COLOR_ORDER_GRB)
-	ws2811_led_t led = (color->green << 16) | (color->red << 8) | color->blue;
+	ws2811_led_t led = (color.green << 16) | (color.red << 8) | color.blue;
 #else
 #error Must define color order.
 #endif
@@ -105,7 +105,7 @@ int set(int x, int y, RGB *color) {
 // Zeroes the stuff.
 RGB black = RGB(0, 0, 0);
 int clear(void) {
-	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, &black);
+	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, black);
 	return 0;
 }
 

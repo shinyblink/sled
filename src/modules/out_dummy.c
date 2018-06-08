@@ -26,7 +26,7 @@ int gety(void) {
 	return MATRIX_Y;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < MATRIX_X);

@@ -37,7 +37,7 @@ int gety(void) {
 	return next->gety();
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	printf("Setting (%i,%i).\n", x, y);
 	assert(next != NULL);
 	return next->set(x, y, color);

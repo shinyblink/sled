@@ -24,7 +24,7 @@ int gety(void) {
 	return next->gety();
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	for (int i = 0; i < rot; i++) {
 		int nx = getx() - 1 - x;
 		x = y;

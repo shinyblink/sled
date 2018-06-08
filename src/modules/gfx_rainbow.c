@@ -33,7 +33,7 @@ int draw(int argc, char* argv[]) {
 	for (y = 0; y < matrix_gety(); ++y)
 		for (x = 0; x < matrix_getx(); ++x) {
 			RGB color = HSV2RGB(HSV(pos + x, 255, 255));
-			matrix_set(x, y, &color);
+			matrix_set(x, y, color);
 		}
 
 	matrix_render();

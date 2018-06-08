@@ -40,9 +40,9 @@ int gety(void) {
 	return next->gety();
 }
 
-int set(int x, int y, RGB *color) {
-	RGB corrected = RGB(LUT_R[color->red], LUT_G[color->green], LUT_B[color->blue]);
-	return next->set(x, y, &corrected);
+int set(int x, int y, RGB color) {
+	RGB corrected = RGB(LUT_R[color.red], LUT_G[color.green], LUT_B[color.blue]);
+	return next->set(x, y, corrected);
 }
 
 int clear(void) {

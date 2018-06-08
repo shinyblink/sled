@@ -38,12 +38,12 @@ int matrix_gety(void) {
 	return outmod->gety();
 }
 
-int matrix_set(int x, int y, const RGB *color) {
+int matrix_set(int x, int y, RGB color) {
 	return outmod->set(x, y, color);
 }
 
 // Fills part of the matrix with jo-- a single color.
-int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB *color) {
+int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB color) {
 	if (start_x > end_x)
 		return 1;
 	if (start_y > end_y)

@@ -73,7 +73,7 @@ static int matrix_ppos(int x, int y) {
 	return (x + (y * MATRIX_X));
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	// Detect OOB access.
 	assert(x >= 0);
 	assert(y >= 0);
@@ -81,9 +81,9 @@ int set(int x, int y, RGB *color) {
 	assert(y < MATRIX_Y);
 
 	int pos = matrix_ppos(x, y) * 3;
-	BUFFER[pos + 0] = color->red;
-	BUFFER[pos + 1] = color->green;
-	BUFFER[pos + 2] = color->blue;
+	BUFFER[pos + 0] = color.red;
+	BUFFER[pos + 1] = color.green;
+	BUFFER[pos + 2] = color.blue;
 	return 0;
 }
 

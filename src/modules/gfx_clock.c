@@ -69,7 +69,7 @@ int draw(int argc, char* argv[]) {
 		for (x = 0; x < matrix_getx(); x++) {
 			int v = text_point(rendered, x - padX, y - padY) ? 255 : 0;
 			RGB color = RGB(v, v, v);
-			matrix_set(x, y, &color);
+			matrix_set(x, y, color);
 		}
 	matrix_render();
 	if (frame == FRAMES) {

@@ -15,7 +15,8 @@
 #define TWINKLE_FRAMETIME 50 * T_MILLISECOND
 #define TWINKLE_FRAMES RANDOM_TIME * 20
 
-#define TWINKLE_COL(v) {.red = ((v) * 3) / 4, .green = ((v) * 3) / 4, .blue = v}
+//#define TWINKLE_COL(v) {.red = ((v) * 3) / 4, .green = ((v) * 3) / 4, .blue = v}
+#define TWINKLE_COL(v) RGB((v) * 3, (v) * 3, (v))
 static const RGB twinkle_level_tab[TWINKLE_LEVELS] = {
 	TWINKLE_COL(0),
 	TWINKLE_COL(16),
@@ -75,7 +76,7 @@ int draw(int argc, char* argv[]) {
 				twinkle_levels[i]++;
 				twinkle_levels[i] %= TWINKLE_LEVELS;
 			}
-			matrix_set(x, y, twinkle_level_tab + twinkle_levels[i++]);
+			matrix_set(x, y, twinkle_level_tab[twinkle_levels[i++]]);
 		}
 	}
 

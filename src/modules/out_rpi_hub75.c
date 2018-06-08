@@ -83,9 +83,9 @@ int gety(void) {
 	return height;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	// No OOB check, because performance!
-	buffer[PPOS(x, y)] = RGB(color->red, color->green, color->blue);
+	buffer[PPOS(x, y)] = color;
 	return 0;
 }
 

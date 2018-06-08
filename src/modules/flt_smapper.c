@@ -39,7 +39,7 @@ int gety(void) {
 	return my * folds;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	int nx = x;
 	int ny = y;
 	int paneno = y / my;

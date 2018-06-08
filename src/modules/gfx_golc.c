@@ -249,7 +249,7 @@ static void gol_fader(int cstep) {
 
         RGB color = HSV2RGB(HSV(gol_colorof(to == 0 ? GOL_LAST : GOL_CUR, x, y), 255, (byte)((float)(from*255) + ((to*255)-(from*255)) * _min(1.0, ((float)cstep) / (float)spd))));
 
-        matrix_set(x, y, &color);
+        matrix_set(x, y, color);
 
       }
     }

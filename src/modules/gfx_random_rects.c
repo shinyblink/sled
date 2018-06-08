@@ -48,8 +48,8 @@ int draw(int argc, char* argv[]) {
 
 	int mx = matrix_getx();
 	int my = matrix_gety();
-	matrix_fill(0 + off_x, 0 + off_y, mx - 1 - off_x, my - 1 - off_y, &color);
-	matrix_fill(1 + off_x, 1 + off_y, mx - 2 - off_x, my - 2 - off_y, &black);
+	matrix_fill(0 + off_x, 0 + off_y, mx - 1 - off_x, my - 1 - off_y, color);
+	matrix_fill(1 + off_x, 1 + off_y, mx - 2 - off_x, my - 2 - off_y, black);
 
 	matrix_render();
 	if (frame >= FRAMES) {

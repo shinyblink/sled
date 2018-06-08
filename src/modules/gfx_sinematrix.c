@@ -171,7 +171,7 @@ int draw(int argc, char* argv[]) {
 		for (x = 0; x < mx; ++x) {
 			// vec2 c = vadd(vmmult(rotscale, (vector) { .x = x-rcx, .y = y-rcy }), translate);
 			float hue = (basecol * 255) + (sinecircle3D(c.x, c.y) * effect_color_range);
-			matrix_set(x, y, precalc_hsv + (((int) hue) & 0xFF));
+			matrix_set(x, y, precalc_hsv[(((int) hue) & 0xFF)]);
 			c = vadd(c, rotscale_xbasis);
 		}
 		outerbasis = vadd(outerbasis, rotscale_ybasis);

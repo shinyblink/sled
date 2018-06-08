@@ -200,7 +200,7 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 		if (!inbounds)
 			return 0;
 
-		matrix_set(x, y, &pixel);
+		matrix_set(x, y, pixel);
 		px_array[index] = pixel;
 	} else if (fast_str_startswith("SIZE", line)) {
 		char str[64];
@@ -420,7 +420,7 @@ int draw(int argc, char ** argv) {
 			int indx = 0;
 			for (int j = 0; j < px_my; j++) {
 				for (int i = 0; i < px_mx; i++) {
-					matrix_set(i, j, px_array + indx);
+					matrix_set(i, j, px_array[indx]);
 					indx++;
 				}
 			}
