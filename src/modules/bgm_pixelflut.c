@@ -53,7 +53,7 @@ static oscore_task px_task;
 #define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337
 // The maximum, including 0, size of a line.
-#define PX_LINESIZE 64
+#define PX_LINESIZE 65536
 
 typedef struct {
 	int socket; // The socket
@@ -296,7 +296,6 @@ static int px_client_update(px_client_t * client) {
 		// Note that a full buffer always ends with two nulls - one for the newline and one for the actual end of buffer.
 		memmove(line, endptr + 1, strlen(endptr + 1) + 1);
 	}
-	poke_main_thread();
 	return 0;
 }
 
@@ -381,8 +380,8 @@ static void * px_thread_func(void * n) {
 		oscore_mutex_unlock(px_bgmi_mutex);
 		FD_SET(px_shutdown_fd_ot, &rset);
 		FD_SET(server, &rset);
+		poke_main_thread();
 		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
-		oscore_task_yield();
 	}
 	// Close & Deallocate
 	while (list) {
