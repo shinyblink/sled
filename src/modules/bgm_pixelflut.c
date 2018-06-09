@@ -26,6 +26,7 @@
 #include "main.h"
 #include "modloader.h"
 #include "asl.h"
+#include "taskpool.h"
 
 // 😥
 static RGB * px_array;
@@ -35,13 +36,10 @@ static int px_shutdown_fd_mt, px_shutdown_fd_ot;
 static int px_moduleno, px_mtcountdown;
 static int px_pixelcount, px_clientcount;
 
-// To prevent side effects on other modules,
-//  this variable must be locked at the right times.
-// It is only ever written from the main thread,
-//  and is only ever read from the network thread.
-// Keep in mind that the network thread takes direct control over the matrix.
+// This is MT only as of some commit or another.
+// Ignored by netthreads because even if they put stuff on the matrix at the wrong time,
+//  it'll then instantly get overwritten by the MT switching to pixelflut
 static int px_bgminactive;
-static oscore_mutex px_bgmi_mutex;
 
 static int px_mx, px_my;
 static ulong px_mtlastframe;
@@ -53,17 +51,18 @@ static oscore_task px_task;
 #define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337
 // The maximum, including 0, size of a line.
-#define PX_LINESIZE 0x100000
+#define PX_LINESIZE 0xA0000
+
+typedef struct {
+	int socket;
+	size_t linelen;
+	char line[PX_LINESIZE];
+} px_buffer_t;
 
 typedef struct {
 	int socket; // The socket
-	int off_x;
-	int off_y;
 	void * next; // The next client
-	// The line buffer
-	char line[PX_LINESIZE];
-	// Overflow biscuit, just in case.
-	byte ovl_biscuit;
+	px_buffer_t * buffer; // The current line buffer.
 } px_client_t;
 
 // shamelessly ripped from pixelnuke
@@ -105,12 +104,12 @@ static inline uint32_t fast_strtoul16(const char *str, const char **endptr) {
 }
 // end shamelessly ripped from pixelnuke
 
-static void net_send(px_client_t * client, char * str) {
+static void net_send(px_buffer_t * client, char * str) {
 	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
 	send(client->socket, "\n", 1, MSG_NOSIGNAL);
 }
 
-static void net_err(px_client_t * client, char * str) {
+static void net_err(px_buffer_t * client, char * str) {
 	send(client->socket, "ERROR: ", 7, MSG_NOSIGNAL);
 	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
 	send(client->socket, "\n", 1, MSG_NOSIGNAL);
@@ -125,7 +124,7 @@ static void poke_main_thread(void) {
 // Please ignore the return value.
 // I have a sneaking suspicion the returns were in the original code.
 // Anyway, as this uses matrix_set, and thus checks if the BGM is active/inactive, make sure to use this inside the BGM activity lock.
-static int px_client_executeline(const char * line, px_client_t * client) {
+static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 	// In the original version, this was ripped from pixelnuke,
 	//  and it remains that way, but hopefully I've changed it enough.
 	if (line[0] == 'P' && line[1] == 'X') {
@@ -149,11 +148,6 @@ static int px_client_executeline(const char * line, px_client_t * client) {
 			net_err(client, "Invalid command (expected decimal as second parameter)");
 			return 1;
 		}
-
-		// Please note that these are signed variables being added to unsigned variables.
-		// Almost all invalid coordinates will be extremely high.
-		x += client->off_x;
-		y += client->off_y;
 
 		int inbounds = (x < px_mx) && (y < px_my);
 
@@ -206,37 +200,8 @@ static int px_client_executeline(const char * line, px_client_t * client) {
 		if (!inbounds)
 			return 0;
 
-		if (!px_bgminactive)
-			matrix_set(x, y, &pixel);
+		matrix_set(x, y, &pixel);
 		px_array[index] = pixel;
-	} else if (fast_str_startswith("OFFSET", line)) {
-		const char * ptr = line + 7;
-		const char * endptr = ptr;
-
-		uint32_t x = fast_strtoul10(ptr, &endptr);
-		if (endptr == ptr) {
-			net_err(client, "ERROR: Invalid command (expected decimal as first parameter)");
-			return 1;
-		}
-		if (!*endptr) {
-			net_err(client, "ERROR: Invalid command (second parameter required)");
-			return 1;
-		}
-
-		endptr++; // eat space (or whatever non-decimal is found here)
-
-		uint32_t y = fast_strtoul10((ptr = endptr), &endptr);
-		if (endptr == ptr) {
-			net_err(client, "Invalid command (expected decimal as second parameter)");
-			return 1;
-		}
-
-		// OFFSET <x> <y> -> set offset to position (x,y) for future use
-		if (!*endptr) {
-			client->off_x = x;
-			client->off_y = y;
-			return 0;
-		}
 	} else if (fast_str_startswith("SIZE", line)) {
 		char str[64];
 		snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
@@ -261,17 +226,26 @@ STATS: Return statistics");
 	return 0;
 }
 
+static void px_buffer_update(void * buf) {
+	px_buffer_t * buffer = buf;
+	char * line = buffer->line;
+	while (1) {
+		char * ch = strchr(line, '\n');
+		if (ch)
+			*ch = 0;
+		px_buffer_executeline(line, buf);
+		if (!ch)
+			break;
+		line = ch + 1;
+	}
+	free(buffer);
+	poke_main_thread();
+}
+
 // Returns true to remove the client.
 static int px_client_update(px_client_t * client) {
-	if (client->ovl_biscuit != 0xC0) {
-		fputs("Pixelflut overflow biscuit must always be 0xC0. Something went wrong. -- Pixelflut", stderr);
-		exit(1);
-	}
-	// Simplifies and speeds up things
-	char * line = client->line;
-	size_t linelen = strlen(line);
-	ssize_t addlen = read(client->socket, line + linelen, PX_LINESIZE - (1 + linelen));
-	int execcommand = 0;
+	px_buffer_t * cbuf = client->buffer;
+	ssize_t addlen = read(client->socket, cbuf->line + cbuf->linelen, PX_LINESIZE - (1 + cbuf->linelen));
 	if (addlen < 0) {
 		// All errors except these are assumed to mean the connection died.
 		if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
@@ -282,20 +256,24 @@ static int px_client_update(px_client_t * client) {
 		return 1;
 	} else {
 		// Zero-terminate the resulting string.
-		line[linelen + addlen] = 0;
+		cbuf->linelen += addlen;
+		cbuf->line[cbuf->linelen] = 0;
 	}
-	// Any string appending that is occuring is done.
-	// Check for newlines, moving the 'line' pointer forward as we go.
-	char * endptr;
-	while ((endptr = strchr(line, '\n'))) {
-		*endptr = 0;
-		// Line buffer prepped, execute.
-		px_client_executeline(line, client);
-		line = endptr + 1;
+	char * chp = strrchr(cbuf->line, '\n');
+	if (chp) {
+		// Create new buffer, put the remainder in it
+		px_buffer_t * nb = malloc(sizeof(px_buffer_t));
+		if (!nb)
+			return 1;
+		nb->linelen = (cbuf->line + cbuf->linelen) - (chp + 1);
+		memcpy(nb->line, chp + 1, nb->linelen + 1);
+		nb->socket = client->socket;
+		// The new remainder buffer belongs to us...
+		client->buffer = nb;
+		// The old line buffer is sent to the taskpool
+		*chp = 0;
+		taskpool_submit(TP_GLOBAL, px_buffer_update, cbuf);
 	}
-	// Shift line left. We're not allowed to use strcpy due to potential overlap, so don't try it.
-	// Note that a full buffer always ends with two nulls - one for the newline and one for the actual end of buffer.
-	memmove(client->line, line, strlen(line) + 1);
 	return 0;
 }
 
@@ -306,12 +284,17 @@ static int px_client_new(px_client_t ** list, int sock) {
 		close(sock);
 		return 0;
 	}
-	c->ovl_biscuit = 0xC0;
-	c->line[0] = 0;
 	c->socket = sock;
-	c->off_x = 0;
-	c->off_y = 0;
 	c->next = NULL;
+	c->buffer = malloc(sizeof(px_buffer_t));
+	if (!c->buffer) {
+		free(c);
+		close(sock);
+		return 0;
+	}
+	c->buffer->socket = sock;
+	c->buffer->line[0] = 0;
+	c->buffer->linelen = 0;
 	if (*list)
 		c->next = *list;
 	*list = c;
@@ -363,13 +346,15 @@ static void * px_thread_func(void * n) {
 		}
 		// select zeroes FDs >:(
 		FD_ZERO(&rset);
-		oscore_mutex_lock(px_bgmi_mutex);
 		// Go through all clients, holding the BGMI lock so that the status of "are we in control of the matrix" cannot change.
 		px_client_t ** backptr = &list;
 		while (*backptr) {
 			if (px_client_update(*backptr)) {
 				void * on = (*backptr)->next;
+				// we don't want to close the socket until all taskpool threads are done
+				taskpool_wait(TP_GLOBAL);
 				close((*backptr)->socket);
+				free((*backptr)->buffer);
 				free(*backptr);
 				*backptr = on;
 			} else {
@@ -377,15 +362,16 @@ static void * px_thread_func(void * n) {
 				backptr = (px_client_t**) &((*backptr)->next);
 			}
 		}
-		oscore_mutex_unlock(px_bgmi_mutex);
 		FD_SET(px_shutdown_fd_ot, &rset);
 		FD_SET(server, &rset);
-		poke_main_thread();
 		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
 	}
+	// we don't want to close the socket until all taskpool threads are done
+	taskpool_wait(TP_GLOBAL);
 	// Close & Deallocate
 	while (list) {
 		px_client_t * nxt = (px_client_t*) list->next;
+		free(list->buffer);
 		close(list->socket);
 		free(list);
 		list = nxt;
@@ -415,15 +401,12 @@ int init(int moduleno, char* argstr) {
 	px_shutdown_fd_ot = tmp[0];
 	px_moduleno = moduleno;
 	px_bgminactive = 1;
-	px_bgmi_mutex = oscore_mutex_new();
 	px_task = oscore_task_create("bgm_pixelflut", px_thread_func, NULL);
 
 	return 0;
 }
 
 int draw(int argc, char ** argv) {
-	// To prevent weighing everything down, the mutex is only used here when px_bgminactive is being written.
-	// All writes occur from here, so consistency is assured.
 	if (argc) {
 		if (argv)
 			free(argv);
@@ -432,7 +415,6 @@ int draw(int argc, char ** argv) {
 #endif
 		px_mtlastframe = udate();
 		if (px_bgminactive) {
-			oscore_mutex_lock(px_bgmi_mutex);
 			int indx = 0;
 			for (int j = 0; j < px_my; j++) {
 				for (int i = 0; i < px_mx; i++) {
@@ -441,7 +423,6 @@ int draw(int argc, char ** argv) {
 				}
 			}
 			px_bgminactive = 0;
-			oscore_mutex_unlock(px_bgmi_mutex);
 		}
 	}
 	// We still do matrix_render on the main thread.
@@ -454,18 +435,14 @@ int draw(int argc, char ** argv) {
 		return 0;
 #ifdef PX_MTCOUNTDOWN_MAX
 	}
-	oscore_mutex_lock(px_bgmi_mutex);
 	px_bgminactive = 1;
-	oscore_mutex_unlock(px_bgmi_mutex);
 	return 1;
 #endif
 }
 
 void reset(void) {
-	oscore_mutex_lock(px_bgmi_mutex);
 	// If it's 0, then quite a mess will result...
 	px_bgminactive = 1;
-	oscore_mutex_unlock(px_bgmi_mutex);
 }
 
 int deinit() {
@@ -474,7 +451,6 @@ int deinit() {
 		oscore_task_join(px_task);
 	close(px_shutdown_fd_mt);
 	close(px_shutdown_fd_ot);
-	oscore_mutex_free(px_bgmi_mutex);
 	free(px_array);
 	return 0;
 }
