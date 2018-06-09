@@ -103,11 +103,11 @@ void oscore_task_exit(int status) {
 	pthread_exit(&status);
 }
 
-int oscore_task_join(oscore_task task) {
-	int retval = 0;
-	if (pthread_join(task, (void*) &retval)) {
+void * oscore_task_join(oscore_task task) {
+	void * retval = 0;
+	if (pthread_join(*((pthread_t *) task), (void*) &retval)) {
 		free(task);
-		return -1;
+		return NULL;
 	}
 	free(task);
 	return retval;

@@ -279,7 +279,7 @@ int init(int modulen, char* argstr) {
 		return 1;
 	}
 
-	scope_thread = oscore_task_create("bgm_xyscope", thread_func, NULL);
+	scope_task = oscore_task_create("bgm_xyscope", thread_func, NULL);
 	return 0;
 }
 

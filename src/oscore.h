@@ -28,7 +28,7 @@ typedef void (*oscore_task_function)(void *);
 oscore_task oscore_task_create(const char* name, oscore_task_function func, void* ctx);
 void oscore_task_yield(void);
 void oscore_task_exit(int status);
-int oscore_task_join(oscore_task task);
+void * oscore_task_join(oscore_task task);
 int oscore_ncpus(void);
 
 typedef void* oscore_mutex;
