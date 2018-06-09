@@ -259,7 +259,7 @@ static int px_client_update(px_client_t * client) {
 		cbuf->linelen += addlen;
 		cbuf->line[cbuf->linelen] = 0;
 	}
-	char * chp = strrchr(cbuf->line, '\n');
+	char * chp = memrchr(cbuf->line, '\n', cbuf->linelen);
 	if (chp) {
 		// Create new buffer, put the remainder in it
 		px_buffer_t * nb = malloc(sizeof(px_buffer_t));

@@ -41,13 +41,16 @@ static void tp_putjob(taskpool* pool, taskpool_job job) {
 	oscore_event_signal(pool->wakeup);
 }
 
-static taskpool_job* tp_getjob(taskpool* pool) {
-	taskpool_job* job = NULL;
+static taskpool_job tp_getjob(taskpool* pool) {
+	taskpool_job job = {
+		.func = NULL,
+		.ctx = NULL
+	};
 	oscore_mutex_lock(pool->lock);
 	// If we aren't already at the end of all that's written...
 	if (pool->jobs_reading != pool->jobs_writing) {
 		pool->jobs_reading = (pool->jobs_reading + 1) % pool->queue_size;
-		job = &pool->jobs[pool->jobs_reading];
+		job = pool->jobs[pool->jobs_reading];
 		oscore_mutex_unlock(pool->lock); // Note: This should be before the signal in case that has a scheduling effect.
 		// Made progress.
 		oscore_event_signal(pool->progress);
@@ -59,7 +62,7 @@ static taskpool_job* tp_getjob(taskpool* pool) {
 
 static void * taskpool_function(void* ctx) {
 	taskpool* pool = (taskpool*) ctx;
-	taskpool_job* job;
+	taskpool_job job;
 	while (1) {
 		// Wait for the event to be triggered that says a task is ready. Wait 50ms, since any issues should only occur on shutdown.
 		oscore_event_wait_until(pool->wakeup, udate() + 50000UL);
@@ -71,8 +74,8 @@ static void * taskpool_function(void* ctx) {
 
 			job = tp_getjob(pool);
 
-			if (job) {
-				job->func(job->ctx);
+			if (job.func) {
+				job.func(job.ctx);
 				// We did a job. Now yield for RT sanity
 				oscore_task_yield();
 			} else {
