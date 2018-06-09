@@ -14,7 +14,7 @@
 #include <math.h>
 #include <perf.h>
 
-#define FPS 600
+#define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (RANDOM_TIME * FPS)
 
@@ -122,13 +122,14 @@ static inline int _min(int x, int y) {
 /* central drawing function
  */
 int draw(int argc, char* argv[]) {
+	nexttick = udate() + FRAMETIME;
 	perf_start(modno);
 	// compose transformation matrix out of 9 input matrices 
 	// which are calculated from some of the run variables
 	matrix3_3 m = composem3( 9,
 		rotation3(cosf(runvar[12]) * M_PI),
 		translation3(cosf(runvar[2])*mx*0.125, sinf(runvar[3])*my*0.125),
-		scale3(((float)(mx>>2))/mx, ((float)(mx>>2))/mx),
+		scale3(((float)(mx>>4))/mx, ((float)(mx>>4))/mx),
 		rotation3(runvar[13]),
 		translation3(sinf(runvar[4])*mx*0.25, cosf(runvar[5])*my*0.25),
 		rotation3(sin(runvar[14]) * M_PI),
@@ -185,11 +186,9 @@ int draw(int argc, char* argv[]) {
 	// manage framework variables
 	if (frame >= FRAMES) {
 		frame = 0;
-		printf("0");
 		return 1;
 	}
 	frame++;
-	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
 	return 0;
 }
