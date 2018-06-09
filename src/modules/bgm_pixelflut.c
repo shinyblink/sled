@@ -48,8 +48,11 @@ static ulong px_mtlastframe;
 static oscore_task px_task;
 
 
-#define PX_MTCOUNTDOWN_MAX 100
-// 10ms (100FPS)
+#define FPS 120
+#define PX_MTCOUNTDOWN_MAX (T_SECOND / FPS)
+
+// why does the below not work?
+//#define FRAMETIME (60 * T_SECOND * FPS)
 #define FRAMETIME 10000
 #define PX_PORT 1337
 // The maximum, including 0, size of a line.
@@ -63,7 +66,7 @@ typedef struct {
 	// The line buffer
 	char line[PX_LINESIZE];
 	// Overflow biscuit, just in case.
-	char ovl_biscuit;
+	byte ovl_biscuit;
 } px_client_t;
 
 // shamelessly ripped from pixelnuke
@@ -106,14 +109,14 @@ static inline uint32_t fast_strtoul16(const char *str, const char **endptr) {
 // end shamelessly ripped from pixelnuke
 
 static void net_send(px_client_t * client, char * str) {
-	send(client->socket, str, strlen(str), 0);
-	send(client->socket, "\n", 1, 0);
+	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
+	send(client->socket, "\n", 1, MSG_NOSIGNAL);
 }
 
 static void net_err(px_client_t * client, char * str) {
-	send(client->socket, "ERROR: ", 7, 0);
-	send(client->socket, str, strlen(str), 0);
-	send(client->socket, "\n", 1, 0);
+	send(client->socket, "ERROR: ", 7, MSG_NOSIGNAL);
+	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
+	send(client->socket, "\n", 1, MSG_NOSIGNAL);
 }
 
 static void poke_main_thread(void) {
