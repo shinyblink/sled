@@ -323,14 +323,14 @@ static void px_nbs(int sock) {
 	fcntl(sock, F_SETFL, flags);
 }
 
-static void px_thread_func(void * n) {
+static void * px_thread_func(void * n) {
 	px_client_t * list = 0;
 	int server;
 	struct sockaddr_in sa_bpwr;
 	server = socket(AF_INET, SOCK_STREAM, 0); // It's either 0 or 6...
 	if (server < 0) {
 		fputs("error creating socket! -- Pixelflut\n", stderr);
-		return;
+		return NULL;
 	}
 	// more magic
 	memset(&sa_bpwr, 0, sizeof(sa_bpwr));
@@ -341,11 +341,11 @@ static void px_thread_func(void * n) {
 	// prepare server...
 	if (bind(server, (struct sockaddr *) &sa_bpwr, sizeof(sa_bpwr))) {
 		fputs("error binding socket! -- Pixelflut\n", stderr);
-		return;
+		return NULL;
 	}
 	if (listen(server, 32)) {
 		fputs("error finalizing socket! -- Pixelflut\n", stderr);
-		return;
+		return NULL;
 	}
 	px_nbs(server);
 	px_nbs(px_shutdown_fd_ot);
@@ -389,6 +389,7 @@ static void px_thread_func(void * n) {
 		list = nxt;
 	}
 	close(server);
+	return NULL;
 }
 
 int init(int moduleno, char* argstr) {

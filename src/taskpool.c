@@ -57,7 +57,7 @@ static taskpool_job* tp_getjob(taskpool* pool) {
 	return job;
 }
 
-static void taskpool_function(void* ctx) {
+static void * taskpool_function(void* ctx) {
 	taskpool* pool = (taskpool*) ctx;
 	taskpool_job* job;
 	while (1) {
@@ -67,7 +67,7 @@ static void taskpool_function(void* ctx) {
 			// It's possible that the event we just got covered multiple tasks.
 			// Accept as many tasks as possible during our active time.
 			if (pool->shutdown)
-				oscore_task_exit(0);
+				return NULL;
 
 			job = tp_getjob(pool);
 
@@ -115,7 +115,7 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	return pool;
 }
 
-int taskpool_submit(taskpool* pool, oscore_task_function func, void* ctx) {
+int taskpool_submit(taskpool* pool, void (*func)(void*), void* ctx) {
 	if (pool->workers <= 1) {
 		// We're faking. This isn't a real taskpool.
 		func(ctx);
@@ -130,13 +130,13 @@ int taskpool_submit(taskpool* pool, oscore_task_function func, void* ctx) {
 }
 
 // Hellish stuff to run stuff in parallel.
-inline void taskpool_submit_array(taskpool* pool, int count, oscore_task_function func, void* ctx, size_t size) {
+inline void taskpool_submit_array(taskpool* pool, int count, void (*func)(void*), void* ctx, size_t size) {
 	for (int i = 0; i < count; i++)
 		taskpool_submit(pool, func, ctx + (i * size));
 }
 
 
-void taskpool_forloop(taskpool* pool, oscore_task_function func, int start, int end) {
+void taskpool_forloop(taskpool* pool, void (*func)(void*), int start, int end) {
 	int s = (start);
 	int c = (end) - s;
 	int* ctxs = malloc(sizeof(int) * c);

@@ -70,7 +70,7 @@ void oscore_task_yield(void) {
 	// nothing.
 };
 
-void oscore_task_exit(int status) {
+void oscore_task_exit(void * status) {
 	// nope
 };
 

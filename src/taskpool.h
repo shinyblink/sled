@@ -29,7 +29,7 @@ typedef struct {
 
 // Queue size must be at least 2.
 taskpool* taskpool_create(const char* pool_name, int workers, int queue_size);
-int taskpool_submit(taskpool* pool, oscore_task_function task, void* ctx);
+int taskpool_submit(taskpool* pool, void (*task)(void*), void* ctx);
 
 void taskpool_wait(taskpool* pool);
 void taskpool_destroy(taskpool* pool);
@@ -38,7 +38,7 @@ taskpool* TP_GLOBAL __attribute__((weak));
 
 
 // Hellish stuff to run stuff in parallel simpler.
-void taskpool_submit_array(taskpool* pool, int count, oscore_task_function func, void* ctx, size_t size );
-void taskpool_forloop(taskpool* pool, oscore_task_function func, int start, int end);
+void taskpool_submit_array(taskpool* pool, int count, void (*func)(void*), void* ctx, size_t size );
+void taskpool_forloop(taskpool* pool, void (*func)(void*), int start, int end);
 
 #endif

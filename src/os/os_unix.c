@@ -99,8 +99,8 @@ void oscore_task_yield(void) {
 	// nothing.
 }
 
-void oscore_task_exit(int status) {
-	pthread_exit(&status);
+void oscore_task_exit(void * status) {
+	pthread_exit(status);
 }
 
 void * oscore_task_join(oscore_task task) {
