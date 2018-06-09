@@ -49,11 +49,8 @@ static oscore_task px_task;
 
 
 #define FPS 120
-#define PX_MTCOUNTDOWN_MAX (T_SECOND / FPS)
-
-// why does the below not work?
-//#define FRAMETIME (60 * T_SECOND * FPS)
-#define FRAMETIME 10000
+#define PX_MTCOUNTDOWN_MAX 120
+#define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337
 // The maximum, including 0, size of a line.
 #define PX_LINESIZE 64
@@ -403,7 +400,7 @@ static void px_thread_func(void * n) {
 }
 
 int init(int moduleno, char* argstr) {
-	px_mtcountdown = 100; // frames
+	px_mtcountdown = FPS; // frames
 	// Shutdown signalling pipe
 	int tmp[2];
 	if (pipe(tmp) != 0)

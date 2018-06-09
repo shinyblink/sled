@@ -54,7 +54,7 @@ int init(int modno, char *argstr) {
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, 0);
 	#endif
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, MATRIX_X, MATRIX_Y);
 
 	memset(BUFFER, 0, BUFFER_SIZE);
 
@@ -95,7 +95,6 @@ int clear(void) {
 
 int render(void) {
 	SDL_UpdateTexture(texture, NULL, BUFFER, ROW_SIZE);
-	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
 	return 0;
