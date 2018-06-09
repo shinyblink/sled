@@ -27,13 +27,26 @@ void* dlookup(void* handle, char* modname, char* name) {
 	return ptr;
 }
 
+// These are part of the early init / late deinit passes.
+// Do NOT turn this into an opt-out. Most modules expect init/deinit at the normal times.
+static int modules_specialinit(const char * type) {
+	if (strcmp(type, "flt") == 0)
+		return 1;
+	if (strcmp(type, "out") == 0)
+		return 1;
+	return 0;
+}
+
 int modules_deinit(void) {
 	int i;
 	int ret;
 	printf("Deinitializing %i modules...\n", modcount);
 	oscore_mutex_lock(lock);
 	for (i = 0; i < modcount; i++) {
+		if (modules_specialinit(modules[i].type))
+			continue;
 		printf("\t- %s...", modules[i].name);
+		fflush(stdout);
 		ret = modules[i].deinit();
 		if (ret != 0) {
 			printf("\n");
@@ -174,7 +187,10 @@ int modules_init(int *outmodno) {
 	oscore_mutex_lock(lock);
 	for (; mod < modcount; mod++) {
 		m = modules + mod;
-		if (strcmp(m->type, "gfx") != 0)
+		// Who did this!?!? This breaks basically everything.
+		//if (strcmp(m->type, "gfx") != 0)
+		//	continue;
+		if (modules_specialinit(m->type))
 			continue;
 		printf("\t- %s...", m->name);
 		if ((ret = m->init(mod, NULL)) == 0)
