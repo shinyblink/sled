@@ -48,7 +48,7 @@ static ulong px_mtlastframe;
 static oscore_task px_task;
 
 
-#define FPS 120
+#define FPS 60
 #define PX_MTCOUNTDOWN_MAX 120
 #define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337
@@ -117,16 +117,8 @@ static void net_err(px_client_t * client, char * str) {
 }
 
 static void poke_main_thread(void) {
-	char ** argv = malloc(sizeof(char*));
-	if (argv) {
-		*argv = strdup("--start");
-		if (*argv) {
-			timer_add(0, px_moduleno, 1, argv);
-			wait_until_break();
-		} else {
-			free(argv);
-		}
-	}
+	timer_add(0, px_moduleno, 1, NULL);
+	wait_until_break();
 }
 
 // Executes the line given.
@@ -430,6 +422,9 @@ int draw(int argc, char ** argv) {
 	// To prevent weighing everything down, the mutex is only used here when px_bgminactive is being written.
 	// All writes occur from here, so consistency is assured.
 	if (argc) {
+		if (argv)
+			free(argv);
+
 		px_mtcountdown = PX_MTCOUNTDOWN_MAX;
 		px_mtlastframe = udate();
 		if (px_bgminactive) {
