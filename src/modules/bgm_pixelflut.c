@@ -49,7 +49,7 @@ static oscore_task px_task;
 
 
 #define FPS 60
-#define PX_MTCOUNTDOWN_MAX 120
+// #define PX_MTCOUNTDOWN_MAX 120
 #define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337
 // The maximum, including 0, size of a line.
@@ -278,6 +278,9 @@ static int px_client_update(px_client_t * client) {
 		if ((errno == EAGAIN) || (errno == EWOULDBLOCK))
 			return 0;
 		return 1;
+	} else if (addlen == 0) {
+		// End Of File -> socket closed
+		return 1;
 	} else {
 		// Zero-terminate the resulting string.
 		line[linelen + addlen] = 0;
@@ -425,8 +428,9 @@ int draw(int argc, char ** argv) {
 	if (argc) {
 		if (argv)
 			free(argv);
-
+#ifdef PX_MTCOUNTDOWN_MAX
 		px_mtcountdown = PX_MTCOUNTDOWN_MAX;
+#endif
 		px_mtlastframe = udate();
 		if (px_bgminactive) {
 			oscore_mutex_lock(px_bgmi_mutex);
@@ -444,14 +448,18 @@ int draw(int argc, char ** argv) {
 	// We still do matrix_render on the main thread.
 	// Mainly because not doing so would be a very quick road to blocking up the network thread.
 	matrix_render();
+#ifdef PX_MTCOUNTDOWN_MAX
 	if ((--px_mtcountdown) > 0) {
+#endif
 		timer_add(px_mtlastframe += FRAMETIME, px_moduleno, 0, NULL);
 		return 0;
+#ifdef PX_MTCOUNTDOWN_MAX
 	}
 	oscore_mutex_lock(px_bgmi_mutex);
 	px_bgminactive = 1;
 	oscore_mutex_unlock(px_bgmi_mutex);
 	return 1;
+#endif
 }
 
 void reset(void) {
