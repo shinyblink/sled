@@ -27,7 +27,8 @@ static ulong nexttick;
 
 static int mx, my;		// matrix size
 static int mx2, my2;		// matrix half size
-
+static float outputscale;	// matrix output scale factor
+ 
 /*** base effect coefficients. This is where you want to play around. ***/
 
 // how many run variables?
@@ -77,6 +78,11 @@ int init(int moduleno, char* argstr) {
 		return 1;
 	mx2 = mx/2;
 	my2 = my/2;
+	
+	// scaling function thanks to @BenBE1987 on Twitter: https://twitter.com/BenBE1987/status/1003787341926985728
+	outputscale = 1.5 * pow(2, -( (log2f(mx) - 3) + (log2f(mx) < 7 ? 0.5 : 0) * (7 - log2f(mx))));
+	printf("(output scale for width=%d: %f) ", mx, outputscale);
+
 	modno = moduleno;
 	ulong d = udate();
 	for( int i = 0; i < runvar_count; i++ ) {
@@ -121,6 +127,7 @@ static inline int _min(int x, int y) {
 /* central drawing function
  */
 int draw(int argc, char* argv[]) {
+	nexttick = udate() + FRAMETIME;
 	perf_start(modno);
 	increment_runvars();
 	
@@ -129,7 +136,7 @@ int draw(int argc, char* argv[]) {
 	matrix3_3 m = composem3( 9,
 		rotation3(cos(runvar[12]) * M_PI),
 		translation3(cos(runvar[2])*mx*0.125, sin(runvar[3])*my*0.125),
-		scale3(14.0/mx, 14.0/mx),
+		scale3(outputscale, outputscale),
 		rotation3(runvar[13]),
 		translation3(sin(runvar[4])*mx*0.25, cos(runvar[5])*my*0.25),
 		rotation3(sin(runvar[14]) * M_PI),
@@ -187,7 +194,6 @@ int draw(int argc, char* argv[]) {
 		return 1;
 	}
 	frame++;
-	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
 	return 0;
 }

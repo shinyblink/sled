@@ -28,6 +28,7 @@ static ulong nexttick;
 
 static int mx, my;		// matrix size
 static int mx2, my2;		// matrix half size
+static float outputscale;	// matrix output scale factor
 
 /*** base effect coefficients. This is where you want to play around. ***/
 
@@ -66,7 +67,6 @@ static inline float addmod(float x, float mod, float delta) {
 	return x;
 }
 
-
 /*** module init ***/
 
 int init(int moduleno, char* argstr) {
@@ -78,6 +78,11 @@ int init(int moduleno, char* argstr) {
 		return 1;
 	mx2 = mx/2;
 	my2 = my/2;
+	
+	// scaling function thanks to @BenBE1987 on Twitter: https://twitter.com/BenBE1987/status/1003787341926985728
+	outputscale = pow(2, -( (log2f(mx) - 3) + (log2f(mx) < 7 ? 0.5 : 0) * (7 - log2f(mx))));
+	printf("(output scale for width=%d: %f) ", mx, outputscale);
+	
 	modno = moduleno;
 	ulong d = udate();
 	for( int i = 0; i < runvar_count; i++ ) {
@@ -129,7 +134,7 @@ int draw(int argc, char* argv[]) {
 	matrix3_3 m = composem3( 9,
 		rotation3(cosf(runvar[12]) * M_PI),
 		translation3(cosf(runvar[2])*mx*0.125, sinf(runvar[3])*my*0.125),
-		scale3(((float)(mx>>4))/mx, ((float)(mx>>4))/mx),
+		scale3(outputscale, outputscale),
 		rotation3(runvar[13]),
 		translation3(sinf(runvar[4])*mx*0.25, cosf(runvar[5])*my*0.25),
 		rotation3(sin(runvar[14]) * M_PI),
