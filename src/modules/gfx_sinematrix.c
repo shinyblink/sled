@@ -99,9 +99,8 @@ static inline float sinecircle3D(float x, float y) {
 /*** math helper functions ***/
 
 static inline float addmod(float x, float mod, float delta) {
-	x = x + delta;
-	while( x >= mod ) x -= mod;
-	while( x <  0.0 ) x += mod;
+	x = fmodf(x + delta, mod);
+	x += x<0 ? mod : 0;
 	return x;
 }
 
