@@ -53,7 +53,7 @@ static oscore_task px_task;
 #define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337
 // The maximum, including 0, size of a line.
-#define PX_LINESIZE 65536
+#define PX_LINESIZE 0x100000
 
 typedef struct {
 	int socket; // The socket
@@ -125,8 +125,7 @@ static void poke_main_thread(void) {
 // Please ignore the return value.
 // I have a sneaking suspicion the returns were in the original code.
 // Anyway, as this uses matrix_set, and thus checks if the BGM is active/inactive, make sure to use this inside the BGM activity lock.
-static int px_client_executeline(px_client_t * client) {
-	const char * line = client->line;
+static int px_client_executeline(const char * line, px_client_t * client) {
 	// In the original version, this was ripped from pixelnuke,
 	//  and it remains that way, but hopefully I've changed it enough.
 	if (line[0] == 'P' && line[1] == 'X') {
@@ -286,16 +285,17 @@ static int px_client_update(px_client_t * client) {
 		line[linelen + addlen] = 0;
 	}
 	// Any string appending that is occuring is done.
-	// Check for any newlines.
+	// Check for newlines, moving the 'line' pointer forward as we go.
 	char * endptr;
 	while ((endptr = strchr(line, '\n'))) {
 		*endptr = 0;
 		// Line buffer prepped, execute.
-		px_client_executeline(client);
-		// Shift line left. We're not allowed to use strcpy due to potential overlap, so don't try it.
-		// Note that a full buffer always ends with two nulls - one for the newline and one for the actual end of buffer.
-		memmove(line, endptr + 1, strlen(endptr + 1) + 1);
+		px_client_executeline(line, client);
+		line = endptr + 1;
 	}
+	// Shift line left. We're not allowed to use strcpy due to potential overlap, so don't try it.
+	// Note that a full buffer always ends with two nulls - one for the newline and one for the actual end of buffer.
+	memmove(client->line, line, strlen(line) + 1);
 	return 0;
 }
 
