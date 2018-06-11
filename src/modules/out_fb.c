@@ -46,14 +46,11 @@ static int fbdev_flags;
 #error out_fb does not support this OS. Linux and FreeBSD only.
 #endif
 
-static int query_device(void) {
+static int query_device(char* device) {
 	// Framebuffer access
-	char * env = getenv("FRAMEBUFFER");
-	if (!env)
-		env = "/dev/fb0";
-	fbdev_fd = open(env, O_RDWR);
+	fbdev_fd = open(device, O_RDWR);
 	if (fbdev_fd < 0) {
-		eprintf("FB: Failed to open framebuffer.\n");
+		eprintf("FB: Failed to open framebuffer %s.\n", device);
 		return 1;
 	}
 	// 20kdc's config (PITCAIRN over HDMI)
@@ -133,12 +130,22 @@ int bpp = 24; //vinfo.bpp;
 		fbdev_flags |= SLEDFB_BGR;
 #endif
 	// Final debug print
-	fprintf(stderr, "FB: \"%s\" -> %i x %i, flags %02x\n", env, fbdev_w, fbdev_h, fbdev_flags);
+	fprintf(stderr, "FB: \"%s\" -> %i x %i, flags %02x\n", device, fbdev_w, fbdev_h, fbdev_flags);
 	return 0;
 }
 
-int init(void) {
-	if (query_device())
+int init(int modno, char* argstr) {
+	char* device;
+	if (argstr) {
+		device = strdup(argstr);
+		free(argstr);
+	} else {
+		device = getenv("FRAMEBUFFER");
+		if (!device)
+			device = "/dev/fb0";
+	}
+
+	if (query_device(device))
 		return 2;
 	if (fbdev_flags & SLEDFB_P4EN) {
 		buf = malloc(fbdev_w * fbdev_h * 4);
