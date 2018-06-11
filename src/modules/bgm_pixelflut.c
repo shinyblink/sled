@@ -34,7 +34,7 @@ static RGB * px_array;
 static int px_shutdown_fd_mt, px_shutdown_fd_ot;
 // px_mtcountdown is the time until we decide to end. It's main-thread-only.
 static int px_moduleno, px_mtcountdown;
-static int px_pixelcount, px_clientcount;
+static unsigned int px_pixelcount, px_clientcount;
 
 // This is MT only as of some commit or another.
 // Ignored by netthreads because even if they put stuff on the matrix at the wrong time,
@@ -46,12 +46,12 @@ static ulong px_mtlastframe;
 static oscore_task px_task;
 
 
-#define FPS 60
+#define FPS 30
 // #define PX_MTCOUNTDOWN_MAX 120
 #define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337
 // The maximum, including 0, size of a line.
-#define PX_LINESIZE 0xA0000
+#define PX_LINESIZE 0x2000
 
 typedef struct {
 	int socket;
@@ -298,6 +298,7 @@ static int px_client_new(px_client_t ** list, int sock) {
 	if (*list)
 		c->next = *list;
 	*list = c;
+	px_clientcount++;
 	return 1;
 }
 
@@ -357,6 +358,7 @@ static void * px_thread_func(void * n) {
 				free((*backptr)->buffer);
 				free(*backptr);
 				*backptr = on;
+				px_clientcount--;
 			} else {
 				FD_SET((*backptr)->socket, &rset);
 				backptr = (px_client_t**) &((*backptr)->next);
