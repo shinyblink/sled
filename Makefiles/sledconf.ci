@@ -13,7 +13,7 @@ FLAGS = -march=native -faddress=sanitize,undefined
 
 DEFAULT_OUTMOD := dummy
 DEFAULT_MODULEDIR := "./modules"
-MODULES := $(MODULES_AVAILABLE) out_$(DEFAULT_OUTMOD)
+MODULES := $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
 
 MATRIX_X := 64
 MATRIX_Y := 64

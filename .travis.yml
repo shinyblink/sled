@@ -1,1 +1,6 @@
 language: c
+compiler: clang
+script:
+  - cp Makefiles/sledconf.ci ./sledconf
+  - make
+  - ./sled
