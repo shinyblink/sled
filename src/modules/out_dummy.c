@@ -49,7 +49,7 @@ int render(void) {
 ulong wait_until(ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
 #ifdef CIMODE
-	return NULL;
+	return 0;
 #else
 	return wait_until_core(desired_usec);
 #endif
