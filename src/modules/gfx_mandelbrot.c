@@ -103,7 +103,7 @@ void drawrow(void* row) {
 			byte scaled = rescale(i - mmin, mmax, 255);
 			col = HSV2RGB(HSV(scaled, 255, 255));
 		}
-		matrix_set(px, py, &col);
+		matrix_set(px, py, col);
 	}
 }
 

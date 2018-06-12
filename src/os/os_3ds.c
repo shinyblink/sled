@@ -70,11 +70,11 @@ void oscore_task_yield(void) {
 	// nothing.
 };
 
-void oscore_task_exit(int status) {
+void oscore_task_exit(void * status) {
 	// nope
 };
 
-int oscore_task_join(oscore_task task) {
+void * oscore_task_join(oscore_task task) {
 	// ye ok
 	return 0;
 };

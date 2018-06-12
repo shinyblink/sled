@@ -19,7 +19,7 @@ int gety(void) {
 	return next->gety();
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	int ny = gety() - 1 - y ;
 	return next->set(x, ny, color);
 }

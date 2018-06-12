@@ -40,7 +40,7 @@ int gety(void) {
 	return next->gety() / scale;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	int px = 0;
 	int py = 0;
 	int ret = 0;

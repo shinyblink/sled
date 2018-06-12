@@ -18,7 +18,7 @@
 .proc main
     ; Converts 0 -> 1 coordinate system to -1 -> 1
     ; outpos = vec4((inpos.xy - 0.5) * 2.0, inpos.zw);
-	mov r0, inpos
+    mov r0, inpos
     add r0.xy, -half, r0.xy
     mul r0.xy, two, r0.xy
     mov outpos, r0
@@ -27,7 +27,7 @@
     ; outtc0 = vec(inpos.xy * texscale.xy, inpos.zw);
     mov r0, inpos
     mul r0.xy, texscale.xy, r0.xy
- 	mov outtc0, r0
+    mov outtc0, r0
 
-	end
+    end
 .end

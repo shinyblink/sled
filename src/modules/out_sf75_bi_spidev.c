@@ -70,7 +70,7 @@ int gety(void) {
 	return WORLD_Y;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	if (x < 0 || y < 0)
 		return 1;
 	if (x >= WORLD_X || y >= WORLD_Y)
@@ -86,9 +86,9 @@ int set(int x, int y, RGB *color) {
 		x -= matrices[i].x;
 		y -= matrices[i].y;
 		uint rgbt = 0;
-		rgbt |= (color->red & 0x1F) << 10;
-		rgbt |= (color->green & 0x1F) << 5;
-		rgbt |= color->blue & 0x1F;
+		rgbt |= (color.red & 0x1F) << 10;
+		rgbt |= (color.green & 0x1F) << 5;
+		rgbt |= color.blue & 0x1F;
 		byte high, low;
 		high = rgbt >> 8;
 		low = rgbt;

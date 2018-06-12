@@ -143,7 +143,7 @@ int gety(void) {
 	return fb_w;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	// Ideally we'd want this to be here, however, since we want decent performance even on the old 3DS,
 	// this check just isn't in the budget.
 	/*
@@ -154,7 +154,7 @@ int set(int x, int y, RGB *color) {
 
 	y = fb_w - y - 1;
 	x = fb_h - x - 1;
-	fb[y + (x * tex_w)] = (color->red << 24) | (color->green << 16) | (color->blue << 8);
+	fb[y + (x * tex_w)] = (color.red << 24) | (color.green << 16) | (color.blue << 8);
 	return 0;
 }
 

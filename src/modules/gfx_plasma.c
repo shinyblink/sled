@@ -61,7 +61,7 @@ int draw(int argc, char* argv[]) {
 			intermediary = sinf(dist(x, y, srows, ccols) * plasma);
 			res = (colbuf[x] + intermediary + (float) 2) * SCALE; // clipping is wanted to get dark spots.
 			RGB color = RGB(res, 0, 0);
-			matrix_set(x, y, &color);
+			matrix_set(x, y, color);
 		};
 	matrix_render();
 

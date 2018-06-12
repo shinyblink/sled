@@ -123,7 +123,7 @@ int draw(int argc, char* argv[]) {
 		float dx, dy;
 		lp = transform3d(&sx, &sy, lp, aspectx, aspecty, mw, mh);
 		lp = transform3d(&dx, &dy, lp, aspectx, aspecty, mw, mh);
-		graphics_drawline((int) sx, (int) sy, (int) dx, (int) dy, &white);
+		graphics_drawline((int) sx, (int) sy, (int) dx, (int) dy, white);
 	}
 	matrix_render();
 	// Timing logic

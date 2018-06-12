@@ -142,16 +142,16 @@ int ppos(int x, int y) {
 	return -1;
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB .color) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < X_SIZE);
 	assert(y < Y_SIZE);
 
 	int pos = (ppos(x, y) * 3) + 1;
-	message[pos + 0] = color->red;
-	message[pos + 1] = color->green;
-	message[pos + 2] = color->blue;
+	message[pos + 0] = color.red;
+	message[pos + 1] = color.green;
+	message[pos + 2] = color.blue;
 	return 0;
 }
 

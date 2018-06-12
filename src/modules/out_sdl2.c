@@ -54,7 +54,7 @@ int init(int modno, char *argstr) {
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, 0);
 	#endif
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STATIC, MATRIX_X, MATRIX_Y);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, MATRIX_X, MATRIX_Y);
 
 	memset(BUFFER, 0, BUFFER_SIZE);
 
@@ -73,7 +73,7 @@ static int matrix_ppos(int x, int y) {
 	return (x + (y * MATRIX_X));
 }
 
-int set(int x, int y, RGB *color) {
+int set(int x, int y, RGB color) {
 	// Detect OOB access.
 	assert(x >= 0);
 	assert(y >= 0);
@@ -81,9 +81,9 @@ int set(int x, int y, RGB *color) {
 	assert(y < MATRIX_Y);
 
 	int pos = matrix_ppos(x, y) * 3;
-	BUFFER[pos + 0] = color->red;
-	BUFFER[pos + 1] = color->green;
-	BUFFER[pos + 2] = color->blue;
+	BUFFER[pos + 0] = color.red;
+	BUFFER[pos + 1] = color.green;
+	BUFFER[pos + 2] = color.blue;
 	return 0;
 }
 
@@ -95,7 +95,6 @@ int clear(void) {
 
 int render(void) {
 	SDL_UpdateTexture(texture, NULL, BUFFER, ROW_SIZE);
-	SDL_RenderClear(renderer);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
 	return 0;

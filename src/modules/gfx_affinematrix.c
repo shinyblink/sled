@@ -177,7 +177,7 @@ int draw(int argc, char* argv[]) {
 			// alternate effect: RGB color = RGB( ((int)(hue*255) & 0xFF), (int)(runvar[0] * hue * 255) & 0xFF, _min(255,(int)(_abs(sc)*512)) );
 
 			// set pixel in matrix framebuffer
-			matrix_set(x,y, &color);
+			matrix_set(x,y, color);
 		}
 	}
 	

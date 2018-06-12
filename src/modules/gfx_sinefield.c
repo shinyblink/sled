@@ -60,7 +60,7 @@ int draw(int argc, char* argv[]) {
 				255, //(byte)(192 - (63*cosf((hue+step)*M_PI*0.004145))),
 				(byte)(255*sinf((hue+step)*M_PI*0.003891))
 			));
-			matrix_set(x,y,&color);
+			matrix_set(x,y,color);
 		}
 	}
 

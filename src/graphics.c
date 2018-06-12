@@ -70,9 +70,14 @@ int graphics_drawline_core(int x1, int y1, int x2, int y2, int (*set)(int, int, 
 	return 0;
 }
 
+// Small helper.
+int graphics_drawline_matrix(int x, int y, const RGB* col) {
+	return matrix_set(x, y, *col);
+}
+
 // stolen from wikipedia because idk.
 // *looking at previous comment from vif, raises eyebrows* - 20kdc
-void graphics_drawcircle(int x0, int y0, byte radius, RGB *color) {
+void graphics_drawcircle(int x0, int y0, byte radius, RGB color) {
 	int x = radius - 1;
 	int y = 0;
 	int dx = 1;

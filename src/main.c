@@ -238,7 +238,7 @@ int sled_main(int argc, char** argv) {
 
 	// Initialize global task pool.
 	int ncpus = oscore_ncpus();
-	TP_GLOBAL = taskpool_create("sled-tp", ncpus, ncpus*2);
+	TP_GLOBAL = taskpool_create("taskpool", ncpus, ncpus*4);
 
 	// Initialize modules (this can offset outmodno)
 	ret = modules_init(&outmodno);

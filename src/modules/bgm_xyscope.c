@@ -279,7 +279,7 @@ int init(int modulen, char* argstr) {
 		return 1;
 	}
 
-	scope_thread = oscore_task_create("bgm_xyscope", thread_func, NULL);
+	scope_task = oscore_task_create("bgm_xyscope", thread_func, NULL);
 	return 0;
 }
 
@@ -318,7 +318,7 @@ int draw(int argc, char* argv[]) {
 		int cm = get_cm(bufferC[i]);
 		if (cm != bufferC[i + (camera_size * 2)]) {
 			bufferC[i + (camera_size * 2)] = cm;
-			matrix_set(i % camera_width, i / camera_width, ddlc + cm);
+			matrix_set(i % camera_width, i / camera_width, ddlc[cm]);
 		}
 	}
 	matrix_render();

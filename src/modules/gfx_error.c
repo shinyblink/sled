@@ -72,23 +72,23 @@ void draw_error(int x, int y, text* errtext) {
 	int xstart = width - TOPCOL_HEIGHT;
 	for (yw = 1; yw < TOPCOL_HEIGHT; yw++)
 		for (xw = 1; xw < width; xw++)
-			matrix_set(x + xw, y + yw, (xw <= xstart) ? &bordercol : &bgcol);
+			matrix_set(x + xw, y + yw, (xw <= xstart) ? bordercol : bgcol);
 
 	for (yw = (TOPCOL_HEIGHT + 1); yw < height; yw++)
 		for (xw = 1; xw < width; xw++)
-			matrix_set(x + xw, y + yw, &bgcol);
+			matrix_set(x + xw, y + yw, bgcol);
 
 	// Draw box:
-	graphics_drawline(x, y, x + width, y, &bordercol); // top
-	graphics_drawline(x, y, x, y + height, &bordercol); // left side
-	graphics_drawline(x, y + TOPCOL_HEIGHT, x + width, y + TOPCOL_HEIGHT, &bordercol); // seperator
-	graphics_drawline(x + width, y, x + width, y + height, &bordercol); // right side
-	graphics_drawline(x, y + height, x + width, y + height, &bordercol); // bottom
+	graphics_drawline(x, y, x + width, y, bordercol); // top
+	graphics_drawline(x, y, x, y + height, bordercol); // left side
+	graphics_drawline(x, y + TOPCOL_HEIGHT, x + width, y + TOPCOL_HEIGHT, bordercol); // seperator
+	graphics_drawline(x + width, y, x + width, y + height, bordercol); // right side
+	graphics_drawline(x, y + height, x + width, y + height, bordercol); // bottom
 
 	// Draw X
 	int xstart_x = x + width - 8;
-	graphics_drawline(xstart_x + 2, y + 2, xstart_x + 6, y + 6, &xcol);
-	graphics_drawline(xstart_x + 2, y + 6, xstart_x + 6, y + 2, &xcol);
+	graphics_drawline(xstart_x + 2, y + 2, xstart_x + 6, y + 6, xcol);
+	graphics_drawline(xstart_x + 2, y + 6, xstart_x + 6, y + 2, xcol);
 
 	int tbx = x + 2;
 	int tby = y + TOPCOL_HEIGHT + 1;
@@ -97,7 +97,7 @@ void draw_error(int x, int y, text* errtext) {
 	for (ty = 0; ty < (height - TOPCOL_HEIGHT - 2); ty++) {
 		for (tx = 0; tx < (width - 2); tx++) {
 			RGB col = text_point(errtext, tx, ty) ? textcol : bgcol;
-			matrix_set(tbx + tx, tby + ty, &col);
+			matrix_set(tbx + tx, tby + ty, col);
 		}
 	}
 }

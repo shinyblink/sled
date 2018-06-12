@@ -42,7 +42,7 @@ int draw(int argc, char* argv[]) {
 	int y;
 	for (y = 0; y < my; y++)
 		for (x = 0; x < mx; x++)
-			matrix_set(x, y, ((y + x + frame) % 2) ? &black : &white);
+			matrix_set(x, y, ((y + x + frame) % 2) ? black : white);
 
 	matrix_render();
 	if (frame >= FRAMES) {

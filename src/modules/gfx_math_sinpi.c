@@ -54,7 +54,7 @@ int draw(int argc, char* argv[]) {
 
 		if (p.x >= 0 && p.x < mx)
 			if (p.y >= 0 && p.y < my)
-				matrix_set(p.x, p.y, &white);
+				matrix_set(p.x, p.y, white);
 
 		vec2 d = vadd(_p, vmul(p, -1));
 		dy = round(d.y);
@@ -64,7 +64,7 @@ int draw(int argc, char* argv[]) {
 			int y = (int) (fmin(p.y,_p.y) + i*d.y);
 			if (x >= 0 && x < mx)
 				if (y >= 0 && y < my)
-					matrix_set(x, y, &white);
+					matrix_set(x, y, white);
 		}
 		memcpy(&_p, &p, sizeof(p));
 	}

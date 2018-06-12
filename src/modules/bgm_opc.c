@@ -229,9 +229,9 @@ int draw(int argc, char ** argv) {
 			byte b = opc_array[indx++];
 			RGB rgb = RGB(r, g, b);
 #ifdef OPC_SNAKE
-			matrix_set(i, (i & 1) ? j : h - (j + 1), &rgb);
+			matrix_set(i, (i & 1) ? j : h - (j + 1), rgb);
 #else
-			matrix_set(i, j, &rgb);
+			matrix_set(i, j, rgb);
 #endif
 			if (indx == 65535)
 				break;

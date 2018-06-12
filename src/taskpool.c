@@ -41,13 +41,16 @@ static void tp_putjob(taskpool* pool, taskpool_job job) {
 	oscore_event_signal(pool->wakeup);
 }
 
-static taskpool_job* tp_getjob(taskpool* pool) {
-	taskpool_job* job = NULL;
+static taskpool_job tp_getjob(taskpool* pool) {
+	taskpool_job job = {
+		.func = NULL,
+		.ctx = NULL
+	};
 	oscore_mutex_lock(pool->lock);
 	// If we aren't already at the end of all that's written...
 	if (pool->jobs_reading != pool->jobs_writing) {
 		pool->jobs_reading = (pool->jobs_reading + 1) % pool->queue_size;
-		job = &pool->jobs[pool->jobs_reading];
+		job = pool->jobs[pool->jobs_reading];
 		oscore_mutex_unlock(pool->lock); // Note: This should be before the signal in case that has a scheduling effect.
 		// Made progress.
 		oscore_event_signal(pool->progress);
@@ -57,9 +60,9 @@ static taskpool_job* tp_getjob(taskpool* pool) {
 	return job;
 }
 
-static void taskpool_function(void* ctx) {
+static void * taskpool_function(void* ctx) {
 	taskpool* pool = (taskpool*) ctx;
-	taskpool_job* job;
+	taskpool_job job;
 	while (1) {
 		// Wait for the event to be triggered that says a task is ready. Wait 50ms, since any issues should only occur on shutdown.
 		oscore_event_wait_until(pool->wakeup, udate() + 50000UL);
@@ -67,12 +70,12 @@ static void taskpool_function(void* ctx) {
 			// It's possible that the event we just got covered multiple tasks.
 			// Accept as many tasks as possible during our active time.
 			if (pool->shutdown)
-				oscore_task_exit(0);
+				return NULL;
 
 			job = tp_getjob(pool);
 
-			if (job) {
-				job->func(job->ctx);
+			if (job.func) {
+				job.func(job.ctx);
 				// We did a job. Now yield for RT sanity
 				oscore_task_yield();
 			} else {
@@ -115,7 +118,7 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	return pool;
 }
 
-int taskpool_submit(taskpool* pool, oscore_task_function func, void* ctx) {
+int taskpool_submit(taskpool* pool, void (*func)(void*), void* ctx) {
 	if (pool->workers <= 1) {
 		// We're faking. This isn't a real taskpool.
 		func(ctx);
@@ -130,13 +133,13 @@ int taskpool_submit(taskpool* pool, oscore_task_function func, void* ctx) {
 }
 
 // Hellish stuff to run stuff in parallel.
-inline void taskpool_submit_array(taskpool* pool, int count, oscore_task_function func, void* ctx, size_t size) {
+inline void taskpool_submit_array(taskpool* pool, int count, void (*func)(void*), void* ctx, size_t size) {
 	for (int i = 0; i < count; i++)
 		taskpool_submit(pool, func, ctx + (i * size));
 }
 
 
-void taskpool_forloop(taskpool* pool, oscore_task_function func, int start, int end) {
+void taskpool_forloop(taskpool* pool, void (*func)(void*), int start, int end) {
 	int s = (start);
 	int c = (end) - s;
 	int* ctxs = malloc(sizeof(int) * c);

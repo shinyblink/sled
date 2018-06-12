@@ -13,7 +13,7 @@ int init(int moduleno, char* argstr) {
 int draw(int argc, char* argv[]) {
 	RGB color = RGB(randn(220), randn(220), randn(220));
 
-	matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, &color);
+	matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, color);
 
 	matrix_render();
 	return 0;
