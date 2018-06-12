@@ -56,7 +56,7 @@ ulong wait_until(ulong desired_usec) {
 }
 
 void wait_until_break(void) {
-#ifdef CIMODE
+#ifndef CIMODE
 	wait_until_break_core();
 #endif
 }
