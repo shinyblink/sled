@@ -8,3 +8,5 @@ script:
   - cp Makefiles/sledconf.ci ./sledconf
   - make -j
   - ./sled
+env:
+  - ASAN_OPTIONS="detect_odr_violation=1"
