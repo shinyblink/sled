@@ -9,6 +9,10 @@
 #define _GNU_SOURCE
 #endif
 
+#ifdef __APPLE__
+#define MSG_NOSIGNAL SO_NOSIGPIPE
+#endif
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -202,6 +206,14 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		matrix_set(x, y, pixel);
 		px_array[index] = pixel;
+	/*} else if (fast_str_startswith("OFFSET", line)) {
+		const char * ptr = line + 7;
+		const char * endptr = ptr;
+
+		uint32_t x = fast_strtoul10(ptr, &endptr);
+		if (endptr == ptr) {
+			net_err(client, "ERROR: Invalid command (expected decimal as first parameter");
+		} */
 	} else if (fast_str_startswith("SIZE", line)) {
 		char str[64];
 		snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
