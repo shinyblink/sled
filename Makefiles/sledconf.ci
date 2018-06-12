@@ -2,14 +2,12 @@
 # There may be other overridable things, see GNUmakefile for the absolute list.
 
 PROJECT := sled
-DEBUG := 0
+DEBUG := 1
 STATIC := 0
 PLATFORM := unix
 
-# Overriding CCFLAGS and such nullifies the effects of the higher-level stuff. So we won't do that
-
-# clang is required for this
-FLAGS = -march=native -faddress=sanitize,undefined
+# modern clang/gcc is required for this
+CFLAGS = -march=native -fsanitize=address,undefined
 
 DEFAULT_OUTMOD := dummy
 DEFAULT_MODULEDIR := "./modules"
