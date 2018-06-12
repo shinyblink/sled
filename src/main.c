@@ -123,7 +123,7 @@ static int pick_next_seq(int current_modno, ulong in) {
 				ci_iteration_count++;
 				if (ci_iteration_count > 10) { // maybe make this configurable, but its ok for now
 					timers_quitting = 1;
-					return;
+					return 0;
 				}
 #endif
 			}
