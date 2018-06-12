@@ -1,9 +1,12 @@
 os:
   - linux
   - osx
+osx_image: xcode9.2
 language: c
 compiler: clang
 script:
   - cp Makefiles/sledconf.ci ./sledconf
   - make -j
   - ./sled
+env:
+  - ASAN_OPTIONS="detect_odr_violation=1"
