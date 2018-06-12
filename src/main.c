@@ -49,7 +49,7 @@ static int deinit(void) {
 	return 0;
 }
 
-static int pick_other(int mymodno, ulong in) {
+static int pick_other(int current_modno, ulong in) {
 	oscore_mutex_lock(rmod_lock);
 	if (main_rmod_override != -1) {
 		int res = timer_add(in, main_rmod_override, main_rmod_override_argc, main_rmod_override_argv);
@@ -58,7 +58,7 @@ static int pick_other(int mymodno, ulong in) {
 		return res;
 	}
 	oscore_mutex_unlock(rmod_lock);
-	int mod;
+	int mod, next_mod;
 	int lastvalidmod = 0;
 	int usablemodcount = 0;
 	for (mod = 0; mod < modcount; mod++) {
@@ -68,22 +68,22 @@ static int pick_other(int mymodno, ulong in) {
 		lastvalidmod = mod;
 	}
 	if (usablemodcount > 1) {
-		mod = -1;
-		while (mod == -1) {
+		next_mod = -1;
+		while (next_mod == -1) {
 			int random = randn(modcount);
-			mod = random;
+			next_mod = random;
 
 			// Checks after.
-			if (mod == mymodno) mod = -1;
-			if (strcmp(modules_get(mod)->type, "gfx") != 0) mod = -1;
+			if (next_mod == current_modno) next_mod = -1;
+			if (strcmp(modules_get(next_mod)->type, "gfx") != 0) next_mod = -1;
 		}
 	} else if (usablemodcount == 1) {
-		mod = lastvalidmod;
+		next_mod = lastvalidmod;
 	} else {
 		in += 5000000;
-		mod = -2;
+		next_mod = -2;
 	}
-	return timer_add(in, mod, 0, NULL);
+	return timer_add(in, next_mod, 0, NULL);
 }
 
 void main_force_random(int mnum, int argc, char ** argv) {
