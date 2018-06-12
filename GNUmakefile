@@ -163,8 +163,8 @@ endif
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
  sled: $(OBJECTS)
-	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null` $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null` $(LIBS)
 else
  sled: $(OBJECTS) $(MODULES_WCO) $(ML_OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null`
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null`
 endif
