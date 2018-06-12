@@ -67,10 +67,12 @@ void reset(void) {
 			snprintf(displaybuff, columncount, "%s", curr->ifa_name);
 			lines[i] = text_render(displaybuff);
 			i++;
+			if (i >= linecount) break;
 
 			snprintf(displaybuff, columncount, "    %s", buff);
 			lines[i] = text_render(displaybuff);
 			i++;
+			if (i >= linecount) break;
 		}
 	}
 
