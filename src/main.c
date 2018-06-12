@@ -30,6 +30,10 @@ static char* *main_rmod_override_argv;
 const char default_moduledir[] = DEFAULT_MODULEDIR;
 static char* modpath = NULL;
 
+#ifdef CIMODE
+static int ci_iteration_count = 0;
+#endif
+
 static int deinit(void) {
 	printf("Cleaning up...\n");
 	int ret;
@@ -113,7 +117,16 @@ static int pick_next_seq(int current_modno, ulong in) {
 			next_mod++;
 
 			//wrap around
-			if (next_mod > modcount) next_mod = 0;
+			if (next_mod > modcount) {
+				next_mod = 0;
+#ifdef CIMODE
+				ci_iteration_count++;
+				if (ci_iteration_count > 10) { // maybe make this configurable, but its ok for now
+					timers_quitting = 1;
+					return;
+				}
+#endif
+			}
 
 			//found a gfx mod, take it
 			if (strcmp(modules_get(next_mod)->type, "gfx") == 0) done = 1;
