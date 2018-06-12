@@ -49,14 +49,14 @@ int render(void) {
 ulong wait_until(ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
 #ifdef CIMODE
-	return 0;
+	return desired_usec;
 #else
 	return wait_until_core(desired_usec);
 #endif
 }
 
 void wait_until_break(void) {
-#ifndef CIMODE
+#ifdef CIMODE
 	wait_until_break_core();
 #endif
 }
