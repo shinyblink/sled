@@ -72,10 +72,13 @@ void reset(void) {
 void drawrow(void* row) {
 	int py = *(int*) row;
 	int px;
+
+	if (py < 0 || py >= mx) return;
+
 	for (px = 0; px < mx; px++) {
 		float zoom = SCALE(frame, FRAMES) * MAXZOOM;
-		float x0 = ((SCALE(px, mx) * 3.5f) - 2.5f) / zoom;
-		float y0 = ((SCALE(py, my) * 2.0f) - 1.0f) / zoom;
+		float x0 = ((SCALE(px, mx) * 3.5f) - 2.5f) / zoom - 0.8f;
+		float y0 = ((SCALE(py, my) * 2.0f) - 1.0f) / zoom - 0.27f;
 
 		float x = 0;
 		float y = 0;
