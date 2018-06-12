@@ -8,6 +8,9 @@ PLATFORM := unix
 
 # Overriding CCFLAGS and such nullifies the effects of the higher-level stuff. So we won't do that
 
+# clang is required for this
+FLAGS = -march=native -faddress=sanitize,undefined
+
 DEFAULT_OUTMOD := dummy
 DEFAULT_MODULEDIR := "./modules"
 MODULES := $(MODULES_AVAILABLE) out_$(DEFAULT_OUTMOD)
