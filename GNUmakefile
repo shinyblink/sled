@@ -66,6 +66,7 @@ else
  # Optimizations become non-default if debugging is on, but can still be changed
  CFLAGS ?= -march=native
  CFLAGS += -Og -ggdb
+ CPPFLAGS += -DDEBUG
 endif
 CFLAGS ?= -O2 -march=native
 
