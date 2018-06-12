@@ -30,6 +30,10 @@ static char* *main_rmod_override_argv;
 const char default_moduledir[] = DEFAULT_MODULEDIR;
 static char* modpath = NULL;
 
+#ifdef CIMODE
+static int ci_iteration_count = 0;
+#endif
+
 static int deinit(void) {
 	printf("Cleaning up...\n");
 	int ret;
@@ -49,7 +53,7 @@ static int deinit(void) {
 	return 0;
 }
 
-static int pick_other(int mymodno, ulong in) {
+static int pick_next_random(int current_modno, ulong in) {
 	oscore_mutex_lock(rmod_lock);
 	if (main_rmod_override != -1) {
 		int res = timer_add(in, main_rmod_override, main_rmod_override_argc, main_rmod_override_argv);
@@ -58,7 +62,7 @@ static int pick_other(int mymodno, ulong in) {
 		return res;
 	}
 	oscore_mutex_unlock(rmod_lock);
-	int mod;
+	int mod, next_mod;
 	int lastvalidmod = 0;
 	int usablemodcount = 0;
 	for (mod = 0; mod < modcount; mod++) {
@@ -68,22 +72,81 @@ static int pick_other(int mymodno, ulong in) {
 		lastvalidmod = mod;
 	}
 	if (usablemodcount > 1) {
-		mod = -1;
-		while (mod == -1) {
+		next_mod = -1;
+		while (next_mod == -1) {
 			int random = randn(modcount);
-			mod = random;
+			next_mod = random;
 
 			// Checks after.
-			if (mod == mymodno) mod = -1;
-			if (strcmp(modules_get(mod)->type, "gfx") != 0) mod = -1;
+			if (next_mod == current_modno) next_mod = -1;
+			if (strcmp(modules_get(next_mod)->type, "gfx") != 0) next_mod = -1;
 		}
 	} else if (usablemodcount == 1) {
-		mod = lastvalidmod;
+		next_mod = lastvalidmod;
 	} else {
 		in += 5000000;
-		mod = -2;
+		next_mod = -2;
 	}
-	return timer_add(in, mod, 0, NULL);
+	return timer_add(in, next_mod, 0, NULL);
+}
+
+static int pick_next_seq(int current_modno, ulong in) {
+	oscore_mutex_lock(rmod_lock);
+	if (main_rmod_override != -1) {
+		int res = timer_add(in, main_rmod_override, main_rmod_override_argc, main_rmod_override_argv);
+		main_rmod_override = -1;
+		oscore_mutex_unlock(rmod_lock);
+		return res;
+	}
+	oscore_mutex_unlock(rmod_lock);
+
+	int mod, next_mod;
+	int lastvalidmod = 0;
+	int usablemodcount = 0;
+	for (mod = 0; mod < modcount; mod++) {
+		if (strcmp(modules_get(mod)->type, "gfx") != 0)
+			continue;
+		usablemodcount++;
+		lastvalidmod = mod;
+	}
+
+	if (usablemodcount > 1) {
+		next_mod = current_modno;
+		int done = 0;
+		while (!done) {
+			next_mod++;
+
+			//wrap around
+			if (next_mod > modcount) {
+				next_mod = 0;
+#ifdef CIMODE
+				ci_iteration_count++;
+				if (ci_iteration_count > 10) { // maybe make this configurable, but its ok for now
+					timers_quitting = 1;
+					return 0;
+				}
+#endif
+			}
+
+			//found a gfx mod, take it
+			if (strcmp(modules_get(next_mod)->type, "gfx") == 0) done = 1;
+		}
+	} else if (usablemodcount == 1) {
+		next_mod = lastvalidmod;
+	} else {
+		in += 5000000;
+		next_mod = -2;
+	}
+	return timer_add(in, next_mod, 0, NULL);
+}
+
+// this could also be easily rewritten to be an actual feature
+static int pick_next(int current_modno, ulong in) {
+#ifdef CIMODE
+	return pick_next_seq(current_modno, in);
+#else
+	return pick_next_random(current_modno, in);
+#endif
 }
 
 void main_force_random(int mnum, int argc, char ** argv) {
@@ -252,14 +315,14 @@ int sled_main(int argc, char** argv) {
 	signal(SIGINT, interrupt_handler);
 
 	// Startup.
-	pick_other(-1, udate());
+	pick_next(-1, udate());
 
 	int lastmod = -1;
 	while (!timers_quitting) {
 		timer tnext = timer_get();
 		if (tnext.moduleno == -1) {
 			// Queue random.
-			pick_other(lastmod, udate() + RANDOM_TIME * T_SECOND);
+			pick_next(lastmod, udate() + RANDOM_TIME * T_SECOND);
 		} else {
 			if (tnext.time > wait_until(tnext.time)) {
 				// Early break. Set this timer up for elimination by any 0-time timers that have come along
@@ -286,7 +349,7 @@ int sled_main(int argc, char** argv) {
 					if (ret == 1) {
 						if (lastmod != tnext.moduleno) // not an animation.
 							printf("\nModule chose to pass its turn to draw.");
-						pick_other(lastmod, udate() + T_MILLISECOND);
+						pick_next(lastmod, udate() + T_MILLISECOND);
 					} else {
 						eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
 						timers_quitting = 1;

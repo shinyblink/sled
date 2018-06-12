@@ -39,6 +39,9 @@ DEBUG ?= 0
 # By default, the kslink fake-dynamic-module system is NOT enabled.
 STATIC ?= 0
 
+# By default, we are not building for CI
+CIMODE ?= 0
+
 # By default, we're compiling for a generic Unix.
 # Available: 'unix', possibly '3ds'
 PLATFORM ?= unix
@@ -83,6 +86,10 @@ ifeq ($(STATIC),0)
   CFLAGS += -undefined dynamic_lookup
  endif
  CFLAGS += -fPIC
+endif
+
+ifeq ($(CIMODE),1)
+ CPPFLAGS += -DCIMODE
 endif
 
 LDSOFLAGS ?= -shared
@@ -157,8 +164,8 @@ endif
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
  sled: $(OBJECTS)
-	$(CC) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null` $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null` $(LIBS)
 else
  sled: $(OBJECTS) $(MODULES_WCO) $(ML_OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null`
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null`
 endif
