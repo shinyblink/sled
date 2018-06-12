@@ -39,6 +39,9 @@ DEBUG ?= 0
 # By default, the kslink fake-dynamic-module system is NOT enabled.
 STATIC ?= 0
 
+# By default, we are not building for CI
+CIMODE ?= 0
+
 # By default, we're compiling for a generic Unix.
 # Available: 'unix', possibly '3ds'
 PLATFORM ?= unix
@@ -82,6 +85,10 @@ ifeq ($(STATIC),0)
   CFLAGS += -undefined dynamic_lookup
  endif
  CFLAGS += -fPIC
+endif
+
+ifeq ($(CIMODE),1)
+ CPPFLAGS += -DCIMODE
 endif
 
 LDSOFLAGS ?= -shared
