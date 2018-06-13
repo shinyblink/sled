@@ -115,13 +115,17 @@ void * oscore_task_join(oscore_task task) {
 }
 
 void oscore_task_setprio(oscore_task task, int prio) {
-	int policy = SCHED_OTHER;
+struct sched_param param;
+	int policy;
+	pthread_getschedparam(pthread_self(), &policy, &param);
+
+#ifndef __APPLE__
 	if (prio == TPRIO_LOW)
 		policy = SCHED_BATCH;
+#else
+	param.sched_priority++; // decrease priority.
+#endif
 
-	struct sched_param param;
-	int pol_throwaway = 0;
-	pthread_getschedparam(pthread_self(), &pol_throwaway, &param);
 	pthread_setschedparam(*(pthread_t*) task, policy, &param);
 }
 
