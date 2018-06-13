@@ -82,7 +82,12 @@ static int pick_next_random(int current_modno, ulong in) {
 
 			// Checks after.
 			if (next_mod == current_modno) next_mod = -1;
-			if (strcmp(modules_get(next_mod)->type, "gfx") != 0) next_mod = -1;
+			module* mod = modules_get(next_mod);
+			if (!mod) {
+				next_mod = -1;
+			} else if (strcmp(mod->type, "gfx") != 0) {
+				next_mod = -1;
+			}
 		}
 	} else if (usablemodcount == 1) {
 		next_mod = lastvalidmod;

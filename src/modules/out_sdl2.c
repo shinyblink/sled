@@ -20,14 +20,11 @@
 #include <timers.h>
 
 // Calculation for amount of bytes needed.
-#define ROW_SIZE MATRIX_X * 3 // 3 for R, G and B.
-#define BUFFER_SIZE ROW_SIZE * MATRIX_Y
-#define MATRIX_PIXELS (MATRIX_X * MATRIX_Y)
-
 #include <SDL2/SDL.h>
 
 // SDL-based stuff, we need to create a buffer.
-static byte BUFFER[BUFFER_SIZE];
+static size_t BUFFER_SIZE;
+static RGB* BUFFER;
 
 static int sdl_event_break;
 
@@ -39,22 +36,33 @@ static SDL_Renderer *renderer;
 static SDL_Texture *texture;
 static SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 
+static int matx = MATRIX_X;
+static int maty = MATRIX_Y;
+
 int init(int modno, char *argstr) {
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
+
 	sdl_event_break = SDL_RegisterEvents(1);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
-	#ifdef SDLFULLSCREEN
+#ifdef SDLFULLSCREEN
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, SDL_WINDOW_FULLSCREEN_DESKTOP);
 	int ww, wh = 0;
 	SDL_GetWindowSize(window, &ww, &wh);
-	dest.x = (ww - WIN_W)/2;
-	dest.y = (wh - WIN_H)/2;
-	#else
+	dest.w = ww;
+	dest.h = wh;
+	matx = ww / SDL_SCALE_FACTOR;
+	maty = wh / SDL_SCALE_FACTOR;
+#else
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, 0);
-	#endif
+#endif
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, MATRIX_X, MATRIX_Y);
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, matx, maty);
+
+	BUFFER_SIZE = matx * maty * sizeof(RGB);
+	BUFFER = malloc(BUFFER_SIZE);
+	printf("buffer size of %i and %i = %zu\n", matx, maty, BUFFER_SIZE);
+	assert(BUFFER);
 
 	memset(BUFFER, 0, BUFFER_SIZE);
 
@@ -63,38 +71,36 @@ int init(int modno, char *argstr) {
 
 
 int getx(void) {
-	return MATRIX_X; // for now.
+	return matx;
 }
 int gety(void) {
-	return MATRIX_Y; // for now.
+	return maty;
 }
 
 static int matrix_ppos(int x, int y) {
-	return (x + (y * MATRIX_X));
+	return (x + (y * matx));
 }
 
 int set(int x, int y, RGB color) {
 	// Detect OOB access.
 	assert(x >= 0);
 	assert(y >= 0);
-	assert(x < MATRIX_X);
-	assert(y < MATRIX_Y);
+	assert(x < matx);
+	assert(y < maty);
 
-	int pos = matrix_ppos(x, y) * 3;
-	BUFFER[pos + 0] = color.red;
-	BUFFER[pos + 1] = color.green;
-	BUFFER[pos + 2] = color.blue;
+	int pos = matrix_ppos(x, y);
+	BUFFER[pos] = color;
 	return 0;
 }
 
 // Zeroes the stuff.
 int clear(void) {
-	memset(&BUFFER, 0, BUFFER_SIZE);
+	memset(BUFFER, 0, BUFFER_SIZE);
 	return 0;
 }
 
 int render(void) {
-	SDL_UpdateTexture(texture, NULL, BUFFER, ROW_SIZE);
+	SDL_UpdateTexture(texture, NULL, BUFFER, matx * 4);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
 	return 0;
@@ -136,5 +142,6 @@ int deinit(void) {
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+	free(BUFFER);
 	return 0;
 }

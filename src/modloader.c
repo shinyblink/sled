@@ -220,7 +220,7 @@ int modules_init(int *outmodno) {
 }
 
 module* modules_get(int moduleno) {
-	if (moduleno > modcount)
+	if (moduleno > modcount || moduleno < 0)
 		return NULL;
 	return &modules[moduleno];
 }
