@@ -129,5 +129,6 @@ int draw(int argc, char* argv[]) {
 
 int deinit(void) {
 	free(iters);
+	oscore_mutex_free(lock);
 	return 0;
 }
