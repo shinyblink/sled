@@ -10,3 +10,4 @@ script:
   - ./sled
 env:
   - ASAN_OPTIONS="detect_odr_violation=1"
+sudo: required
