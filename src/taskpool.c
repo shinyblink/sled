@@ -146,16 +146,17 @@ static int* taskpool_numbers;
 static int taskpool_numbers_maxn = 0;
 
 void taskpool_forloop(taskpool* pool, void (*func)(void*), int start, int end) {
-	int s = (start);
+	int s = MAX(start, 0);
 	int c = (end) - s;
 
 	if (end > taskpool_numbers_maxn) {
-		taskpool_numbers_maxn = MAX(end, taskpool_numbers_maxn);
-		taskpool_numbers = realloc(taskpool_numbers, taskpool_numbers_maxn * sizeof(int));;
+		taskpool_numbers = realloc(taskpool_numbers, end * sizeof(int));;
 		assert(taskpool_numbers);
 
 		for (int i = taskpool_numbers_maxn; i < end; i++)
 			taskpool_numbers[i] = i;
+
+		taskpool_numbers_maxn = end;
 	}
 
 	taskpool_submit_array(pool, c, func, &taskpool_numbers[s], sizeof(int));
