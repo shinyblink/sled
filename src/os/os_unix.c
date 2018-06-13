@@ -116,11 +116,12 @@ void * oscore_task_join(oscore_task task) {
 
 void oscore_task_setprio(oscore_task task, int prio) {
 	int policy = SCHED_OTHER;
-	if (prio = TPRIO_LOW)
+	if (prio == TPRIO_LOW)
 		policy = SCHED_BATCH;
 
-	struct sched_param param = { .sched_priority = policy };
-
+	struct sched_param param;
+	int pol_throwaway = 0;
+	pthread_getschedparam(pthread_self(), &pol_throwaway, &param);
 	pthread_setschedparam(*(pthread_t*) task, policy, &param);
 }
 
