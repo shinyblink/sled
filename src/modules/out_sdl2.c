@@ -46,7 +46,11 @@ int init(int modno, char *argstr) {
 	sdl_event_break = SDL_RegisterEvents(1);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
 #ifdef SDLFULLSCREEN
-	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, SDL_WINDOW_FULLSCREEN_DESKTOP);
+	SDL_DisplayMode dispmode;
+	if (SDL_GetCurrentDisplayMode(0, &dispmode) != 0)
+		return 2;
+
+	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, dispmode.w, dispmode.h, SDL_WINDOW_FULLSCREEN_DESKTOP);
 	int ww, wh = 0;
 	SDL_GetWindowSize(window, &ww, &wh);
 	dest.w = ww;
