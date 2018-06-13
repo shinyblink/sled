@@ -108,6 +108,7 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 		for (int i = 0; i < workers; i++) {
 			pool->tasks[pool->workers] = oscore_task_create(pool_name, taskpool_function, pool);
 			if (pool->tasks[pool->workers])
+				oscore_task_setprio(pool->tasks[pool->workers], TPRIO_LOW);
 				pool->workers++;
 		}
 		pool->workers = workers;

@@ -1,6 +1,8 @@
 // os_unix
 // The platform specific code for UNIX-likes.
 
+#define _GNU_SOURCE
+
 #include "../types.h"
 #include "../oscore.h"
 #include "../main.h"
@@ -15,7 +17,6 @@
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <pthread_np.h>
 #endif
-
 
 // Main method.
 int main(int argc, char** argv) {
@@ -111,6 +112,16 @@ void * oscore_task_join(oscore_task task) {
 	}
 	free(task);
 	return retval;
+}
+
+void oscore_task_setprio(oscore_task task, int prio) {
+	int policy = SCHED_OTHER;
+	if (prio = TPRIO_LOW)
+		policy = SCHED_BATCH;
+
+	struct sched_param param = { .sched_priority = policy };
+
+	pthread_setschedparam(*(pthread_t*) task, policy, &param);
 }
 
 int oscore_ncpus(void) {

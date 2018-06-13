@@ -31,6 +31,11 @@ void oscore_task_exit(void * status);
 void * oscore_task_join(oscore_task task);
 int oscore_ncpus(void);
 
+#define TPRIO_HIGH 1
+#define TPRIO_NORMAL 0
+#define TPRIO_LOW -1
+void oscore_task_setprio(oscore_task task, int prio);
+
 typedef void* oscore_mutex;
 oscore_mutex oscore_mutex_new(void);
 void oscore_mutex_free(oscore_mutex ev);
