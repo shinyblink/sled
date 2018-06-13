@@ -47,6 +47,9 @@ static int deinit(void) {
 	if (main_rmod_override != -1)
 		asl_free_argv(main_rmod_override_argc, main_rmod_override_argv);
 
+	taskpool_forloop_free();
+	taskpool_destroy(TP_GLOBAL);
+
 	free(modpath);
 
 	printf("Goodbye. :(\n");

@@ -114,6 +114,7 @@ int draw(int argc, char* argv[]) {
 	int py;
 
 	taskpool_forloop(TP_GLOBAL, &drawrow, 0, my);
+	taskpool_wait(TP_GLOBAL);
 
 	matrix_render();
 	if (frame >= FRAMES) {

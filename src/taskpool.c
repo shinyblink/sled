@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "types.h"
 #include "timers.h"
+#include <stdlib.h>
 
 // So, the locking system needed a bit of a rethink...
 // (the taskpool can't run until the queue is full)
@@ -140,22 +141,29 @@ inline void taskpool_submit_array(taskpool* pool, int count, void (*func)(void*)
 }
 
 
+// Since we
+static int* taskpool_numbers;
+static int taskpool_numbers_maxn = 0;
+
 void taskpool_forloop(taskpool* pool, void (*func)(void*), int start, int end) {
 	int s = (start);
 	int c = (end) - s;
-	int* ctxs = malloc(sizeof(int) * c);
-	assert(ctxs);
 
-	int ctx = 0;
-	for (int i = s; i < c; i++) {
-		ctxs[ctx] = i;
-		ctx++;
+	if (end > taskpool_numbers_maxn) {
+		taskpool_numbers_maxn = MAX(end, taskpool_numbers_maxn);
+		taskpool_numbers = realloc(taskpool_numbers, taskpool_numbers_maxn * sizeof(int));;
+		assert(taskpool_numbers);
+
+		for (int i = taskpool_numbers_maxn; i < end; i++)
+			taskpool_numbers[i] = i;
 	}
 
-	taskpool_submit_array(pool, c, func, ctxs, sizeof(int));
-	taskpool_wait(pool);
+	taskpool_submit_array(pool, c, func, &taskpool_numbers[s], sizeof(int));
+}
 
-	free(ctxs);
+void taskpool_forloop_free(void) {
+	if (taskpool_numbers)
+		free(taskpool_numbers);
 }
 
 void taskpool_wait(taskpool* pool) {

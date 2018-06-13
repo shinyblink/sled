@@ -40,5 +40,6 @@ taskpool* TP_GLOBAL __attribute__((weak));
 // Hellish stuff to run stuff in parallel simpler.
 void taskpool_submit_array(taskpool* pool, int count, void (*func)(void*), void* ctx, size_t size );
 void taskpool_forloop(taskpool* pool, void (*func)(void*), int start, int end);
+void taskpool_forloop_free(void);
 
 #endif
