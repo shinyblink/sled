@@ -116,6 +116,7 @@ void reset(void) {
 }
 
 int draw(int argc, char* argv[]) {
+	nexttick = udate() + FRAMETIME;
 	// increase the run variables by the const amounts set above
 	pangle = addmodpi( pangle, inc_angle + (angle*var_angle) );
 	angle = cosf(pangle) * M_PI;
@@ -186,7 +187,6 @@ int draw(int argc, char* argv[]) {
 		return 1;
 	}
 	frame++;
-	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
 	return 0;
 }
