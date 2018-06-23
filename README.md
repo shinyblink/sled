@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/vifino/sled.svg?branch=master)](https://travis-ci.org/vifino/sled)
-
-# sled: The satanic LED controller.
+# sled: The satanic LED controller. [![Build Status](https://travis-ci.org/vifino/sled.svg?branch=master)](https://travis-ci.org/shinyblink/sled)
 
 Modular LED Matrix controller.
 
