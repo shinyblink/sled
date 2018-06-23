@@ -119,7 +119,7 @@ struct sched_param param;
 	int policy;
 	pthread_getschedparam(pthread_self(), &policy, &param);
 
-#ifndef __APPLE__
+#if defined(__linux__) || defined(__FreeBSD__)
 	if (prio == TPRIO_LOW)
 		policy = SCHED_BATCH;
 #else
