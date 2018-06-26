@@ -6,11 +6,11 @@ DEBUG := 0
 STATIC := 0
 PLATFORM := unix
 
-# Overriding CCFLAGS and such nullifies the effects of the higher-level stuff. So we won't do that
+# Avoid touching CFLAGS too much.
 
 DEFAULT_OUTMOD := sdl2
 DEFAULT_MODULEDIR := "./modules"
-MODULES := $(MODULES_AVAILABLE) out_$(DEFAULT_OUTMOD)
+MODULES := $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
 
 MATRIX_X := 64
 MATRIX_Y := 64
