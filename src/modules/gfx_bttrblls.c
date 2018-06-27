@@ -28,6 +28,21 @@ static ball* balls;
 
 static RGB black = RGB(0, 0, 0);
 
+RGB colorwheel(int angle){
+    angle = angle % 768;
+    int t = (angle / 256)%3;
+    int v = angle % 256;
+    switch (t){
+    case 0: return RGB(255-v,v,0);
+    case 1: return RGB(0,255-v,v);
+    case 2: return RGB(v,0,255-v);
+    }
+}
+
+RGB randcolor(){
+    return colorwheel(randn(768));
+}
+
 int init(int moduleno, char* argstr) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
@@ -35,8 +50,8 @@ int init(int moduleno, char* argstr) {
 	if ((mx * my) < 16)
 		return 1;
 
-	//numballs = (mx * my) / 16; // not sure if this is the best thing to do, but meh.
-    numballs = 16;
+	numballs = (mx * my) / 16; // not sure if this is the best thing to do, but meh.
+    //numballs = 16;
 	balls = malloc(numballs * sizeof(ball));
 
 	modno = moduleno;
@@ -48,8 +63,10 @@ void randomize_balls(void) {
 	int ball;
 	int mx = matrix_getx();
 	int my = matrix_gety();
+    int color_offset = randn(768);
 	for (ball = 0; ball < numballs; ++ball) {
-		balls[ball].color = RGB(randn(255), randn(255), randn(255));
+		//balls[ball].color = RGB(randn(255), randn(255), randn(255));
+        balls[ball].color = colorwheel(randn(256)+color_offset);
 
 		balls[ball].pos_x = randn(mx - 1);
 		balls[ball].pos_y = randn(my - 1);
@@ -58,7 +75,7 @@ void randomize_balls(void) {
             balls[ball].vel_x = randn(8) - 4;
             balls[ball].vel_y = randn(8) - 4;
         } while (0 == (balls[ball].vel_x | balls[ball].vel_y));
-        printf("%i %i + %i %i\n",balls[ball].pos_x,balls[ball].pos_y,balls[ball].vel_x,balls[ball].vel_y);
+        //printf("%i %i + %i %i\n",balls[ball].pos_x,balls[ball].pos_y,balls[ball].vel_x,balls[ball].vel_y);
 	}
 }
 
