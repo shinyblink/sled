@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#define FPS 30
+#define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (RANDOM_TIME * FPS)
 
@@ -29,18 +29,21 @@ static ball* balls;
 static RGB black = RGB(0, 0, 0);
 
 RGB colorwheel(int angle){
-    angle = angle % 768;
-    int t = (angle / 256)%3;
+    angle = angle % 1536;
+    int t = (angle / 256)%6;
     int v = angle % 256;
     switch (t){
-    case 0: return RGB(255-v,v,0);
-    case 1: return RGB(0,255-v,v);
-    case 2: return RGB(v,0,255-v);
+    case 0: return RGB(255,v,0);
+    case 1: return RGB(255-v,255,0);
+    case 2: return RGB(0,255,v);
+    case 3: return RGB(0,255-v,255);
+    case 4: return RGB(v,0,255);
+    case 5: return RGB(255,0,255-v);
     }
 }
 
 RGB randcolor(){
-    return colorwheel(randn(768));
+    return colorwheel(randn(1536));
 }
 
 int init(int moduleno, char* argstr) {
@@ -63,10 +66,10 @@ void randomize_balls(void) {
 	int ball;
 	int mx = matrix_getx();
 	int my = matrix_gety();
-    int color_offset = randn(768);
+    int color_offset = randn(1536);
 	for (ball = 0; ball < numballs; ++ball) {
 		//balls[ball].color = RGB(randn(255), randn(255), randn(255));
-        balls[ball].color = colorwheel(randn(256)+color_offset);
+        balls[ball].color = colorwheel(randn(512)+color_offset);
 
 		balls[ball].pos_x = randn(mx - 1);
 		balls[ball].pos_y = randn(my - 1);
