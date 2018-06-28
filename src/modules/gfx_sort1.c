@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#define FPS 120
+#define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (RANDOM_TIME * FPS) * 10
 
@@ -19,11 +19,14 @@ static ulong nexttick;
 int * data;
 int sorted;
 int boring;
+int dir;
+int second_stage;
 
 // SETTINGS
-const int color_range = 512;
-const int swaps_per_frame = 300;
+const int color_range = 700;
+const int swaps_per_frame = 500;
 const int boring_threshold = 10;
+const int soft_boring_threshold = 50;
 
 
 
@@ -67,9 +70,20 @@ void scmp(int * a, int * b){
 }
 
 void swapper(int * a, int * b, int * c, int * d){
-    scmp(a,d);
-    scmp(c,b);
-    scmp(a,c);
+    switch(dir){
+        case 1:
+            scmp(d,a);
+            scmp(c,b);
+            scmp(d,c);
+            scmp(b,a);
+            scmp(d,a);
+            scmp(c,b);
+            break;
+        default:
+            scmp(a,d);
+            scmp(c,b);
+            scmp(a,c);
+    }
     //if (randn(4) & 1) scmp(b,c); else scmp(c,b);
 }
 
@@ -90,6 +104,14 @@ void sort_data(){
         }
         swapper(p,p+1,p+mx,p+mx+1);
     }
+    if (boring < soft_boring_threshold){
+        dir = 1;
+        second_stage = frame+frame/4;
+    }
+    if (dir == 1){
+        if (! --second_stage) reset();
+    }
+
 }
 
 
@@ -108,6 +130,8 @@ void reset(void) {
 	nexttick = udate();
 	matrix_clear();
 	frame = 0;
+    dir = 0;
+    second_stage=0;
 }
 
 int draw(int argc, char* argv[]) {
@@ -122,8 +146,8 @@ int draw(int argc, char* argv[]) {
             matrix_set(i,j,colorwheel(data[i+mx*j]));
         }
     }
-    if (boring < boring_threshold){
-        fill_data();
+    if (boring < 0){
+        reset();
         return 1;
     }
 
