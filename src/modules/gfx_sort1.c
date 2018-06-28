@@ -19,6 +19,7 @@ static ulong nexttick;
 int * data;
 int sorted;
 int boring;
+int non_boring;
 int dir;
 int second_stage;
 
@@ -29,6 +30,7 @@ const int boring_threshold = 10;
 const int soft_boring_threshold = 50;
 
 
+void own_reset();
 
 RGB colorwheel(int angle){
     //angle = angle % 1536;
@@ -108,9 +110,6 @@ void sort_data(){
         dir = 1;
         second_stage = frame+frame/4;
     }
-    if (dir == 1){
-        if (! --second_stage) reset();
-    }
 
 }
 
@@ -124,14 +123,18 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-
-void reset(void) {
+void own_reset(){
     fill_data();
-	nexttick = udate();
-	matrix_clear();
 	frame = 0;
     dir = 0;
     second_stage=0;
+}
+
+
+void reset(void) {
+    own_reset();
+	nexttick = udate();
+	matrix_clear();
 }
 
 int draw(int argc, char* argv[]) {
@@ -146,7 +149,11 @@ int draw(int argc, char* argv[]) {
             matrix_set(i,j,colorwheel(data[i+mx*j]));
         }
     }
-    if (boring < 0){
+    if (dir == 1){
+        reset();
+        if (! --second_stage) return 1;
+    }
+    if (second_stage < 0 || boring < boring_threshold){
         reset();
         return 1;
     }
