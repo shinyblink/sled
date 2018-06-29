@@ -52,7 +52,8 @@ int init(int modno, char *argstr) {
 
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, dispmode.w, dispmode.h, SDL_WINDOW_FULLSCREEN_DESKTOP);
 	int ww, wh = 0;
-	SDL_GetWindowSize(window, &ww, &wh);
+	while (ww == 0 || wh == 0)
+		SDL_GetWindowSize(window, &ww, &wh);
 	dest.w = ww;
 	dest.h = wh;
 	matx = ww / SDL_SCALE_FACTOR;
