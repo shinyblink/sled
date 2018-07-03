@@ -98,6 +98,17 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
+RGB get(int x, int y) {
+	// Detect OOB access.
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < matx);
+	assert(y < maty);
+
+	int pos = matrix_ppos(x, y);
+	return BUFFER[pos]
+}
+
 // Zeroes the stuff.
 int clear(void) {
 	memset(BUFFER, 0, BUFFER_SIZE);

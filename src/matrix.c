@@ -42,6 +42,10 @@ int matrix_set(int x, int y, RGB color) {
 	return outmod->set(x, y, color);
 }
 
+RGB matrix_get(int x, int y) {
+	return outmod->get(x, y);
+}
+
 // Fills part of the matrix with jo-- a single color.
 int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB color) {
 	if (start_x > end_x)

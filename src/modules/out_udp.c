@@ -155,6 +155,16 @@ int set(int x, int y, RGB .color) {
 	return 0;
 }
 
+RGB get(int x, int y) {
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < X_SIZE);
+	assert(y < Y_SIZE);
+
+	int pos = (ppos(x, y) * 3) + 1;
+	return RGB(message[pos + 0], message[pos + 1], message[pos + 2]);
+}
+
 int clear(void) {
 	// message[1] to skip a byte (the 0xAA);
 	memset(&message[1], '\0', NUMPIX);

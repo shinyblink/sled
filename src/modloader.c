@@ -79,6 +79,7 @@ int modules_loadmod(module* mod, char name[256]) {
 
 	if (strcmp(mod->type, "out") == 0 || strcmp(mod->type, "flt") == 0) {
 		mod->set = dlookup(handle, name, "set");
+		mod->get = dlookup(handle, name, "get");
 		mod->clear = dlookup(handle, name, "clear");
 		mod->render = dlookup(handle, name, "render");
 		mod->getx = dlookup(handle, name, "getx");

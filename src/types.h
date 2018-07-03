@@ -37,8 +37,11 @@ extern RGB HSV2RGB(HSV hsv);
 extern HSV RGB2HSV(RGB rgb);
 
 // Macro for painless colors.
-#define RGB(r, g, b) ((RGB) { .red = (byte) (r), .green = (byte) (g), .blue = (byte) (b), .alpha = 255 } )
-#define HSV(hue, sat, val) ((HSV) { .h = (byte) (hue), .s = (byte) (sat), .v = (byte) (val), .pad = 0 } )
+#define RGB_C(r, g, b) ((RGB) { .red = (byte) (r), .green = (byte) (g), .blue = (byte) (b), .alpha = 255 } )
+#define HSV_C(hue, sat, val) ((HSV) { .h = (byte) (hue), .s = (byte) (sat), .v = (byte) (val), .pad = 0 } )
+
+#define RGB(r, g, b) RGB_C(r, g, b)
+#define HSV(h, s, v) HSV_C(h, s, v)
 
 // Module and timer stuff.
 #ifndef MAX_MODULES

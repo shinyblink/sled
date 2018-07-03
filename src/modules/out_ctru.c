@@ -158,6 +158,13 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
+RGB get(int x, int y) {
+	y = fb_w - y - 1;
+	x = fb_h - x - 1;
+	u32 v = fb[y + (x * tex_w)];
+	return RGB((v >> 24) & 0xFF, (v >> 16) & 0xFF, (v >> 8) & 0xFF);
+}
+
 int clear(void) {
 	memset(fb, 0, tex_w * tex_h * 4);
 	return 0;

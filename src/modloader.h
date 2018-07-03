@@ -5,6 +5,8 @@
 
 #include "types.h"
 
+#undef RGB
+
 typedef struct module {
 	char name[256];
 	char type[4];
@@ -15,6 +17,7 @@ typedef struct module {
 	void (*reset)(void);
 	int (*draw)(int argc, char* argv[]);
 	int (*set)(int x, int y, RGB color);
+	RGB (*get)(int x, int y);
 	int (*clear)(void);
 	int (*render)(void);
 	int (*getx)(void);
@@ -23,6 +26,8 @@ typedef struct module {
 	ulong (*wait_until)(ulong desired_usec);
 	void (*wait_until_break)();
 } module;
+
+#define RGB(r, g, b) RGB_C(r, g, b)
 
 extern void* dlookup(void* handle, char* modname, char* name);
 extern int modules_deinit(void);
