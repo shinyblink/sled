@@ -44,9 +44,13 @@ static int comparisons_cold;
 static int exit_flag;
 
 // SETTINGS
-static const int color_range = 700;
-static const int generator_step = 8;
-static const int boring_percentage = 8;
+static const int s_color_range = 700;
+static const int s_generator_step = 8;
+static const int s_boring_percentage = 8;
+
+// GENERATED SETTINGS
+static int boring_percentage = 1;
+static int color_range = 700;
 
 
 static void own_reset();
@@ -82,6 +86,47 @@ static void fill_data(){
     for (int i=0;i<(mx*my+1)/8;i++) data_bitmask[i] = 0xff;
 }
 
+void generate_settings(){
+    uint r = rand();
+	dir = (r & 1) * 2;
+    r >>= 1;
+    switch ((r&3)){
+        case 0:
+        case 1:
+        case 2:
+            dir = 0;
+            boring_percentage = s_boring_percentage;
+            break;
+        case 3:
+            dir = 2;
+            boring_percentage = 1;
+            break;
+    }
+    r >>= 2;
+
+    switch (r&7){
+        case 0:
+        case 1:
+        case 2:
+            color_range = 700;
+            break;
+        case 3:
+            color_range = 5000;
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+            color_range = 1500;
+            break;
+    }
+    r >>= 3;
+
+	frame = 0;
+	second_stage=0;
+    exit_flag=0;
+}
+
 static void scmp(int * a, int * b){
 	int t;
 	if (*a < *b){
@@ -96,18 +141,25 @@ static void scmp(int * a, int * b){
 
 static void swapper(int * a, int * b, int * c, int * d){
 	switch(dir){
-		case 1:
-			scmp(d,a);
-			scmp(c,b);
-			scmp(d,c);
-			scmp(b,a);
-			//scmp(d,a);
-			//scmp(c,b);
-			break;
+        case 0:
 		default:
 			scmp(a,d);
 			scmp(c,b);
 			scmp(a,c);
+            break;
+		case 1:
+			scmp(d,a);
+			scmp(c,b);
+			scmp(d,c);
+			break;
+        case 2:
+            scmp(a,d);
+            scmp(a,c);
+            break;
+        case 3:
+			scmp(d,a);
+			scmp(d,c);
+            break;
 	}
 	//if (randn(4) & 1) scmp(b,c); else scmp(c,b);
 }
@@ -123,8 +175,8 @@ static void sort_data(){
     // generate random points
     for (int i = 0;;){
             if (entropy == 0) entropy = rand();
-            int step = entropy % generator_step;
-            entropy /= generator_step;
+            int step = entropy % s_generator_step;
+            entropy /= s_generator_step;
             i += step;
             if (i%mx >= mx-1) i++;
             if (i + mx + 1 > (mx * my)) break;
@@ -142,14 +194,23 @@ static void sort_data(){
 
 
 	if (comparisons_hot * 100 < boring_percentage * (comparisons_cold + comparisons_hot)){
-        if (dir == 0){
-            dir = 1;
-            second_stage = frame+frame/3;
-        } else {
-            exit_flag = 1;
+        switch (dir){
+            case 0:
+                dir = 1;
+                second_stage = frame+frame/3;
+                break;
+            case 1:
+                exit_flag = 1;
+                break;
+            case 2:
+                dir = 2;
+                if (second_stage == 0) second_stage = frame/3;
+                break;
+            case 3:
+                break;
         }
 	}
-    if (dir == 1 && --second_stage <= 0) {
+    if (second_stage && --second_stage == 0){
         exit_flag = 1;
     }
 
@@ -169,10 +230,7 @@ int init(int moduleno, char* argstr) {
 
 static void own_reset(){
 	fill_data();
-	frame = 0;
-	dir = 0;
-	second_stage=0;
-    exit_flag=0;
+    generate_settings();
 
     // timing
 #ifdef SORT_TIMING
