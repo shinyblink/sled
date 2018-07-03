@@ -106,7 +106,7 @@ RGB get(int x, int y) {
 	assert(y < maty);
 
 	int pos = matrix_ppos(x, y);
-	return BUFFER[pos]
+	return BUFFER[pos];
 }
 
 // Zeroes the stuff.
