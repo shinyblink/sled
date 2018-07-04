@@ -1,5 +1,6 @@
-// Debug filter.
-// Does nothing but pass things through, but logging first.
+// Scaling filter.
+// Does simple upscaling.
+// No filtering or anything like that.
 
 #include <types.h>
 #include <timers.h>
@@ -52,6 +53,12 @@ int set(int x, int y, RGB color) {
 			if (ret != 0) return ret;
 		};
 	return 0;
+}
+
+RGB get(int x, int y) {
+	// Since we set all the pixels,
+	// we know the scaled block will have the same colors.
+	return next->get(x * scale, y * scale);
 }
 
 int clear(void) {

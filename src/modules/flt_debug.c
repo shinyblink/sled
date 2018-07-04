@@ -43,6 +43,12 @@ int set(int x, int y, RGB color) {
 	return next->set(x, y, color);
 }
 
+RGB get(int x, int y) {
+	printf("Getting color at (%i,%i).\n", x, y);
+	assert(next != NULL);
+	return next->get(x, y);
+}
+
 int clear(void) {
 	printf("clear\n");
 	fflush(stdout);
