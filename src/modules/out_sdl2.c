@@ -52,7 +52,8 @@ int init(int modno, char *argstr) {
 
 	window = SDL_CreateWindow("sled: DEBUG Platform", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, dispmode.w, dispmode.h, SDL_WINDOW_FULLSCREEN_DESKTOP);
 	int ww, wh = 0;
-	SDL_GetWindowSize(window, &ww, &wh);
+	while (ww == 0 || wh == 0)
+		SDL_GetWindowSize(window, &ww, &wh);
 	dest.w = ww;
 	dest.h = wh;
 	matx = ww / SDL_SCALE_FACTOR;
@@ -95,6 +96,17 @@ int set(int x, int y, RGB color) {
 	int pos = matrix_ppos(x, y);
 	BUFFER[pos] = color;
 	return 0;
+}
+
+RGB get(int x, int y) {
+	// Detect OOB access.
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < matx);
+	assert(y < maty);
+
+	int pos = matrix_ppos(x, y);
+	return BUFFER[pos];
 }
 
 // Zeroes the stuff.

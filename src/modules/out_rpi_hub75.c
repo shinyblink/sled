@@ -89,6 +89,10 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
+RGB get(int x, int y) {
+	return buffer[PPOS(x, y)];
+}
+
 int clear(void) {
 	// clear this canvas, make sure we clean it on the double buffer too.
 	// problem with this is that it needs a render call.

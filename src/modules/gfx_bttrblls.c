@@ -28,7 +28,7 @@ static ball* balls;
 
 static RGB black = RGB(0, 0, 0);
 
-RGB colorwheel(int angle){
+static RGB colorwheel(int angle){
     angle = angle % 1536;
     int t = (angle / 256)%6;
     int v = angle % 256;
@@ -42,7 +42,7 @@ RGB colorwheel(int angle){
     }
 }
 
-RGB randcolor(){
+static RGB randcolor(){
     return colorwheel(randn(1536));
 }
 

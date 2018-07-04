@@ -43,7 +43,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void randomize_balls(void) {
+static void randomize_balls(void) {
 	int ball;
 	int mx = matrix_getx();
 	int my = matrix_gety();
@@ -58,7 +58,7 @@ void randomize_balls(void) {
 	}
 }
 
-void update_balls(void) {
+static void update_balls(void) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
 
@@ -71,20 +71,20 @@ void update_balls(void) {
 
 		if (x < 0) {
 			x = 0;
-			balls[ball].vel_x = 1;
+			balls[ball].vel_x = -balls[ball].vel_x;
 		}
 		if (y < 0) {
 			y = 0;
-			balls[ball].vel_y = 1;
+			balls[ball].vel_y = -balls[ball].vel_y;
 		}
 
 		if (x >= mx) {
 			x = mx - 1;
-			balls[ball].vel_x = -1;
+			balls[ball].vel_x = -balls[ball].vel_x;
 		}
 		if (y >= my) {
 			y = my - 1;
-			balls[ball].vel_y = -1;
+			balls[ball].vel_y = -balls[ball].vel_y;
 		}
 
 		balls[ball].pos_x = x;

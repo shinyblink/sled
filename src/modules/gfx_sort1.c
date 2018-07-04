@@ -1,4 +1,10 @@
-// Simple projectile/ball animation.
+// a kind of 2D Bubblesort
+// The sorting Network for 2x2 px looks like:
+// A B
+// |X   
+// C D
+//
+// This is applied to random points
 
 #include <types.h>
 #include <matrix.h>
@@ -6,157 +12,286 @@
 #include <random.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <timers.h>
+#include <stdio.h>
 
-#define FPS 30
+#define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (RANDOM_TIME * FPS) * 10
 
+// calculate and print timing information
+#define SORT_TIMING
+// Use bitmask to store where updates happened
+// Seems faster without on an i5
+//#define USE_BITMASK
 static int modno;
 static ulong frame;
 static ulong nexttick;
 
+static ulong t1;
+static ulong t2;
+static ulong t3;
+static ulong td1_acc;
+static ulong td2_acc;
+static ulong timer_n;
 
-int * data;
-int sorted;
-int boring;
-int dir;
-int second_stage;
+static int * data;
+static char * data_bitmask;
+static int dir;
+static int second_stage;
+static int comparisons_hot;
+static int comparisons_cold;
+static int exit_flag;
 
 // SETTINGS
-const int color_range = 700;
-const int swaps_per_frame = 500;
-const int boring_threshold = 10;
-const int soft_boring_threshold = 50;
+static const int s_color_range = 700;
+static const int s_generator_step = 8;
+static const int s_boring_percentage = 8;
+
+// GENERATED SETTINGS
+static int boring_percentage = 1;
+static int color_range = 700;
 
 
+static void own_reset();
 
-RGB colorwheel(int angle){
-    //angle = angle % 1536;
-    int t = (angle / 256)%6;
-    int v = angle % 256;
-    switch (t){
-    case 0: return RGB(255,v,0);
-    case 1: return RGB(255-v,255,0);
-    case 2: return RGB(0,255,v);
-    case 3: return RGB(0,255-v,255);
-    case 4: return RGB(v,0,255);
-    case 5: return RGB(255,0,255-v);
-    }
+static RGB colorwheel(int angle){
+	//angle = angle % 1536;
+	int t = (angle / 256)%6;
+	int v = angle % 256;
+	switch (t){
+	case 0: return RGB(255,v,0);
+	case 1: return RGB(255-v,255,0);
+	case 2: return RGB(0,255,v);
+	case 3: return RGB(0,255-v,255);
+	case 4: return RGB(v,0,255);
+	case 5: return RGB(255,0,255-v);
+	}
 }
 
-RGB randcolor(){
-    return colorwheel(randn(1536));
+static RGB randcolor(){
+	return colorwheel(randn(1536));
 }
 
-void fill_data(){
-    int mx = matrix_getx();
-    int my = matrix_gety();
-    int color_offset = randn(1536);
-    for (int i=0;i<mx;i++){
-        for (int j=0;j<my;j++){
-            data[i+j*mx] = randn(color_range) + color_offset;
-        }
-    }
+static void fill_data(){
+	int mx = matrix_getx();
+	int my = matrix_gety();
+	int color_offset = randn(1536);
+	for (int i=0;i<mx;i++){
+		for (int j=0;j<my;j++){
+			data[i+j*mx] = randn(color_range) + color_offset;
+            matrix_set(i,j,colorwheel(data[i+mx*j]));
+		}
+	}
+    for (int i=0;i<(mx*my+1)/8;i++) data_bitmask[i] = 0xff;
 }
 
-void scmp(int * a, int * b){
-    int t;
-    if (*a < *b){
-        t=*a;
-        *a=*b;
-        *b=t;
-        boring++;
-    }
-}
-
-void swapper(int * a, int * b, int * c, int * d){
-    switch(dir){
+void generate_settings(){
+    uint r = rand();
+	dir = (r & 1) * 2;
+    r >>= 1;
+    switch ((r&3)){
+        case 0:
         case 1:
-            scmp(d,a);
-            scmp(c,b);
-            scmp(d,c);
-            scmp(b,a);
-            scmp(d,a);
-            scmp(c,b);
+        case 2:
+            dir = 0;
+            boring_percentage = s_boring_percentage;
             break;
-        default:
-            scmp(a,d);
-            scmp(c,b);
-            scmp(a,c);
+        case 3:
+            dir = 2;
+            boring_percentage = 1;
+            break;
     }
-    //if (randn(4) & 1) scmp(b,c); else scmp(c,b);
+    r >>= 2;
+
+    switch (r&7){
+        case 0:
+        case 1:
+        case 2:
+            color_range = 700;
+            break;
+        case 3:
+            color_range = 5000;
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+            color_range = 1500;
+            break;
+    }
+    r >>= 3;
+
+	frame = 0;
+	second_stage=0;
+    exit_flag=0;
 }
 
-void sort_data(){
-    int mx = matrix_getx();
-    int my = matrix_gety();
-    for (int swaps=0;swaps<swaps_per_frame;swaps++){
-        // try diagonal swap
-        int size = mx*my;
-        //int r = randn(mx*(my-1)-1);
-        int x = randn(mx-2);
-        int y = randn(my-2);
-        //int r = randn(mx-1) + randn(my-1)*mx;
-        int r = x + y*mx;
-        int * p = data+r;
-        if (p+mx+1 > data + mx*my){
-            continue;
+static void scmp(int * a, int * b){
+	int t;
+	if (*a < *b){
+		t=*a;
+		*a=*b;
+		*b=t;
+        comparisons_hot++;
+	} else {
+		comparisons_cold++;
+    }
+}
+
+static void swapper(int * a, int * b, int * c, int * d){
+	switch(dir){
+        case 0:
+		default:
+			scmp(a,d);
+			scmp(c,b);
+			scmp(a,c);
+            break;
+		case 1:
+			scmp(d,a);
+			scmp(c,b);
+			scmp(d,c);
+			break;
+        case 2:
+            scmp(a,d);
+            scmp(a,c);
+            break;
+        case 3:
+			scmp(d,a);
+			scmp(d,c);
+            break;
+	}
+	//if (randn(4) & 1) scmp(b,c); else scmp(c,b);
+}
+
+static void sort_data(){
+	int mx = matrix_getx();
+	int my = matrix_gety();
+    //printf("mx x my = %d x %d\n",mx,my);
+    comparisons_hot = 0;
+    comparisons_cold = 0;
+    uint entropy = rand();
+
+    // generate random points
+    for (int i = 0;;){
+            if (entropy == 0) entropy = rand();
+            int step = entropy % s_generator_step;
+            entropy /= s_generator_step;
+            i += step;
+            if (i%mx >= mx-1) i++;
+            if (i + mx + 1 > (mx * my)) break;
+            //printf(" %d = [%d] %d\n",i,i/8,i%8);
+		    int * p = data+i;
+		    swapper(p,p+1,p+mx,p+mx+1);
+#ifdef USE_BITMASK
+            int j;
+            j = i; data_bitmask[j/8] |= 1<<(j%8);
+            j = i+1; data_bitmask[j/8] |= 1<<(j%8);
+            j = i+mx; data_bitmask[j/8] |= 1<<(j%8);
+            j = i+mx+1; data_bitmask[j/8] |= 1<<(j%8);
+#endif
+    }
+
+
+	if (comparisons_hot * 100 < boring_percentage * (comparisons_cold + comparisons_hot)){
+        switch (dir){
+            case 0:
+                dir = 1;
+                second_stage = frame+frame/3;
+                break;
+            case 1:
+                exit_flag = 1;
+                break;
+            case 2:
+                dir = 2;
+                if (second_stage == 0) second_stage = frame/3;
+                break;
+            case 3:
+                break;
         }
-        swapper(p,p+1,p+mx,p+mx+1);
-    }
-    if (boring < soft_boring_threshold){
-        dir = 1;
-        second_stage = frame+frame/4;
-    }
-    if (dir == 1){
-        if (! --second_stage) reset();
+	}
+    if (second_stage && --second_stage == 0){
+        exit_flag = 1;
     }
 
 }
 
 
 int init(int moduleno, char* argstr) {
-    int mx = matrix_getx();
-    int my = matrix_gety();
-    data = malloc(sizeof(int) * mx * my);
+	int mx = matrix_getx();
+	int my = matrix_gety();
+	data = malloc(sizeof(int) * mx * my);
+	data_bitmask = malloc((mx*my+1)/8);
 	modno = moduleno;
 	frame = 0;
+    timer_n = 0;
 	return 0;
+}
+
+static void own_reset(){
+	fill_data();
+    generate_settings();
+
+    // timing
+#ifdef SORT_TIMING
+    if (timer_n)
+        printf("Avg: sort %dus, draw %dus",td1_acc/timer_n,td2_acc/timer_n);
+#endif
+    td1_acc=0;
+    td2_acc=0;
+    timer_n=0;
 }
 
 
 void reset(void) {
-    fill_data();
+	own_reset();
 	nexttick = udate();
 	matrix_clear();
-	frame = 0;
-    dir = 0;
-    second_stage=0;
 }
 
 int draw(int argc, char* argv[]) {
-    int mx = matrix_getx();
-    int my = matrix_gety();
+	int mx = matrix_getx();
+	int my = matrix_gety();
 
-    boring = 0;
+#ifdef SORT_TIMING
+    t1 = udate();
+	sort_data();
+    t2 = udate();
+#else
     sort_data();
+#endif
 
-    for (int i=0;i<mx;i++){
-        for (int j=0;j<mx;j++){
-            matrix_set(i,j,colorwheel(data[i+mx*j]));
-        }
-    }
-    if (boring < 0){
-        reset();
-        return 1;
-    }
+	for (int i=0;i<mx;i++){
+		for (int j=0;j<my;j++){
+            int doffset = i+mx*j;
+#ifdef USE_BITMASK
+            if (data_bitmask[doffset/8] & (1<<(doffset%8)))
+#endif
+                matrix_set(i,j,colorwheel(data[i+mx*j]));
+            //    matrix_set(i,j,RGB(255,255,255));
+            //else
+            //    matrix_set(i,j,RGB(0,0,0));
+		}
+	}
+#ifdef USE_BITMASK
+    for (int i = 0;i<(mx*my)/8;i++) data_bitmask[i] = 0;
+#endif
+
+#ifdef SORT_TIMING
+    t3 = udate();
+    td1_acc += (t2-t1);
+    td2_acc += (t3-t2);
+    timer_n += 1;
+#endif
+
+
+	if (exit_flag){
+		own_reset();
+		return 1;
+	}
 
 	matrix_render();
 
-	if (frame >= FRAMES) {
-		frame = 0;
-		return 1;
-	}
 	frame++;
 	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
@@ -164,6 +299,7 @@ int draw(int argc, char* argv[]) {
 }
 
 int deinit() {
-    free(data);
+	free(data);
+    free(data_bitmask);
 	return 0;
 }
