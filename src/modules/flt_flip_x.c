@@ -20,8 +20,13 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB color) {
-	int nx = getx() - 1 - x ;
+	int nx = getx() - 1 - x;
 	return next->set(nx, y, color);
+}
+
+RGB get(int x, int y) {
+	int nx = getx() - 1 - x;
+	return next->get(nx, y);
 }
 
 int clear(void) {

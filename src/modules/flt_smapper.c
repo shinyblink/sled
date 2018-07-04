@@ -48,6 +48,15 @@ int set(int x, int y, RGB color) {
 	return next->set(nx, ny, color);
 }
 
+RGB get(int x, int y) {
+	int nx = x;
+	int ny = y;
+	int paneno = y / my;
+	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
+	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
+	return next->get(nx, ny);
+}
+
 int clear(void) {
 	return next->clear();
 }

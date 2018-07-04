@@ -45,6 +45,14 @@ int set(int x, int y, RGB color) {
 	return next->set(x, y, corrected);
 }
 
+// TODO: reverse LUT to get back semi-original values
+// if we pass the corrected values to the set function,
+// it doesn't have the same color it had before.
+// every time that happens, it'll get visibly darker.
+RGB get(int x, int y) {
+	return next->get(x, y);
+}
+
 int clear(void) {
 	return next->clear();
 }

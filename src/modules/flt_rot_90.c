@@ -1,4 +1,4 @@
-// Filter that flips X.
+// Filter that rotates by multiples of 90 degrees.
 
 #include <types.h>
 #include <timers.h>
@@ -31,6 +31,15 @@ int set(int x, int y, RGB color) {
 		y = nx;
 	}
 	return next->set(x, y, color);
+}
+
+RGB get(int x, int y) {
+	for (int i = 0; i < rot; i++) {
+		int nx = getx() - 1 - x;
+		x = y;
+		y = nx;
+	}
+	return next->get(x, y);
 }
 
 int clear(void) {
