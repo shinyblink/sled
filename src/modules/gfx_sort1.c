@@ -160,6 +160,11 @@ static void swapper(int * a, int * b, int * c, int * d){
 			scmp(d,a);
 			scmp(d,c);
             break;
+        case 4:
+            scmp(c,b);
+            scmp(a,d);
+            scmp(d,a);
+            break;
 	}
 	//if (randn(4) & 1) scmp(b,c); else scmp(c,b);
 }
@@ -196,7 +201,11 @@ static void sort_data(){
 	if (comparisons_hot * 100 < boring_percentage * (comparisons_cold + comparisons_hot)){
         switch (dir){
             case 0:
-                dir = 1;
+                if (randn(3)){
+                    dir = 1;
+                } else {
+                    dir = 4;
+                }
                 second_stage = frame+frame/3;
                 break;
             case 1:
