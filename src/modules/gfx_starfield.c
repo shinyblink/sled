@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
@@ -18,7 +19,9 @@ static ulong nexttick;
 
 #define INVERSE_STAR_DENSITY 100;
 
-static const float z_speed = 0.03;
+static const float z_speed = 0.01;
+static const float roll_speed = 0.00;
+static const float pitch_speed = 0.0;
 
 typedef struct star_t {
     float fx;
@@ -44,11 +47,11 @@ void randomize_star(star_t * star){
         uint rr = rand();
         int r;
         r = rr & 0xff; rr >>= 8;
-        star->fx = ((r-128)*1.0/256.0);
+        star->fz = 0.0+r*1.0/128.0;
         r = rr & 0xff; rr >>= 8;
-        star->fy = ((r-128)*1.0/256.0);
+        star->fx = ((r-128)*1.0/128.0)/star->fz;
         r = rr & 0xff; rr >>= 8;
-        star->fz = 1.0+r*1.0/256.0;
+        star->fy = ((r-128)*1.0/128.0)/star->fz;
 }
 
 void reset(void) {
@@ -60,6 +63,18 @@ void reset(void) {
 	frame = 0;
 }
 
+void apply_transformation(star_t * star){
+    star->fz += z_speed;
+    if (roll_speed > 0){
+        float x = star->fx;
+        float y = star->fy;
+        float c = cos(roll_speed);
+        float s = sin(roll_speed);
+        star->fx =  c*x + s*y;
+        star->fy = -s*x + c*y;
+    }
+}
+
 int draw(int argc, char* argv[]) {
     int mx = matrix_getx();
     int my = matrix_gety();
@@ -68,12 +83,13 @@ int draw(int argc, char* argv[]) {
     for (star_t * star=stars;star < stars + no_of_stars; star++){
         int px = (int)((star->fx * star->fz)*(mx/2))+mx/2;
         int py = (int)((star->fy * star->fz)*(my/2))+my/2;
-        star->fz += z_speed;
+        apply_transformation(star);
         if (px < 0 || px >= mx || py < 0 || py >= my){
             randomize_star(star);
             continue;
         }
-        matrix_set(px,py,RGB(255,255,255));
+        int brightness = 255;
+        matrix_set(px,py,RGB(brightness,brightness,brightness));
     }
     
 
