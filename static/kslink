@@ -3,7 +3,7 @@
 # kslink, the only 'linker' stupid enough to link C programs together by concatenating them
 
 GFX_FUNCS="init deinit reset draw"
-OUT_FUNCS="init deinit set clear render getx gety wait_until wait_until_break"
+OUT_FUNCS="init deinit set get clear render getx gety wait_until wait_until_break"
 ALL_FUNCS="init deinit reset draw set clear render getx gety wait_until wait_until_break"
 
 RVL=""
