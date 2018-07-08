@@ -341,16 +341,17 @@ int sled_main(int argc, char** argv) {
 			}
 			if (tnext.moduleno >= 0) {
 				module* mod = modules_get(tnext.moduleno);
+				mod_gfx *gfx = mod->mod;
 				if (tnext.moduleno != lastmod) {
 					printf("\n>> Now drawing %s", mod->name);
 					fflush(stdout);
-					if (mod->reset)
-						mod->reset();
+					if (gfx->reset)
+						gfx->reset();
 				} else {
 					printf(".");
 					fflush(stdout);
 				};
-				ret = mod->draw(tnext.argc, tnext.argv);
+				ret = gfx->draw(tnext.argc, tnext.argv);
 				asl_free_argv(tnext.argc, tnext.argv);
 				lastmod = tnext.moduleno;
 				if (ret != 0) {

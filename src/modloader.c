@@ -1,6 +1,7 @@
 // Module stuff.
 
 #include "types.h"
+#include "mod.h"
 //#include <timers.h>
 #include <stdio.h>
 #include <string.h>
@@ -12,8 +13,6 @@
 #include "asl.h"
 #include "main.h"
 
-static struct module modules[MAX_MODULES];
-static int modcount = 0;
 static oscore_mutex lock;
 
 void* dlookup(void* handle, char* modname, char* name) {
@@ -40,17 +39,20 @@ static int modules_specialinit(const char * type) {
 int modules_deinit(void) {
 	int i;
 	int ret;
+	int modcount = mod_count();
 	printf("Deinitializing %i modules...\n", modcount);
 	oscore_mutex_lock(lock);
 	for (i = 0; i < modcount; i++) {
-		if (modules_specialinit(modules[i].type))
+		module* mod = mod_get(i);
+		if (modules_specialinit(mod->type))
 			continue;
-		printf("\t- %s...", modules[i].name);
+		printf("\t- %s...", mod->name);
 		fflush(stdout);
-		ret = modules[i].deinit();
+		ret = mod->deinit();
+		loadcore_close(((mod_gfx*)mod->mod)->lib);
 		if (ret != 0) {
 			printf("\n");
-			eprintf("Deinitializing module %s failed: Returned %i.", modules[i].name, ret);
+			eprintf("Deinitializing module %s failed: Returned %i.", mod->name, ret);
 			return 6;
 		}
 		printf(" Done.\n");
@@ -62,6 +64,11 @@ int modules_deinit(void) {
 }
 
 int modules_loadmod(module* mod, char name[256]) {
+	if (mod == NULL) {
+		eprintf("\nFailed to get a free module slot for %s", name);
+		return 4;
+	}
+
 	util_strlcpy(mod->type, name, 4);
 	util_strlcpy(mod->name, &name[4], 256); // could malloc it, but whatever.
 
@@ -72,24 +79,31 @@ int modules_loadmod(module* mod, char name[256]) {
 		eprintf("\nFailed to load %s: %s", name, loadcore_error());
 		return 4;
 	}
-	mod->lib = handle;
 
 	mod->init = dlookup(handle, name, "init");
 	mod->deinit = dlookup(handle, name, "deinit");
 
 	if (strcmp(mod->type, "out") == 0 || strcmp(mod->type, "flt") == 0) {
-		mod->set = dlookup(handle, name, "set");
-		mod->get = dlookup(handle, name, "get");
-		mod->clear = dlookup(handle, name, "clear");
-		mod->render = dlookup(handle, name, "render");
-		mod->getx = dlookup(handle, name, "getx");
-		mod->gety = dlookup(handle, name, "gety");
-		mod->wait_until = dlookup(handle, name, "wait_until");
-		mod->wait_until_break = dlookup(handle, name, "wait_until_break");
+		mod_out* smod = malloc(sizeof(mod_out));
+		mod->mod = smod;
+		smod->lib = handle;
+
+		smod->set = dlookup(handle, name, "set");
+		smod->get = dlookup(handle, name, "get");
+		smod->clear = dlookup(handle, name, "clear");
+		smod->render = dlookup(handle, name, "render");
+		smod->getx = dlookup(handle, name, "getx");
+		smod->gety = dlookup(handle, name, "gety");
+		smod->wait_until = dlookup(handle, name, "wait_until");
+		smod->wait_until_break = dlookup(handle, name, "wait_until_break");
 	} else {
+		mod_gfx* smod = malloc(sizeof(mod_gfx));
+		mod->mod = smod;
+		smod->lib = handle;
+
 		// Optional!
-		mod->reset = loadcore_sym(handle, "reset");
-		mod->draw = dlookup(handle, name, "draw");
+		smod->reset = dlookup(handle, name, "reset");
+		smod->draw = dlookup(handle, name, "draw");
 	}
 	return 0;
 }
@@ -145,27 +159,28 @@ int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filt
 			}
 		}
 
-		if (modules_loadmod(&modules[modcount], d_name)) {
+		int slot = mod_freeslot();
+		module* mod = mod_get(slot);
+		if (modules_loadmod(mod, d_name)) {
 			// Uhoh...
 			printf(" Failed.\n");
 			continue;
 		}
 
-		if (strcmp(modules[modcount].type, "out") == 0) {
-			*outmodno = modcount;
+		if (strcmp(mod->type, "out") == 0) {
+			*outmodno = slot;
 		}
-		if (strcmp(modules[modcount].type, "flt") == 0) {
-			filters[fltindex] = modcount;
+		if (strcmp(mod->type, "flt") == 0) {
+			filters[fltindex] = slot;
 			found_filters++;
 		}
 
 		printf(" Done.\n");
-		modcount++;
 	}
 	*filtno = found_filters;
 	asl_free_argv(dargc, dargv);
 
-	if (modcount == 0) {
+	if (mod_count() == 0) {
 		eprintf("No modules found? Nothing to do, giving up on life and rendering things on matrices.\n");
 		return 3;
 	}
@@ -175,7 +190,7 @@ int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filt
 		return 3;
 	}
 
-	printf("Loaded %i modules.\n", modcount);
+	printf("Loaded %i modules.\n", mod_count());
 	return 0;
 }
 
@@ -184,10 +199,11 @@ int modules_init(int *outmodno) {
 	static int mod = 0;
 	int ret;
 	module *m;
+	int modcount = mod_count();
 	printf("Initializing modules...\n");
 	oscore_mutex_lock(lock);
-	for (; mod < modcount; mod++) {
-		m = modules + mod;
+	for (; mod < mod_count(); mod++) {
+		m = mod_get(mod);
 		// Who did this!?!? This breaks basically everything.
 		//if (strcmp(m->type, "gfx") != 0)
 		//	continue;
@@ -201,13 +217,14 @@ int modules_init(int *outmodno) {
 				printf(" Ignored by request of plugin.\n");
 			else {
 				printf("\n");
-				eprintf("Initializing module %s failed: Returned %i.", modules[mod].name, ret);
+				eprintf("Initializing module %s failed: Returned %i.", m->name, ret);
 			}
-			loadcore_close(m->lib);
+			loadcore_close(((mod_gfx*)m->mod)->lib);
+			mod_remove(mod);
 			modcount--;
 			if (mod == modcount)
 				break;
-			memcpy(m, m + 1, sizeof(struct module) * (modcount - mod));
+			memcpy(m, m + 1, sizeof(struct module) * (mod_count() - mod));
 			if (*outmodno > mod) {
 				outmod = modules_get(--(*outmodno));
 			} else {
@@ -218,22 +235,4 @@ int modules_init(int *outmodno) {
 	oscore_mutex_unlock(lock);
 	printf("\nDone.");
 	return 0;
-}
-
-module* modules_get(int moduleno) {
-	if (moduleno > modcount || moduleno < 0)
-		return NULL;
-	return &modules[moduleno];
-}
-
-module* modules_find(char* name) {
-	int i;
-	for (i = 0; i < modcount; ++i)
-		if (strcmp(modules[i].name, name) == 0)
-			return &modules[i];
-	return NULL;
-}
-
-int modules_count(void) {
-	return modcount;
 }

@@ -11,6 +11,8 @@
 int* filters;
 int filter_amount = 0;
 
+mod_out *out;
+
 int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char** filtargs) {
 	filters = filter_list;
 	filter_amount = filtno;
@@ -22,28 +24,29 @@ int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char**
 		int i = filtno;
 		int last = outmodno;
 		for (i = (filtno - 1); i >= 0; --i) {
-			ret = modules_get(filters[i])->init(last, filtargs[i]);
+			ret = mod_get(filters[i])->init(last, filtargs[i]);
 			if (ret != 0) return ret;
 			last = filters[i];
-		};
-		outmod = modules_get(filters[0]);
-	};
+		}
+		outmod = mod_get(filters[0]);
+	}
+	out = outmod->mod;
 	return ret;
 }
 
 int matrix_getx(void) {
-	return outmod->getx();
+	return out->getx();
 }
 int matrix_gety(void) {
-	return outmod->gety();
+	return out->gety();
 }
 
 int matrix_set(int x, int y, RGB color) {
-	return outmod->set(x, y, color);
+	return out->set(x, y, color);
 }
 
 RGB matrix_get(int x, int y) {
-	return outmod->get(x, y);
+	return out->get(x, y);
 }
 
 // Fills part of the matrix with jo-- a single color.
@@ -65,18 +68,18 @@ int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB color) {
 
 // Zeroes the stuff.
 int matrix_clear(void) {
-	return outmod->clear();
+	return out->clear();
 }
 
 int matrix_render(void) {
-	return outmod->render();
+	return out->render();
 }
 
 int matrix_deinit(void) {
 	int ret = 0;
 	if (outmod != NULL) {
 		ret = outmod->deinit();
-		loadcore_close(outmod->lib);
+		loadcore_close(out->lib);
 	}
 	return ret;
 }
