@@ -93,7 +93,7 @@ int draw(int argc, char **argv) {
 
 		for (int y = 0; y < matrix_gety() && y < 8; y++) {
 			for (int x = 0; x < matrix_getx(); x++) {
-				int v = text_point(lines[i], x, y) ? 255 : 0;
+				byte v = text_point(lines[i], x, y);
 				RGB color = RGB(v, v, v);
 				matrix_set(x, i * 8 + y, color);
 			}

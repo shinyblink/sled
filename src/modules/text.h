@@ -1,17 +1,23 @@
 // Text stuff.
 #include <types.h>
 
+typedef struct text_column {
+	byte data[8];
+} text_column;
+
 typedef struct text {
+	// Length of the buffer in columns.
+	// Each column is 8 bytes.
 	int len;
-	byte* buffer;
+	text_column* buffer;
 } text;
 
-// Get if the bit is set or not at a position.
+// Gets the lightness of a given pixel.
 // Font is 8px tall at max. Proportional.
-int text_point(text* rendered, int x, int y);
+byte text_point(text* rendered, int x, int y);
 // Renders text.
 // Returns heap allocated pointer or NULL if something failed.
 text* text_render(const char* txt);
 // Frees rendered text. Do it. Don't forget to, leaks a bad, mmkay?
-// No harm in calling it multiple times.
-void text_free(const text* rendered);
+// Does nothing if called with NULL.
+void text_free(text* rendered);

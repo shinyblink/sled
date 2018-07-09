@@ -91,12 +91,12 @@ void draw_error(int x, int y, text* errtext) {
 	graphics_drawline(xstart_x + 2, y + 6, xstart_x + 6, y + 2, xcol);
 
 	int tbx = x + 2;
-	int tby = y + TOPCOL_HEIGHT + 1;
+	int tby = y + TOPCOL_HEIGHT + 2;
 	int tx;
 	int ty;
 	for (ty = 0; ty < (height - TOPCOL_HEIGHT - 2); ty++) {
 		for (tx = 0; tx < (width - 2); tx++) {
-			RGB col = text_point(errtext, tx, ty) ? textcol : bgcol;
+			RGB col = RGBlerp(text_point(errtext, tx, ty), bgcol, textcol);
 			matrix_set(tbx + tx, tby + ty, col);
 		}
 	}
