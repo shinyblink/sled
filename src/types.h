@@ -35,6 +35,7 @@ typedef struct HSV {
 
 extern RGB HSV2RGB(HSV hsv);
 extern HSV RGB2HSV(RGB rgb);
+extern RGB RGBlerp(byte v, RGB rgbA, RGB rgbB);
 
 // Macro for painless colors.
 #define RGB_C(r, g, b) ((RGB) { .red = (byte) (r), .green = (byte) (g), .blue = (byte) (b), .alpha = 255 } )
