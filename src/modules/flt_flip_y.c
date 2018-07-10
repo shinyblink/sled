@@ -10,7 +10,7 @@ static mod_flt* next;
 int init(int nextno, char* argstr) {
 	// get next ptr.
 	nextm = mod_get(nextno);
-	next = nextm;
+	next = nextm->mod;
 	return 0;
 }
 
