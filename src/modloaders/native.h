@@ -1,7 +1,7 @@
 // Module header.
 
-#ifndef __INCLUDED_MODLOADER__
-#define __INCLUDED_MODLOADER__
+#ifndef __INCLUDED_MODLOADERS_NATIVE__
+#define __INCLUDED_MODLOADERS_NATIVE__
 
 #include "../mod.h"
 

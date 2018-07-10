@@ -62,7 +62,6 @@ int native_loadmod(module* mod, char name[256]) {
 		mod->mod = smod;
 		smod->lib = handle;
 
-		// Optional!
 		smod->reset = dlookup(handle, name, "reset");
 		smod->draw = dlookup(handle, name, "draw");
 	}
