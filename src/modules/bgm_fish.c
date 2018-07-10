@@ -136,7 +136,7 @@ static char * fish_word(int * hitnl) {
 // transfers 'ownership' of args to this.
 static void fish_execute(char * module, int argc, char ** argv) {
 	int i;
-	int mcount = modules_count();
+	int mcount = mod_count();
 	int routing_rov = 0;
 	if (!strcmp(module, "/then")) {
 		// Oh, this'll be *hilarious...*
@@ -174,7 +174,7 @@ static void fish_execute(char * module, int argc, char ** argv) {
 	//printf("\n");
 
 	for (i = 0; i < mcount; i++) {
-		if (!strcmp(module, modules_get(i)->name)) {
+		if (!strcmp(module, mod_get(i)->name)) {
 			if (routing_rov) {
 				main_force_random(i, argc, argv);
 			} else {

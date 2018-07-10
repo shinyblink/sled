@@ -5,13 +5,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-static module* next;
+static module* nextm;
+static mod_flt* next;
 static int mx, my;
 static int folds, pane_x;
 
 int init(int nextno, char* argstr) {
 	// get next ptr.
-	next = modules_get(nextno);
+	nextm = mod_get(nextno);
+	next = nextm->mod;
 	mx = next->getx();
 	my = next->gety();
 
@@ -75,5 +77,5 @@ void wait_until_break(void) {
 }
 
 int deinit(void) {
-	return next->deinit();
+	return nextm->deinit(mod_getid(nextm));
 }
