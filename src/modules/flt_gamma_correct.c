@@ -3,7 +3,7 @@
 // Not the best, but it's better than nothing, I suppose.
 
 #include <types.h>
-#include <modloader.h>
+#include <mod.h>
 #include <math.h>
 
 static module* next;

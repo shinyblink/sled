@@ -2,7 +2,8 @@
 
 #include "types.h"
 #include "matrix.h"
-#include "modloader.h"
+#include "mod.h"
+#include "modloaders/native.h"
 #include "timers.h"
 #include "random.h"
 #include "util.h"
@@ -19,7 +20,7 @@
 
 
 static int modcount;
-struct module *outmod;
+module* outmod;
 
 static oscore_mutex rmod_lock;
 // Usually -1.
@@ -37,7 +38,7 @@ static int ci_iteration_count = 0;
 static int deinit(void) {
 	printf("Cleaning up...\n");
 	int ret;
-	if ((ret = modules_deinit()) != 0)
+	if ((ret = mod_deinit()) != 0)
 		return ret;
 	if ((ret = matrix_deinit()) != 0)
 		return ret;
@@ -69,7 +70,7 @@ static int pick_next_random(int current_modno, ulong in) {
 	int lastvalidmod = 0;
 	int usablemodcount = 0;
 	for (mod = 0; mod < modcount; mod++) {
-		if (strcmp(modules_get(mod)->type, "gfx") != 0)
+		if (strcmp(mod_get(mod)->type, "gfx") != 0)
 			continue;
 		usablemodcount++;
 		lastvalidmod = mod;
@@ -82,7 +83,7 @@ static int pick_next_random(int current_modno, ulong in) {
 
 			// Checks after.
 			if (next_mod == current_modno) next_mod = -1;
-			module* mod = modules_get(next_mod);
+			module* mod = mod_get(next_mod);
 			if (!mod) {
 				next_mod = -1;
 			} else if (strcmp(mod->type, "gfx") != 0) {
@@ -112,7 +113,7 @@ static int pick_next_seq(int current_modno, ulong in) {
 	int lastvalidmod = 0;
 	int usablemodcount = 0;
 	for (mod = 0; mod < modcount; mod++) {
-		if (strcmp(modules_get(mod)->type, "gfx") != 0)
+		if (strcmp(mod_get(mod)->type, "gfx") != 0)
 			continue;
 		usablemodcount++;
 		lastvalidmod = mod;
@@ -137,7 +138,7 @@ static int pick_next_seq(int current_modno, ulong in) {
 			}
 
 			//found a gfx mod, take it
-			if (strcmp(modules_get(next_mod)->type, "gfx") == 0) done = 1;
+			if (strcmp(mod_get(next_mod)->type, "gfx") == 0) done = 1;
 		}
 	} else if (usablemodcount == 1) {
 		next_mod = lastvalidmod;
@@ -270,24 +271,43 @@ int sled_main(int argc, char** argv) {
 	// Initialize pseudo RNG.
 	random_seed();
 
-	// Load modules
+	// Prepare for module loading
 	if (modpath == NULL)
 		modpath = strdup(default_moduledir);
 	int* filters = NULL;
 	if (filterno > 0) {
 		filters = malloc(filterno * sizeof(int));
+		if (filterno != 0 && !filters) {
+			eprintf("Failed to malloc filter list, oops?\n");
+			return 3;
+		}
 		int i;
 		for (i = 0; i < filterno; ++i)
 			filters[i] = -1;
 	}
 
-	int outmodno = -1;
-	if ((ret = modules_loaddir(modpath, outmod_c, &outmodno, filternames, &filterno, filters)) != 0) {
+	modloader_setdir(modpath);
+
+	// Register native module loader.
+	nativemod_init();
+
+	// Load outmod
+	char outmodname[4 + ARRAY_SIZE(outmod_c)];
+	snprintf(outmodname, 4 + ARRAY_SIZE(outmod_c), "out_%s", outmod_c);
+	int outmodno = mod_freeslot();
+	outmod = mod_get(outmodno);
+	modloader_load(outmod, outmodname);
+	if (outmod == NULL) {
+		eprintf("Didn't load an output module. This isn't good. \n");
+		deinit();
+		return 3;
+	};
+
+	// Load remaining modules.
+	if ((ret = modloader_loaddir(filternames, &filterno, filters)) != 0) {
 		deinit();
 		return ret;
 	}
-
-	outmod = modules_get(outmodno);
 
 	// Initialize Timers.
 	ret = timers_init(outmodno);
@@ -312,13 +332,13 @@ int sled_main(int argc, char** argv) {
 	TP_GLOBAL = taskpool_create("taskpool", ncpus, ncpus*8);
 
 	// Initialize modules (this can offset outmodno)
-	ret = modules_init(&outmodno);
+	ret = mod_init();
 	if (ret) {
 		printf("Modules: Init failed.\n");
 		return ret;
 	}
 
-	modcount = modules_count();
+	modcount = mod_count();
 
 	signal(SIGINT, interrupt_handler);
 
@@ -340,7 +360,7 @@ int sled_main(int argc, char** argv) {
 				continue;
 			}
 			if (tnext.moduleno >= 0) {
-				module* mod = modules_get(tnext.moduleno);
+				module* mod = mod_get(tnext.moduleno);
 				mod_gfx *gfx = mod->mod;
 				if (tnext.moduleno != lastmod) {
 					printf("\n>> Now drawing %s", mod->name);

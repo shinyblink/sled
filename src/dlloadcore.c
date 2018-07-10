@@ -11,13 +11,16 @@
 #include <stdlib.h>
 #include "asl.h"
 
-static char * dirprefix;
+static const char * dirprefix;
 
-char ** loadcore_init(char * dir, int * argcno) {
+void loadcore_setdir(const char* dir) {
 	dirprefix = dir;
+}
+
+char ** loadcore_init(int * argcno) {
 	*argcno = 0;
 	struct dirent * file;
-	DIR * moduledir = opendir(dir); // for now.
+	DIR * moduledir = opendir(dirprefix); // for now.
 	if (!moduledir)
 		return 0;
 	char ** list = 0;

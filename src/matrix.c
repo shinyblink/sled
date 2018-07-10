@@ -4,7 +4,7 @@
 #include "types.h"
 #include <string.h>
 #include <assert.h>
-#include "modloader.h"
+#include "mod.h"
 #include "loadcore.h"
 #include "main.h"
 
@@ -78,7 +78,7 @@ int matrix_render(void) {
 int matrix_deinit(void) {
 	int ret = 0;
 	if (outmod != NULL) {
-		ret = outmod->deinit();
+		ret = outmod->deinit(mod_getid(outmod));
 		loadcore_close(out->lib);
 	}
 	return ret;

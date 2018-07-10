@@ -1,7 +1,7 @@
 // Filter that tiles a huge-x-having matrix into a snake-patterned smaller one, for more Y.
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 #include <stdlib.h>
 #include <stdio.h>
 

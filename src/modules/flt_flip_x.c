@@ -2,7 +2,7 @@
 
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 
 static module* next;
 

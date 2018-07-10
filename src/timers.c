@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "modloader.h"
+#include "mod.h"
 #include "asl.h"
 #include "oscore.h"
 #include "main.h"
@@ -25,8 +25,6 @@ static int timer_count = 0;
 int timers_quitting = 0;
 
 static oscore_mutex tlock;
-
-module* outmod;
 
 static oscore_event breakpipe;
 
@@ -120,7 +118,7 @@ timer timer_get(void) {
 int timers_init(int outmodno) {
 	tlock = oscore_mutex_new();
 	breakpipe = oscore_event_new();
-	out = outmod->mod;
+	out = mod_get(outmodno)->mod;
 	return 0;
 }
 

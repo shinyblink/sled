@@ -1,19 +1,16 @@
 // Module stuff.
 
-#include "types.h"
-#include "mod.h"
-//#include <timers.h>
+#include "../types.h"
+#include "../mod.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "util.h"
-#include "modloader.h"
-#include "loadcore.h"
-#include "oscore.h"
-#include "asl.h"
-#include "main.h"
+#include "../util.h"
+#include "native.h"
+#include "../loadcore.h"
+#include "../oscore.h"
+#include "../asl.h"
 
-static oscore_mutex lock;
 
 void* dlookup(void* handle, char* modname, char* name) {
 	void* ptr = loadcore_sym(handle, name);
@@ -26,44 +23,8 @@ void* dlookup(void* handle, char* modname, char* name) {
 	return ptr;
 }
 
-// These are part of the early init / late deinit passes.
-// Do NOT turn this into an opt-out. Most modules expect init/deinit at the normal times.
-static int modules_specialinit(const char * type) {
-	if (strcmp(type, "flt") == 0)
-		return 1;
-	if (strcmp(type, "out") == 0)
-		return 1;
-	return 0;
-}
 
-int modules_deinit(void) {
-	int i;
-	int ret;
-	int modcount = mod_count();
-	printf("Deinitializing %i modules...\n", modcount);
-	oscore_mutex_lock(lock);
-	for (i = 0; i < modcount; i++) {
-		module* mod = mod_get(i);
-		if (modules_specialinit(mod->type))
-			continue;
-		printf("\t- %s...", mod->name);
-		fflush(stdout);
-		ret = mod->deinit();
-		loadcore_close(((mod_gfx*)mod->mod)->lib);
-		if (ret != 0) {
-			printf("\n");
-			eprintf("Deinitializing module %s failed: Returned %i.", mod->name, ret);
-			return 6;
-		}
-		printf(" Done.\n");
-	}
-	printf("Done.\n");
-	oscore_mutex_unlock(lock);
-	oscore_mutex_free(lock);
-	return 0;
-}
-
-int modules_loadmod(module* mod, char name[256]) {
+int native_loadmod(module* mod, char name[256]) {
 	if (mod == NULL) {
 		eprintf("\nFailed to get a free module slot for %s", name);
 		return 4;
@@ -108,11 +69,11 @@ int modules_loadmod(module* mod, char name[256]) {
 	return 0;
 }
 
-int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filtnames, int* filtno, int* filters) {
+int native_loaddir(char** filtnames, int* filtno, int* filters) {
 	int found_filters = 0;
 	printf("Loading modules...\n");
 	int dargc = 0;
-	char ** dargv = loadcore_init(moddir, &dargc);
+	char ** dargv = loadcore_init(&dargc);
 	int dargi = 0;
 	while (dargi < dargc) {
 		char * d_name = dargv[dargi++];
@@ -132,10 +93,8 @@ int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filt
 		char type[4];
 		util_strlcpy(type, d_name, 4);
 
-		if (strcmp(type, "out") == 0 && strncmp(&d_name[4], outmod_c, len - 4) != 0) { // 4 for the type.
-			printf(" Skipping unused output module.\n");
+		if (strcmp(type, "gfx") != 0 && strcmp(type, "flt") != 0)
 			continue;
-		}
 
 		int fltindex = 0;
 		if (strcmp(type, "flt") == 0) {
@@ -161,15 +120,12 @@ int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filt
 
 		int slot = mod_freeslot();
 		module* mod = mod_get(slot);
-		if (modules_loadmod(mod, d_name)) {
+		if (native_loadmod(mod, d_name)) {
 			// Uhoh...
 			printf(" Failed.\n");
 			continue;
 		}
 
-		if (strcmp(mod->type, "out") == 0) {
-			*outmodno = slot;
-		}
 		if (strcmp(mod->type, "flt") == 0) {
 			filters[fltindex] = slot;
 			found_filters++;
@@ -185,54 +141,23 @@ int modules_loaddir(char* moddir, char outmod_c[256], int* outmodno, char** filt
 		return 3;
 	}
 
-	if (*outmodno == -1) {
-		eprintf("Didn't load an output module. This isn't good. ");
-		return 3;
-	}
-
 	printf("Loaded %i modules.\n", mod_count());
 	return 0;
 }
 
-int modules_init(int *outmodno) {
-	lock = oscore_mutex_new();
-	static int mod = 0;
-	int ret;
-	module *m;
-	int modcount = mod_count();
-	printf("Initializing modules...\n");
-	oscore_mutex_lock(lock);
-	for (; mod < mod_count(); mod++) {
-		m = mod_get(mod);
-		// Who did this!?!? This breaks basically everything.
-		//if (strcmp(m->type, "gfx") != 0)
-		//	continue;
-		if (modules_specialinit(m->type))
-			continue;
-		printf("\t- %s...", m->name);
-		if ((ret = m->init(mod, NULL)) == 0)
-			printf(" Done.\n");
-		else {
-			if (ret == 1)
-				printf(" Ignored by request of plugin.\n");
-			else {
-				printf("\n");
-				eprintf("Initializing module %s failed: Returned %i.", m->name, ret);
-			}
-			loadcore_close(((mod_gfx*)m->mod)->lib);
-			mod_remove(mod);
-			modcount--;
-			if (mod == modcount)
-				break;
-			memcpy(m, m + 1, sizeof(struct module) * (mod_count() - mod));
-			if (*outmodno > mod) {
-				outmod = modules_get(--(*outmodno));
-			} else {
-				mod--;
-			}
-		}
-	}
-	oscore_mutex_unlock(lock);
-	printf("\nDone.");
+mod_mod* loader;
+int nativemod_init(void) {
+	loader = calloc(1, sizeof(mod_mod));
+	loader->setdir = loadcore_setdir;
+	loader->load = native_loadmod;
+	loader->loaddir = native_loaddir;
+	module mod = { .type = "mod", .name = "native", .mod = loader};
+
+	modloader_register(mod_new(mod));
+	return 0;
+}
+
+int nativemod_deinit(int modno) {
+	free(loader);
 	return 0;
 }

@@ -28,7 +28,7 @@
 #include "timers.h"
 #include "matrix.h"
 #include "main.h"
-#include "modloader.h"
+#include "mod.h"
 #include "asl.h"
 #include "taskpool.h"
 

@@ -3,7 +3,7 @@
 
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
