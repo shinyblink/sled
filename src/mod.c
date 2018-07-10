@@ -138,6 +138,8 @@ int mod_deinit(void) {
 	oscore_mutex_lock(lock);
 	for (i = 0; i < modcount; i++) {
 		module* mod = mod_get(i);
+		if (mod_specialinit(mod->type))
+			continue;
 		printf("\t- %s...", mod->name);
 		fflush(stdout);
 		int ret = 0;

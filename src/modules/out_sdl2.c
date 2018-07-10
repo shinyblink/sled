@@ -153,7 +153,6 @@ void wait_until_break(void) {
 }
 
 int deinit(void) {
-	puts("Do the deinit dance, oh oh! If this appears twice then, uh oh!");
 	// Destroy everything.
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);

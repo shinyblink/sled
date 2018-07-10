@@ -8,10 +8,15 @@
 #include "loadcore.h"
 #include "main.h"
 
-int* filters;
-int filter_amount = 0;
+// Filters. Index 0 is the surface layer of the API, unless there are no filters, in which case that responsibility falls to the output module.
+// Everything in here, and the output module, is inited and deinited manually.
+// A filter is obligated to deinit the module below it in the chain (but not init it), so only the surface-layer module must be deinited from here.
+// The last index is directly above the true output module itself.
+static int* filters;
+static int filter_amount = 0;
 
-mod_out *out;
+// Not to be confused with outmod, this is the contents of filters[0] if it exists, otherwise the output module structure.
+static mod_out *out;
 
 int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char** filtargs) {
 	filters = filter_list;
