@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "modloader.h"
+#include "mod.h"
 #include "asl.h"
 #include "oscore.h"
 #include "main.h"
@@ -25,8 +25,6 @@ static int timer_count = 0;
 int timers_quitting = 0;
 
 static oscore_mutex tlock;
-
-module* outmod;
 
 static oscore_event breakpipe;
 
@@ -52,13 +50,14 @@ void wait_until_break_core(void) {
 }
 
 // This code calls into the output module's wait_until impl.
+mod_out *out;
 ulong wait_until(ulong desired_usec) {
-	return outmod->wait_until(desired_usec);
+	return out->wait_until(desired_usec);
 }
 
 // This code calls into the output module's wait_until_break impl.
 void wait_until_break(void) {
-	return outmod->wait_until_break();
+	return out->wait_until_break();
 }
 
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
@@ -119,6 +118,7 @@ timer timer_get(void) {
 int timers_init(int outmodno) {
 	tlock = oscore_mutex_new();
 	breakpipe = oscore_event_new();
+	out = mod_get(outmodno)->mod;
 	return 0;
 }
 

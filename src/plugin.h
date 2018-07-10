@@ -1,6 +1,8 @@
 // Header defining what plugins should implement.
 
 #include "types.h"
+// Needed for module*
+#include "mod.h"
 
 // Function that initializes the plugin.
 // Things like buffers, file loading, etc..
@@ -53,6 +55,7 @@ int draw(int argc, char* argv[]);
 // Function that sets a pixel, buffered changes.
 // Only update the displayed info after calling render.
 int set(int x, int y, RGB color);
+RGB get(int x, int y);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Clears the buffer.
@@ -76,6 +79,18 @@ ulong wait_until(ulong desired_usec);
 // FOR "out" and "flt" TYPE PLUGINS:
 // Interrupts any ongoing wait_until. Use *after* the timer operation to ensure this works correctly.
 void wait_until_break(void);
+
+// FOR "mod" TYPE PLUGINS:
+// Fishbowl with "So long" written on it.
+void setdir(const char* dir);
+
+// FOR "mod" TYPE PLUGINS:
+// Fishbowl with "So long" written on it.
+int load(module* mod, char name[256]);
+
+// FOR "mod" TYPE PLUGINS:
+// Fishbowl with "So long" written on it.
+int loaddir(char** filtnames, int* filtno, int* filters);
 
 // Deinit the plugin.
 // Free your shit, we need to go.

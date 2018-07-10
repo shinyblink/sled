@@ -4,16 +4,18 @@
 
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 
 static int scale = 0;
-static module* next;
+static module* nextm;
+static mod_flt* next;
 
 int init(int nextno, char* argstr) {
-	next = modules_get(nextno);
+	nextm = mod_get(nextno);
+	next = nextm->mod;
 
 	if (!argstr) {
 		eprintf("flt_scale: No scaling factor given.\n");
@@ -79,5 +81,5 @@ void wait_until_break(void) {
 }
 
 int deinit(void) {
-	return next->deinit();
+	return nextm->deinit(mod_getid(nextm));
 }

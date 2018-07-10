@@ -25,7 +25,7 @@
 #include "timers.h"
 #include "matrix.h"
 #include "main.h"
-#include "modloader.h"
+#include "mod.h"
 #include "asl.h"
 
 // It is *IMPOSSIBLE* for an OPC client to send a length that escapes this buffer.

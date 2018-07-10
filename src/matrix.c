@@ -4,12 +4,19 @@
 #include "types.h"
 #include <string.h>
 #include <assert.h>
-#include "modloader.h"
+#include "mod.h"
 #include "loadcore.h"
 #include "main.h"
 
-int* filters;
-int filter_amount = 0;
+// Filters. Index 0 is the surface layer of the API, unless there are no filters, in which case that responsibility falls to the output module.
+// Everything in here, and the output module, is inited and deinited manually.
+// A filter is obligated to deinit the module below it in the chain (but not init it), so only the surface-layer module must be deinited from here.
+// The last index is directly above the true output module itself.
+static int* filters;
+static int filter_amount = 0;
+
+// Not to be confused with outmod, this is the contents of filters[0] if it exists, otherwise the output module structure.
+static mod_out *out;
 
 int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char** filtargs) {
 	filters = filter_list;
@@ -22,28 +29,29 @@ int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char**
 		int i = filtno;
 		int last = outmodno;
 		for (i = (filtno - 1); i >= 0; --i) {
-			ret = modules_get(filters[i])->init(last, filtargs[i]);
+			ret = mod_get(filters[i])->init(last, filtargs[i]);
 			if (ret != 0) return ret;
 			last = filters[i];
-		};
-		outmod = modules_get(filters[0]);
-	};
+		}
+		outmod = mod_get(filters[0]);
+	}
+	out = outmod->mod;
 	return ret;
 }
 
 int matrix_getx(void) {
-	return outmod->getx();
+	return out->getx();
 }
 int matrix_gety(void) {
-	return outmod->gety();
+	return out->gety();
 }
 
 int matrix_set(int x, int y, RGB color) {
-	return outmod->set(x, y, color);
+	return out->set(x, y, color);
 }
 
 RGB matrix_get(int x, int y) {
-	return outmod->get(x, y);
+	return out->get(x, y);
 }
 
 // Fills part of the matrix with jo-- a single color.
@@ -65,18 +73,18 @@ int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB color) {
 
 // Zeroes the stuff.
 int matrix_clear(void) {
-	return outmod->clear();
+	return out->clear();
 }
 
 int matrix_render(void) {
-	return outmod->render();
+	return out->render();
 }
 
 int matrix_deinit(void) {
 	int ret = 0;
 	if (outmod != NULL) {
-		ret = outmod->deinit();
-		loadcore_close(outmod->lib);
+		ret = outmod->deinit(mod_getid(outmod));
+		loadcore_close(out->lib);
 	}
 	return ret;
 }
