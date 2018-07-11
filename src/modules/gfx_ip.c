@@ -12,7 +12,11 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include <block_for.h>
+
 #include "text.h"
+
+#define BLOCK_TIME 3 // Execute at most every three minutes
 
 static text **lines = NULL;
 static int linecount = 0;
@@ -69,7 +73,7 @@ void reset(void) {
 			i++;
 			if (i >= linecount) break;
 
-			snprintf(displaybuff, columncount, "    %s", buff);
+			snprintf(displaybuff, columncount, "	%s", buff);
 			lines[i] = text_render(displaybuff);
 			i++;
 			if (i >= linecount) break;
@@ -80,6 +84,7 @@ void reset(void) {
 }
 
 int draw(int argc, char **argv) {
+	if (check_block()) return 1;
 	RGB black = RGB(0, 0, 0);
 	for(int y = 0; y < matrix_gety(); y++) {
 		for(int x = 0; x < matrix_getx(); x++) {
@@ -101,6 +106,7 @@ int draw(int argc, char **argv) {
 	}
 
 	matrix_render();
+	block_for(BLOCK_TIME);
 	return 0;
 }
 
