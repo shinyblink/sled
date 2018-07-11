@@ -78,10 +78,10 @@ static int rescale(int x, int maxn, int newn) {
 
 #define SCALE(i, n) ((float) i / (float) n)
 //#define FADE(start,end,part,total) (((float)start)+(SCALE(part,total)*((float)end-(float)start)))
-inline float FADE(float start, float end,int part, int total){
+static inline float FADE(float start, float end,int part, int total){
 	return  start + SCALE(part,total)*(end-start);
 }
-inline float LOG_FADE(float start, float end,int part,int total){
+static inline float LOG_FADE(float start, float end,int part,int total){
 	return start * exp(log(end/start)*part/total);
 }
 
