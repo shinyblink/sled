@@ -57,6 +57,8 @@ void reset(void) {
 	struct ifaddrs *ifap;
 	getifaddrs(&ifap);
 
+	int displayed_interface_count = 0;
+
 	int i = 0;
 	for(struct ifaddrs *curr = ifap; curr != NULL; curr = curr->ifa_next) {
 		const char *ignored = strstr(ignored_interfaces, curr->ifa_name);
@@ -68,6 +70,8 @@ void reset(void) {
 
 		struct sockaddr_in *addr = (struct sockaddr_in *)curr->ifa_addr;
 		if(inet_ntop(curr->ifa_addr->sa_family, &(addr->sin_addr), buff, INET6_ADDRSTRLEN) != NULL) {
+			displayed_interface_count++;
+
 			snprintf(displaybuff, columncount, "%s", curr->ifa_name);
 			lines[i] = text_render(displaybuff);
 			i++;
@@ -81,6 +85,11 @@ void reset(void) {
 	}
 
 	freeifaddrs(ifap);
+	if (displayed_interface_count == 0){
+		block_for(1);
+		// block yourself for the next minute
+		// if interfaces come up, it might get unblocked
+	}
 }
 
 int draw(int argc, char **argv) {
