@@ -17,7 +17,7 @@
 #define FRAMES (RANDOM_TIME * FPS)
 
 #define ITERATIONS 255
-#define MAXZOOM 5.0f
+#define MAXZOOM 10.0f
 
 static int modno;
 static int frame;
@@ -30,6 +30,20 @@ static int my;
 static volatile int min;
 static volatile int max;
 static oscore_mutex lock;
+
+static float initial_size = 0.1;
+static float initial_x = 0.314;
+static float initial_y = 0.587;
+static float end_size = 0.00362;
+static float end_x = 0.35250;
+static float end_y = 0.58206;
+
+//static float initial_size = 2;
+//static float initial_x = 0;
+//static float initial_y = 0;
+//static float end_size = 1;
+//static float end_x = 0;
+//static float end_y = 0;
 
 #define PPOS(x, y) (x + (y * my))
 
@@ -60,6 +74,10 @@ static int rescale(int x, int maxn, int newn) {
 }
 
 #define SCALE(i, n) ((float) i / (float) n)
+//#define FADE(start,end,part,total) (((float)start)+(SCALE(part,total)*((float)end-(float)start)))
+inline float FADE(float start, float end,int part, int total){
+	return  start + SCALE(part,total)*(end-start);
+}
 
 void reset(void) {
 	nexttick = udate();
@@ -74,11 +92,15 @@ void drawrow(void* row) {
 	int px;
 
 	if (py < 0 || py >= mx) return;
+	//
+	float size = FADE(initial_size,end_size,frame,FRAMES);
+	float center_x = FADE(initial_x,end_x,frame,FRAMES);
+	float center_y = FADE(initial_y,end_y,frame,FRAMES);
+	float aspect_correction = SCALE(my,mx);
 
 	for (px = 0; px < mx; px++) {
-		float zoom = SCALE(frame, FRAMES) * MAXZOOM;
-		float x0 = ((SCALE(px, mx) * 3.5f) - 2.5f) / zoom - 0.8f;
-		float y0 = ((SCALE(py, my) * 2.0f) - 1.0f) / zoom - 0.27f;
+		float x0 = FADE(center_x-size/2.0,center_x+size/2.0,px,mx);
+		float y0 = FADE(center_y-size/2.0*aspect_correction,center_y+size/2.0*aspect_correction,py,my);
 
 		float x = 0;
 		float y = 0;
