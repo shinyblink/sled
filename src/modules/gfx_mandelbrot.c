@@ -92,7 +92,7 @@ void reset(void) {
 	min = 0;
 	max = 0;
 	color_offset = randn(255);
-	switch (randn(6)){
+	switch (randn(7)){
 		case 0:
 			initial_size = 0.1;
 			initial_x = 0.314;
@@ -149,6 +149,15 @@ void reset(void) {
 			end_x = -0.5623978;
 			end_y = 0.6426125;
 			break;
+        case 7:
+			initial_size = 0.015;
+			initial_x = -0.670225;
+			initial_y = -0.458399
+			end_size = 0.0015;
+			end_x = -0.6966326;
+			end_y = -0.444189444277;
+			break;
+
 
 	}
 }
