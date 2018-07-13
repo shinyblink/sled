@@ -152,7 +152,7 @@ void reset(void) {
         case 7:
 			initial_size = 0.015;
 			initial_x = -0.670225;
-			initial_y = -0.458399
+			initial_y = -0.458399;
 			end_size = 0.0015;
 			end_x = -0.6966326;
 			end_y = -0.444189444277;
