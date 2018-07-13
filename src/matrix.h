@@ -4,7 +4,7 @@
 #define __INCLUDED_MATRIX__
 
 #include "types.h"
-#include "modloader.h"
+#include "mod.h"
 
 extern int matrix_init(int outmodno, int* filter_list, int filterno, char* outarg, char** filtargs);
 extern int matrix_getx(void);

@@ -3,8 +3,9 @@
 # kslink, the only 'linker' stupid enough to link C programs together by concatenating them
 
 GFX_FUNCS="init deinit reset draw"
-OUT_FUNCS="init deinit set clear render getx gety wait_until wait_until_break"
-ALL_FUNCS="init deinit reset draw set clear render getx gety wait_until wait_until_break"
+OUT_FUNCS="init deinit set get clear render getx gety wait_until wait_until_break"
+MOD_FUNCS="init deinit setdir load loaddir"
+ALL_FUNCS="init deinit reset draw set get clear render getx gety wait_until wait_until_break setdir load loaddir"
 
 RVL=""
 for x in "$@"; do
@@ -14,6 +15,7 @@ for x in "$@"; do
  FUNCS=$GFX_FUNCS
  echo $name | grep "^out_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
  echo $name | grep "^flt_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
+ echo $name | grep "^mod_" >/dev/null 2>/dev/null && FUNCS=$MOD_FUNCS
  # --
  # File to write this wrapper to
  FN="modwraps/$name.c"
@@ -39,7 +41,6 @@ for x in "$@"; do
   echo "#undef $y"
  done
 done
-echo "#include <modloader.h>"
 echo "#include <loadcore.h>"
 echo "#include <assert.h>"
 echo "#include <stdlib.h>"
@@ -55,13 +56,21 @@ for name in $RVL; do
  FUNCS=$GFX_FUNCS
  echo $name | grep "^out_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
  echo $name | grep "^flt_" >/dev/null 2>/dev/null && FUNCS=$OUT_FUNCS
+ echo $name | grep "^mod_" >/dev/null 2>/dev/null && FUNCS=$MOD_FUNCS
  for y in $FUNCS; do
   echo " .$y = &kslink_"$name"_$y,"
  done
  # --
  echo "};"
 done
-echo "char ** loadcore_init(char * dir, int * argc) {"
+echo "void loadcore_setdir(const char * str) {"
+echo " // And today I just don't care about any of this, tralala lalala"
+echo " // I just want to ignore this setdir, tralala lalala"
+echo " // Don't feel like setting a directory"
+echo " // Just ignore the value at the tone"
+echo " // 'cause today I don't feel like doing a setdir, no setdir at all"
+echo "}"
+echo "char ** loadcore_init(int * argc) {"
 echo "	char ** basis = malloc(sizeof(char*) * `echo $RVL | wc -w`);"
 echo "	assert(basis);"
 RVLI=0

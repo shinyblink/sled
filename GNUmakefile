@@ -7,6 +7,7 @@ MODULES_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerb
 MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinematrix
 MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort1 gfx_xorrid
+MODULES_AVAILABLE += gfx_starfield
 
 MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
@@ -20,7 +21,7 @@ MODULES_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
 MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
 MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort1
-MODULES_DEFAULT += gfx_xorrid
+MODULES_DEFAULT += gfx_xorrid gfx_starfield
 
 MODULES_DEFAULT += bgm_fish bgm_pixelflut
 MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
@@ -99,13 +100,15 @@ LDSOFLAGS ?= -shared
 CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 CFLAGS += -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\" -DDEFAULT_MODULEDIR=\"$(DEFAULT_MODULEDIR)\"
 
-SOURCES := src/asl.c      src/main.c        src/matrix.c  src/random.c     src/timers.c
-SOURCES += src/color.c    src/graphics.c    src/mathey.c  src/modloader.c  src/util.c
+SOURCES := src/asl.c      src/main.c        src/mod.c     src/modloaders/native.c
+SOURCES += src/matrix.c   src/random.c      src/timers.c  src/util.c
+SOURCES += src/color.c    src/graphics.c    src/mathey.c
 SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c
 
-HEADERS := src/graphics.h src/main.h  src/matrix.h    src/plugin.h     src/timers.h
-HEADERS += src/util.h     src/asl.h   src/loadcore.h  src/mathey.h     src/modloader.h
-HEADERS += src/random.h   src/types.h src/oscore.h    src/perf.h
+HEADERS := src/graphics.h src/main.h        src/mod.h     src/modloaders/native.h
+HEADERS += src/matrix.h   src/plugin.h      src/timers.h  src/util.h
+HEADERS += src/asl.h      src/loadcore.h    src/mathey.h  src/modloader.h
+HEADERS += src/random.h   src/types.h       src/oscore.h  src/perf.h
 HEADERS += src/taskpool.h
 
 # Module libraries.

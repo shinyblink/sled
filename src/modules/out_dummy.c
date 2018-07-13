@@ -36,6 +36,11 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
+RGB get(int x, int y) {
+	// Nice. We're batman.
+	return RGB(0, 0, 0);
+}
+
 int clear(void) {
 	// We're already clean for a month!
 	return 0;

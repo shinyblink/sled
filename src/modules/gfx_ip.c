@@ -12,7 +12,11 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include <block_for.h>
+
 #include "text.h"
+
+#define BLOCK_TIME 3 // Execute at most every three minutes
 
 static text **lines = NULL;
 static int linecount = 0;
@@ -53,6 +57,8 @@ void reset(void) {
 	struct ifaddrs *ifap;
 	getifaddrs(&ifap);
 
+	int displayed_interface_count = 0;
+
 	int i = 0;
 	for(struct ifaddrs *curr = ifap; curr != NULL; curr = curr->ifa_next) {
 		const char *ignored = strstr(ignored_interfaces, curr->ifa_name);
@@ -64,12 +70,14 @@ void reset(void) {
 
 		struct sockaddr_in *addr = (struct sockaddr_in *)curr->ifa_addr;
 		if(inet_ntop(curr->ifa_addr->sa_family, &(addr->sin_addr), buff, INET6_ADDRSTRLEN) != NULL) {
+			displayed_interface_count++;
+
 			snprintf(displaybuff, columncount, "%s", curr->ifa_name);
 			lines[i] = text_render(displaybuff);
 			i++;
 			if (i >= linecount) break;
 
-			snprintf(displaybuff, columncount, "    %s", buff);
+			snprintf(displaybuff, columncount, "	%s", buff);
 			lines[i] = text_render(displaybuff);
 			i++;
 			if (i >= linecount) break;
@@ -77,9 +85,15 @@ void reset(void) {
 	}
 
 	freeifaddrs(ifap);
+	if (displayed_interface_count == 0){
+		block_for(1);
+		// block yourself for the next minute
+		// if interfaces come up, it might get unblocked
+	}
 }
 
 int draw(int argc, char **argv) {
+	if (check_block()) return 1;
 	RGB black = RGB(0, 0, 0);
 	for(int y = 0; y < matrix_gety(); y++) {
 		for(int x = 0; x < matrix_getx(); x++) {
@@ -93,7 +107,7 @@ int draw(int argc, char **argv) {
 
 		for (int y = 0; y < matrix_gety() && y < 8; y++) {
 			for (int x = 0; x < matrix_getx(); x++) {
-				int v = text_point(lines[i], x, y) ? 255 : 0;
+				byte v = text_point(lines[i], x, y);
 				RGB color = RGB(v, v, v);
 				matrix_set(x, i * 8 + y, color);
 			}
@@ -101,6 +115,7 @@ int draw(int argc, char **argv) {
 	}
 
 	matrix_render();
+	block_for(BLOCK_TIME);
 	return 0;
 }
 

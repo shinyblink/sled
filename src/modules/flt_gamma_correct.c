@@ -3,10 +3,11 @@
 // Not the best, but it's better than nothing, I suppose.
 
 #include <types.h>
-#include <modloader.h>
+#include <mod.h>
 #include <math.h>
 
-static module* next;
+static module* nextm;
+static mod_flt* next;
 
 #define GAMMA 2.8f
 #define WHITEPOINT {0.98f, 1.0f, 1.0f} // R, G, B, respectively.
@@ -20,7 +21,8 @@ static byte LUT_B[MAX_VAL + 1];
 
 int init(int nextno, char* argstr) {
 	// get next ptr.
-	next = modules_get(nextno);
+	nextm = mod_get(nextno);
+	next = nextm->mod;
 	float whitepoint[3] = WHITEPOINT;
 
 	int i;
@@ -45,6 +47,14 @@ int set(int x, int y, RGB color) {
 	return next->set(x, y, corrected);
 }
 
+// TODO: reverse LUT to get back semi-original values
+// if we pass the corrected values to the set function,
+// it doesn't have the same color it had before.
+// every time that happens, it'll get visibly darker.
+RGB get(int x, int y) {
+	return next->get(x, y);
+}
+
 int clear(void) {
 	return next->clear();
 }
@@ -63,5 +73,5 @@ void wait_until_break(void) {
 }
 
 int deinit(void) {
-	return next->deinit();
+	return nextm->deinit(mod_getid(nextm));
 }

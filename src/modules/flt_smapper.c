@@ -1,17 +1,19 @@
 // Filter that tiles a huge-x-having matrix into a snake-patterned smaller one, for more Y.
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-static module* next;
+static module* nextm;
+static mod_flt* next;
 static int mx, my;
 static int folds, pane_x;
 
 int init(int nextno, char* argstr) {
 	// get next ptr.
-	next = modules_get(nextno);
+	nextm = mod_get(nextno);
+	next = nextm->mod;
 	mx = next->getx();
 	my = next->gety();
 
@@ -48,6 +50,15 @@ int set(int x, int y, RGB color) {
 	return next->set(nx, ny, color);
 }
 
+RGB get(int x, int y) {
+	int nx = x;
+	int ny = y;
+	int paneno = y / my;
+	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
+	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
+	return next->get(nx, ny);
+}
+
 int clear(void) {
 	return next->clear();
 }
@@ -66,5 +77,5 @@ void wait_until_break(void) {
 }
 
 int deinit(void) {
-	return next->deinit();
+	return nextm->deinit(mod_getid(nextm));
 }

@@ -3,18 +3,20 @@
 
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 
-static module* next;
+static module* nextm;
+static mod_flt* next;
 
 int init(int nextno, char* argstr) {
 	printf("flt_dummy loading. next mod is %i\n", nextno);
 	fflush(stdin);
 	// get next ptr.
-	next = modules_get(nextno);
+	nextm = mod_get(nextno);
+	next = nextm->mod;
 	printf("next is %p", next);
 
 	if (argstr) {
@@ -41,6 +43,12 @@ int set(int x, int y, RGB color) {
 	printf("Setting (%i,%i).\n", x, y);
 	assert(next != NULL);
 	return next->set(x, y, color);
+}
+
+RGB get(int x, int y) {
+	printf("Getting color at (%i,%i).\n", x, y);
+	assert(next != NULL);
+	return next->get(x, y);
 }
 
 int clear(void) {
@@ -76,5 +84,5 @@ int deinit(void) {
 	printf("deinit\n");
 	fflush(stdin);
 	assert(next != NULL);
-	return next->deinit();
+	return nextm->deinit(mod_getid(nextm));
 }

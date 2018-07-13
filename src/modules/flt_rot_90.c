@@ -1,16 +1,18 @@
-// Filter that flips X.
+// Filter that rotates by multiples of 90 degrees.
 
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 #include <stdlib.h>
 
-static module* next;
+static module* nextm;
+static mod_flt* next;
 static int rot;
 
 int init(int nextno, char* argstr) {
 	// get next ptr.
-	next = modules_get(nextno);
+	nextm = mod_get(nextno);
+	next = nextm->mod;
 	rot = 1;
 	if (argstr)
 		rot = atoi(argstr) & 0x03;
@@ -33,6 +35,15 @@ int set(int x, int y, RGB color) {
 	return next->set(x, y, color);
 }
 
+RGB get(int x, int y) {
+	for (int i = 0; i < rot; i++) {
+		int nx = getx() - 1 - x;
+		x = y;
+		y = nx;
+	}
+	return next->get(x, y);
+}
+
 int clear(void) {
 	return next->clear();
 }
@@ -51,5 +62,5 @@ void wait_until_break(void) {
 }
 
 int deinit(void) {
-	return next->deinit();
+	return nextm->deinit(mod_getid(nextm));
 }

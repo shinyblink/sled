@@ -2,13 +2,15 @@
 
 #include <types.h>
 #include <timers.h>
-#include <modloader.h>
+#include <mod.h>
 
-static module* next;
+static module* nextm;
+static mod_flt* next;
 
 int init(int nextno, char* argstr) {
 	// get next ptr.
-	next = modules_get(nextno);
+	nextm = mod_get(nextno);
+	next = nextm->mod;
 	return 0;
 }
 
@@ -20,8 +22,13 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB color) {
-	int nx = getx() - 1 - x ;
+	int nx = getx() - 1 - x;
 	return next->set(nx, y, color);
+}
+
+RGB get(int x, int y) {
+	int nx = getx() - 1 - x;
+	return next->get(nx, y);
 }
 
 int clear(void) {
@@ -42,5 +49,5 @@ void wait_until_break(void) {
 }
 
 int deinit(void) {
-	return next->deinit();
+	return nextm->deinit(mod_getid(nextm));
 }
