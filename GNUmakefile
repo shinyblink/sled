@@ -18,7 +18,7 @@ OUTMODS_AVAILABLE += out_sf75_bi_spidev
 
 # List of modules to compile.
 MODULES_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
-MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
+MODULES_DEFAULT += gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
 MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort1
 MODULES_DEFAULT += gfx_xorrid gfx_starfield

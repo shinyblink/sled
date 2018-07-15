@@ -44,10 +44,10 @@ int native_loadmod(module* mod, char name[256]) {
 	mod->init = dlookup(handle, name, "init");
 	mod->deinit = dlookup(handle, name, "deinit");
 
-	if (strcmp(mod->type, "out") == 0 || strcmp(mod->type, "flt") == 0) {
+	if (ASL_COMP4C("out", mod->type) || ASL_COMP4C("flt", mod->type)) {
 		mod_out* smod = malloc(sizeof(mod_out));
 		mod->mod = smod;
-		smod->lib = handle;
+		mod->ctx = handle;
 
 		smod->set = dlookup(handle, name, "set");
 		smod->get = dlookup(handle, name, "get");
@@ -57,14 +57,27 @@ int native_loadmod(module* mod, char name[256]) {
 		smod->gety = dlookup(handle, name, "gety");
 		smod->wait_until = dlookup(handle, name, "wait_until");
 		smod->wait_until_break = dlookup(handle, name, "wait_until_break");
-	} else {
+	} else if (ASL_COMP4C("mod", mod->type)) {
+		mod_mod* smod = malloc(sizeof(mod_mod));
+		mod->mod = smod;
+		mod->ctx = handle;
+
+		smod->setdir = dlookup(handle, name, "setdir");
+		smod->load = dlookup(handle, name, "load");
+		smod->loaddir = dlookup(handle, name, "loaddir");
+
+		modloader_register(mod);
+	} else if (ASL_COMP4C("gfx", mod->type) || ASL_COMP4C("bgm", mod->type)) {
 		mod_gfx* smod = malloc(sizeof(mod_gfx));
 		mod->mod = smod;
-		smod->lib = handle;
+		mod->ctx = handle;
 
 		smod->reset = dlookup(handle, name, "reset");
 		smod->draw = dlookup(handle, name, "draw");
 	}
+
+	SETMETA(*mod, META_LOADCORE);
+
 	return 0;
 }
 
@@ -92,11 +105,11 @@ int native_loaddir(char** filtnames, int* filtno, int* filters) {
 		char type[4];
 		util_strlcpy(type, d_name, 4);
 
-		if (strcmp(type, "gfx") != 0 && strcmp(type, "flt") != 0)
+		if (!ASL_COMP4C("gfx", type) && !ASL_COMP4C("flt", type) && !ASL_COMP4C("bgm", type))
 			continue;
 
 		int fltindex = 0;
-		if (strcmp(type, "flt") == 0) {
+		if (ASL_COMP4C("flt", type)) {
 			if (*filtno == 0) {
 				printf(" Skipping unused filter modules.\n");
 				continue;
@@ -125,7 +138,7 @@ int native_loaddir(char** filtnames, int* filtno, int* filters) {
 			continue;
 		}
 
-		if (strcmp(mod->type, "flt") == 0) {
+		if (ASL_COMP4C("flt", mod->type)) {
 			filters[fltindex] = slot;
 			found_filters++;
 		}

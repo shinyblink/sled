@@ -4,6 +4,12 @@
 #ifndef __INCLUDED_ASL__
 #define __INCLUDED_ASL__
 
+#include <stdint.h>
+
+// Fast (and questionable) comparisons of 4 char strings.
+#define ASL_4CPTR2N(str) *((int32_t*) ((char*) (str)))
+#define ASL_COMP4C(str1, str2) (ASL_4CPTR2N((str1)) == ASL_4CPTR2N((str2)))
+
 // Adds a character to a string, and disposes of the old one, unless it's NULL (in which case this creates a new one-char string)
 // Can return NULL itself on malloc failure (in which case the original is still freed)
 extern char * asl_growstr(char * str, char nxt);

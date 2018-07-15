@@ -5,6 +5,15 @@
 
 #include "types.h"
 
+#define META_USED 1 << 0
+#define META_FREECTX 1 << 1
+#define META_LOADCORE 1 << 2
+
+#define GETMETA(mod, field) (((mod).meta & (field)) != 0)
+#define SETMETA(mod, field) ((mod).meta |= (field))
+#define UNSETMETA(mod, field) ((mod).meta &= ~(field))
+
+
 typedef struct module {
 	char type[4];
 	char name[256];
@@ -13,6 +22,7 @@ typedef struct module {
 	int (*deinit)(int moduleno);
 
 	void* mod;
+	void* ctx;
 } module;
 
 int mod_init(void);
@@ -44,7 +54,6 @@ int modloader_count(void);
 #undef RGB
 
 typedef struct mod_gfx {
-	void* lib;
 	int (*draw)(int argc, char* argv[]);
 	void (*reset)(void);
 } mod_gfx;
@@ -52,7 +61,6 @@ typedef struct mod_gfx {
 typedef mod_gfx mod_bgm;
 
 typedef struct mod_out {
-	void* lib;
 	int (*set)(int x, int y, RGB color);
 	RGB (*get)(int x, int y);
 	int (*clear)(void);

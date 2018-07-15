@@ -7,6 +7,7 @@
 #include "mod.h"
 #include "loadcore.h"
 #include "main.h"
+#include <stdlib.h>
 
 // Filters. Index 0 is the surface layer of the API, unless there are no filters, in which case that responsibility falls to the output module.
 // Everything in here, and the output module, is inited and deinited manually.
@@ -82,9 +83,7 @@ int matrix_render(void) {
 
 int matrix_deinit(void) {
 	int ret = 0;
-	if (outmod != NULL) {
+	if (outmod != NULL)
 		ret = outmod->deinit(mod_getid(outmod));
-		loadcore_close(out->lib);
-	}
 	return ret;
 }

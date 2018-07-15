@@ -4,15 +4,10 @@
 #include "types.h"
 #include "mod.h"
 #include "oscore.h"
+#include <loadcore.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#define META_USED 1 << 2
-
-#define GETMETA(mod, field) (((mod).meta & (field)) != 0)
-#define SETMETA(mod, field) ((mod).meta |= (field))
-#define UNSETMETA(mod, field) ((mod).meta &= ~(field))
 
 static module modules[MAX_MODULES];
 static int modules_loaded = 0;
@@ -99,6 +94,12 @@ int mod_remove(int moduleno) {
 	if (mod->mod)
 		free(mod->mod);
 
+	if (GETMETA(*mod, META_FREECTX)) {
+		free(mod->ctx);
+	} else if (GETMETA(*mod, META_LOADCORE)) {
+		loadcore_close(mod->ctx);
+	}
+
 	mod->type[0] = 0;
 	mod->name[0] = 0;
 
@@ -145,6 +146,8 @@ int mod_deinit(void) {
 		int ret = 0;
 		if (mod->deinit)
 			ret = mod->deinit(i);
+
+		mod_remove(i);
 
 		if (ret != 0) {
 			printf("\n");
