@@ -14,6 +14,7 @@
 static int modno;
 static int frame;
 static ulong nexttick;
+static int colormode=0;
 
 static int mx;
 static int my;
@@ -31,10 +32,27 @@ static particle* particles;
 static RGB black = RGB(0, 0, 0);
 
 static void randomize_particle(int particle) {
-	particles[particle].color = RGB(randn(255), randn(255), randn(255));
 
 	particles[particle].pos_x = -randn(mx/4);
 	particles[particle].pos_y = randn(my - 1);
+
+    int randpool, randnumber;
+    switch (colormode) {
+        case 1:
+            randpool = randn(1<<16);
+            randnumber = 0;
+            for (int i = 0; i < 4;i++){
+                randnumber += (randpool >> (i*4)) & 0xf;
+            }
+            int randhue = (particles[particle].pos_y*256/my+randnumber-64)%256;
+            particles[particle].color = HSV2RGB(HSV(randhue, 255-randnumber, (randpool & 0x7f)+0x80 ));
+            break;
+        case 0:
+        default:
+            particles[particle].color = RGB(randn(255), randn(255), randn(255));
+            break;
+    }
+
 
 	int speed = 0;
 	while (speed == 0)
@@ -73,7 +91,6 @@ int init(int moduleno, char* argstr) {
 	numparticles = (mx * my) / 8; // not sure if this is the best thing to do, but meh.
 	particles = malloc(numparticles * sizeof(particle));
 
-	randomize_particles();
 
 	modno = moduleno;
 	frame = 0;
@@ -83,6 +100,10 @@ int init(int moduleno, char* argstr) {
 void reset(void) {
 	nexttick = udate();
 	matrix_clear();
+
+    colormode = (randn(10)==0)?1:0;
+
+	randomize_particles();
 
 	frame = 0;
 }
