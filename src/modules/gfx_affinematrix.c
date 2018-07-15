@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <mathey.h>
 #include <math.h>
-#include "perf.h"
+#include <perf.h>
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
@@ -28,7 +28,7 @@ static ulong nexttick;
 static int mx, my;		// matrix size
 static int mx2, my2;		// matrix half size
 static float outputscale;	// matrix output scale factor
- 
+
 /*** base effect coefficients. This is where you want to play around. ***/
 
 // how many run variables?
@@ -51,7 +51,7 @@ static float runmod[runvar_count] = {
 };
 
 // the actual run variables
-float runvar[runvar_count] = {
+static float runvar[runvar_count] = {
   0,        0,        0,        0,
   0,        0,        0,        0,
   0,        0,        0,        0,
@@ -65,7 +65,6 @@ static inline float addmod(float x, float mod, float delta) {
 	x += x<0 ? mod : 0;
 	return x;
 }
-
 
 /*** module init ***/
 
@@ -86,7 +85,7 @@ int init(int moduleno, char* argstr) {
 	modno = moduleno;
 	ulong d = udate();
 	for( int i = 0; i < runvar_count; i++ ) {
-		runvar[i] = addmod(runvar[i], runmod[i], (d>>(i/2))/197.0);
+		runvar[i] = addmod(runvar[i], runmod[i], ((d>>(i/2)) & 0x00FF) / (255/M_PI));
 	}
 	return 0;
 }
@@ -129,29 +128,29 @@ static inline int _min(int x, int y) {
 int draw(int argc, char* argv[]) {
 	nexttick = udate() + FRAMETIME;
 	perf_start(modno);
-	increment_runvars();
-	
+
 	// compose transformation matrix out of 9 input matrices 
 	// which are calculated from some of the run variables
 	matrix3_3 m = composem3( 9,
-		rotation3(cos(runvar[12]) * M_PI),
-		translation3(cos(runvar[2])*mx*0.125, sin(runvar[3])*my*0.125),
+		rotation3(cosf(runvar[12]) * M_PI),
+		translation3(cosf(runvar[2])*mx*0.125, sinf(runvar[3])*my*0.125),
 		scale3(outputscale, outputscale),
 		rotation3(runvar[13]),
-		translation3(sin(runvar[4])*mx*0.25, cos(runvar[5])*my*0.25),
+		translation3(sinf(runvar[4])*mx*0.25, cosf(runvar[5])*my*0.25),
 		rotation3(sin(runvar[14]) * M_PI),
-		translation3(sin(runvar[6])*mx*0.125, cos(runvar[7])*my*0.125),
+		translation3(sinf(runvar[6])*mx*0.125, cosf(runvar[7])*my*0.125),
 		rotation3(runvar[15]),
-		scale3(0.25+sin(runvar[8])/4.0, 0.25+cos(runvar[9])/4.0)
+		scale3(0.25+sinf(runvar[8])/4.0, 0.25+cosf(runvar[9])/4.0)
 	);
-	
+
 	// pre-calculate some variables outside the loop
 	float pc1 = cosf(runvar[1]);
+	float pc121 = 0.125+((pc1/4) * sinf(runvar[11]));
 	float pc01 = runvar[0] + pc1;
 	float pc10 = (mx2*sinf(runvar[10]));
-	
+
 	perf_print(modno, "Composition");
-	
+
 	// actual pixel loop
 	for( int x = 0; x < mx; x++ ) {
 		vec2 kernel_x = multm3v2_partx(m, x-(mx2));
@@ -166,27 +165,28 @@ int draw(int argc, char* argv[]) {
 			// add changing base hue to sine curve point
 			float hue = pc01 + (sc * 0.5);
 
-			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
-			byte b_hue = ((int)(hue*256) & 0xFF);
-
 			// calculate byte value of HSV float value
 			byte b_val = _min(255,(int)(_abs(sc)*512));
 
+			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
+			byte b_hue = ((int)(hue*256) & 0xFF);
+
 			// convert HSV to RGB
 			RGB color = HSV2RGB(HSV( b_hue, 255, b_val ));
-			// alternate effect: RGB color = RGB( ((int)(hue*255) & 0xFF), (int)(runvar[0] * hue * 255) & 0xFF, _min(255,(int)(_abs(sc)*512)) );
 
 			// set pixel in matrix framebuffer
 			matrix_set(x,y, color);
 		}
 	}
-	
+
 	perf_print(modno, "Drawing");
 
 	// render it out
 	matrix_render();
-	
+
 	perf_print(modno, "Rendering");
+	
+	increment_runvars();
 
 	// manage framework variables
 	if (frame >= FRAMES) {
