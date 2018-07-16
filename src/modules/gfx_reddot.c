@@ -1,4 +1,6 @@
-// Simple projectile/ball animation.
+// Please modify me as you please
+// Additional variations are welcome
+// have fun!
 
 #include <types.h>
 #include <matrix.h>
@@ -77,14 +79,14 @@ int draw(int argc, char* argv[]) {
     }
     bx += randn(2)-1;
     by += randn(2)-1;
-    max_intensity = min_max_intensity+(sin(frame*0.05)+1)*(max_max_intensity-min_max_intensity);
+    max_intensity = min_max_intensity+(sin(frame*0.05)+1)*(max_max_intensity-min_max_intensity)+randn(100)-50;
  
     if (bx < 0) bx = 0;
     if (by < 0) by = 0;
     if (bx >= mx) bx = mx-1;
     if (by >= my) by = my-1;
-    if (max_intensity > max_max_intensity) max_intensity = max_max_intensity;
-    if (max_intensity < min_max_intensity) max_intensity = min_max_intensity;
+    //if (max_intensity > max_max_intensity) max_intensity = max_max_intensity;
+    //if (max_intensity < min_max_intensity) max_intensity = min_max_intensity;
     //printf("--%d--\n",(int)max_intensity);
 
 
