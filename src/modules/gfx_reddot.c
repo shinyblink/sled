@@ -13,7 +13,7 @@
 
 #define FPS 20
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS) * 10
+#define FRAMES (RANDOM_TIME * FPS)
 
 static int modno;
 static ulong frame;
@@ -24,10 +24,12 @@ static int mx,my;
 static int bx,by;
 
 static float blur_factor = 16.0f;
-static int draw_radius = 10;
+static int draw_radius = 10; // Doesn't matter right now
 static float max_intensity = 400.0f;
 static float max_max_intensity = 600.f;
 static float min_max_intensity = 200.f;
+static int frame_offset =0;
+static float intensity_cycle_speed = 0.05;
 
 static RGB blur_function(int radius_sq) {
     int intensity=0;
@@ -57,6 +59,7 @@ void reset(void) {
     bx = randn(mx-1);
     by = randn(my-1);
     frame = 0;
+    frame_offset = randn(6*(int)1.0/intensity_cycle_speed);
 }
 
 int draw(int argc, char* argv[]) {
@@ -79,7 +82,7 @@ int draw(int argc, char* argv[]) {
     }
     bx += randn(2)-1;
     by += randn(2)-1;
-    max_intensity = min_max_intensity+(sin(frame*0.05)+1)*(max_max_intensity-min_max_intensity)+randn(100)-50;
+    max_intensity = min_max_intensity+(sin((frame_offset+frame)*intensity_cycle_speed)+1)*(max_max_intensity-min_max_intensity)+randn(100)-50;
  
     if (bx < 0) bx = 0;
     if (by < 0) by = 0;
