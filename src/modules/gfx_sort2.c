@@ -19,7 +19,7 @@ static int mx, my;
 
 static int * data;
 
-static int sorting_algorithm=3;
+static int sorting_algorithm=4;
 
 // highlighting
 static int h1;
@@ -54,18 +54,12 @@ RGB colorwheel(int angle) {
     int t = (angle / 256)%6;
     int v = angle % 256;
     switch (t) {
-    case 0:
-        return RGB(255,v,0);
-    case 1:
-        return RGB(255-v,255,0);
-    case 2:
-        return RGB(0,255,v);
-    case 3:
-        return RGB(0,255-v,255);
-    case 4:
-        return RGB(v,0,255);
-    case 5:
-        return RGB(255,0,255-v);
+    case 0: return RGB(255,v,0);
+    case 1: return RGB(255-v,255,0);
+    case 2: return RGB(0,255,v);
+    case 3: return RGB(0,255-v,255);
+    case 4: return RGB(v,0,255);
+    case 5: return RGB(255,0,255-v);
     }
 }
 
@@ -74,6 +68,65 @@ static int i,j;
 static int inversions;
 static int gap;
 static int iMin;
+static int a,b,c;
+static int size,n,max;
+static int start,end,child,root,swapable;
+
+static int heap_sort(){
+    CONTINUE(1);
+    CONTINUE(2);
+    //CONTINUE(3);
+    CONTINUE(4);
+    CONTINUE(5);
+
+    // heapify
+    for (start=mx/2; start>=0;start--) {
+        end = mx-1;
+        root = start;
+        // sift down
+        while (2*root+1<=end){
+            child = 2*root+1;
+            swapable = root;
+            h1 = swapable; h2 = child; YIELD(1);
+            if (data[swapable] > data[child]) swapable = child;
+            if (child +1 <= end) {
+                h1 = swapable; h2 = child+1; YIELD(2);
+                if (data[swapable] > data[child+1]) swapable = child+1;
+            }
+            if (swapable == root) break;
+            else {
+                swap(swapable,root);
+                root = swapable;
+            }
+        } 
+    }
+    // heapsort
+    for (end=mx-1;end > 0;) {
+        swap(end,0);
+        //h1=0;h2=end;YIELD(3);
+        end--;
+        start = 0;
+        root = start;
+        // sift down
+        while (2*root+1<=end){
+            child = 2*root+1;
+            swapable = root;
+            h1 = swapable; h2 = child; YIELD(4);
+            if (data[swapable] > data[child]) swapable = child;
+            if (child +1 <= end) {
+                h1 = swapable; h2 = child+1; YIELD(5);
+                if (data[swapable] > data[child+1]) swapable = child+1;
+            }
+            if (swapable == root) break;
+            else {
+                swap(swapable,root);
+                root = swapable;
+            }
+        } 
+    }
+    return 1;
+}
+
 
 static int bubblesort() {
     CONTINUE(1);
@@ -144,6 +197,7 @@ static int sort() {
     case 1: return comb_sort();
     case 2: return insertion_sort();
     case 3: return selection_sort();
+    case 4: return heap_sort();
     default: return bubblesort();
     }
 }
@@ -185,7 +239,7 @@ void reset(void) {
         data[other] = i+1;
     }
     __yield_value = -1;
-    sorting_algorithm = randn(3);
+    sorting_algorithm = randn(4);
     nexttick = udate();
     matrix_clear();
     frame = 0;
