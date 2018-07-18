@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdio.h>
 
 #define FPS 300
 #define FRAMETIME (T_SECOND / FPS)
@@ -19,7 +20,7 @@ static int mx, my;
 
 static int * data;
 
-static int sorting_algorithm=5;
+static int sorting_algorithm=6;
 
 // highlighting
 static int h1;
@@ -66,10 +67,44 @@ RGB colorwheel(int angle) {
 // sorting algorithm internals
 static int i,j;
 static int inversions;
-static int gap;
+static int step,stage;
 static int iMin;
 static int start,end,child,root,swapable;
 static int last;
+static int partner,merge;
+static int log_size;
+
+
+static int odd_even_mergesort(){
+    CONTINUE(1);
+
+    log_size = 0;
+    for (int i=1;i<mx;i*=2)log_size++;
+    //printf("ls:%d\n",log_size);
+    for (stage = 1;stage<log_size+1;stage++){
+        for (step=1;step<=stage;step++){
+            //printf("%d:%d %d\n",stage,step,1<<(stage-step));
+            for (i = 0;i<mx;i++){
+                if (step == 1) partner = i ^ (1 << (stage-1));
+                else {
+                    int stride = 1 << (stage-step);
+                    int box = (i >> stage) << stage;
+                    int box_low = box + stride;
+                    int box_hig = box + (1<<stage)-stride-1;
+                    if (i < box_low || i >= box_hig) partner = i;
+                    else partner = ((i/stride-box/stride)%2) ? i + stride : i - stride;
+                    //printf("    %d <-> %d b:%d-%d (%d-%d) st:%d\n",i,partner,box,box+(1<<stage)-1,box_low,box_hig,stride);
+                }
+                if (partner > i && partner < mx) {
+                    cmp_swap(i,partner);
+                    YIELD(1);
+
+                }
+            }
+        }
+    }
+    return 1;
+}
 
 static int coctail_shaker_sort(){
     CONTINUE(1);
@@ -202,14 +237,16 @@ static int insertion_sort() {
 
 static int comb_sort() {
     CONTINUE(1);
-    gap = mx;
+    step = mx;
     do {
-        gap = (int)floor(gap/1.3);
-        for (i=0; i+gap<mx; i++) {
-            cmp_swap(i,i+gap);
+        inversions = 0;
+        step = (int)floor(step/1.3);
+        if (step == 0) step=1;
+        for (i=0; i+step<mx; i++) {
+            cmp_swap(i,i+step);
             YIELD(1);
         }
-    } while (gap > 0);
+    } while (step > 0 && inversions);
     return 1;
 }
 
@@ -218,12 +255,13 @@ static int comb_sort() {
 
 static int sort() {
     switch (sorting_algorithm) {
-    case 0: return bubblesort();
-    case 1: return comb_sort();
-    case 2: return insertion_sort();
-    case 3: return selection_sort();
-    case 4: return heapsort();
-    case 5: return coctail_shaker_sort();
+    case 0: return bubblesort(); // mx*mx/2
+    case 1: return comb_sort(); // mx*log(mx)*2
+    case 2: return insertion_sort(); // mx*mx/4
+    case 3: return selection_sort(); // mx*mx/2
+    case 4: return heapsort();       // mx*log(mx)*1.5
+    case 5: return coctail_shaker_sort(); //mx*mx /3 
+    case 6: return odd_even_mergesort(); //mx*log(mx)*1.5
     default: return bubblesort();
     }
 }
@@ -241,8 +279,9 @@ int draw(int argc, char* argv[]) {
     }
 
     for (int x=0; x<mx; x++) {
-        int range = data[x]-2;
-        for (int y=my-1; y>range; y--) {
+        int range = (data[x])*my/mx;
+        if (range >= my) range = my-1;
+        for (int y=my-1; y>=range; y--) {
             RGB color = colorwheel(data[x]*1000/mx);
             matrix_set(x,y,color);
         }
@@ -250,7 +289,10 @@ int draw(int argc, char* argv[]) {
 
     matrix_render();
 
-    if (rval > 0) return 1;
+    if (rval > 0) {
+        printf("\nRan for %d frames\n",frame);
+        return 1;
+    }
     frame++;
     nexttick += FRAMETIME;
     timer_add(nexttick, modno, 0, NULL);
@@ -265,7 +307,17 @@ void reset(void) {
         data[other] = i+1;
     }
     __yield_value = -1;
-    sorting_algorithm = randn(5);
+    sorting_algorithm = randn(6);
+    int expected_runtime = 0;
+    while (sort() == 0) expected_runtime++;
+    printf("\nRuntime Algo %d: %d frames\n",sorting_algorithm,expected_runtime);
+    data[0] = 1;
+    for (int i=1; i<mx; i++) {
+        int other = randn(i);
+        data[i] = data[other];
+        data[other] = i+1;
+    }
+    __yield_value = -1;
     nexttick = udate();
     matrix_clear();
     frame = 0;
