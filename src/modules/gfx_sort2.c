@@ -20,7 +20,7 @@ static int mx, my;
 
 static int * data;
 
-static int sorting_algorithm=6;
+static int sorting_algorithm=8;
 
 // highlighting
 static int h1;
@@ -67,13 +67,78 @@ RGB colorwheel(int angle) {
 // sorting algorithm internals
 static int i,j;
 static int inversions;
-static int step,stage;
+static int step,stage,stride;
 static int iMin;
 static int start,end,child,root,swapable;
 static int last;
 static int partner,merge;
 static int log_size;
 
+static int pairwise_sorting_net(){
+    CONTINUE(1);
+    CONTINUE(2);
+    log_size = 0;
+    for (int i=1;i<mx;i*=2)log_size++;
+    //printf("ls:%d\n",log_size);
+    for (stage = 0;stage<log_size;stage++){
+        for (i = 0;i<mx;i++){
+            int box_size = 1<<stage;
+            int box_start = (i>>(stage+1))<<(stage+1);
+            int step_size = 1<<stage;
+            partner = (i-step_size < box_start) ? i + step_size : i - step_size;
+            //printf("    %d <-> %d b:%d-%d (%d) >%d\n",i,partner,box_start,box_start+box_size-1,box_size,step_size);
+            if (partner > i && partner < mx) {
+                cmp_swap(i,partner);
+                YIELD(1);
+
+            }
+        }
+    }
+    //printf("logsize %d\n",log_size);
+    for (stage=log_size-2;stage>=0;stage--){
+        //printf("====(%d)====\n",stage);
+        for (step=log_size-1-stage;step>=1;step--){
+            //printf("--=(%d:%d)=--\n",stage,step);
+            for (i = 1<<stage;i+stride<mx;i+=(2<<stage)){
+                stride = ((1<<step)-1)<<stage;
+                //printf("-(%d:%d) @%d [%d]-\n",stage,step,i,stride);
+                for (j=0;j<(1<<stage);j++){
+                    if (i+j+stride >= mx) continue;
+                    cmp_swap(i+j,i+j+stride);
+                    //printf(" %d <-> %d (%d:%d)\n",i+j,i+j+stride);
+                    YIELD(2);
+                }
+            }
+        }
+    }
+    return 1;
+}
+static int bitonic_sort(){
+    CONTINUE(1);
+    log_size = 0;
+    for (int i=1;i<mx;i*=2)log_size++;
+    //printf("ls:%d\n",log_size);
+    for (stage = 1;stage<log_size+1;stage++){
+        for (step=1;step<=stage;step++){
+            for (i = 0;i<mx;i++){
+                int box_size = 1<<(stage-step+1);
+                int box_start = (i>>(stage-step+1))<<(stage-step+1);
+                if (step == 1) partner = box_start + box_size - (i%box_size)-1;
+                else {
+                    partner = (i-box_size/2 < box_start) ? i + box_size/2 : i - box_size/2;
+                }
+                //printf("    %d <-> %d b:%d-%d (%d)\n",i,partner,box_start,box_start+box_size,box_size);
+
+                if (partner > i && partner < mx) {
+                    cmp_swap(i,partner);
+                    YIELD(1);
+
+                }
+            }
+        }
+    }
+    return 1;
+}
 
 static int odd_even_mergesort(){
     CONTINUE(1);
@@ -262,6 +327,8 @@ static int sort() {
     case 4: return heapsort();       // mx*log(mx)*1.5
     case 5: return coctail_shaker_sort(); //mx*mx /3 
     case 6: return odd_even_mergesort(); //mx*log(mx)*1.5
+    case 7: return bitonic_sort(); //mx*log(mx)*1.5
+    case 8: return pairwise_sorting_net(); //mx&log(mx)*15
     default: return bubblesort();
     }
 }
@@ -280,8 +347,9 @@ int draw(int argc, char* argv[]) {
 
     for (int x=0; x<mx; x++) {
         int range = (data[x])*my/mx;
-        if (range >= my) range = my-1;
-        for (int y=my-1; y>=range; y--) {
+        if (range >= my) range = my;
+        if (range < 1) range = 1;
+        for (int y=my-1; y>range-2; y--) {
             RGB color = colorwheel(data[x]*1000/mx);
             matrix_set(x,y,color);
         }
@@ -307,7 +375,8 @@ void reset(void) {
         data[other] = i+1;
     }
     __yield_value = -1;
-    sorting_algorithm = randn(6);
+    sorting_algorithm = randn(8);
+#if 0
     int expected_runtime = 0;
     while (sort() == 0) expected_runtime++;
     printf("\nRuntime Algo %d: %d frames\n",sorting_algorithm,expected_runtime);
@@ -318,6 +387,7 @@ void reset(void) {
         data[other] = i+1;
     }
     __yield_value = -1;
+#endif
     nexttick = udate();
     matrix_clear();
     frame = 0;
