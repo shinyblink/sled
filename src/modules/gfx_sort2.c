@@ -68,8 +68,6 @@ static int i,j;
 static int inversions;
 static int gap;
 static int iMin;
-static int a,b,c;
-static int size,n,max;
 static int start,end,child,root,swapable;
 
 static int heap_sort(){
