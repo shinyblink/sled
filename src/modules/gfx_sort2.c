@@ -7,7 +7,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <math.h>
-#include <assert.h>
 
 #define FPS 100
 #define FRAMETIME (T_SECOND / FPS)
@@ -20,16 +19,12 @@ static int mx, my;
 
 static int * data;
 
-static int sorting_algorithm=1;
+static int sorting_algorithm=3;
 
 // highlighting
 static int h1;
 static int h2;
 
-// sorting algorithm internals
-static int i,j;
-static int inversions;
-static int gap;
 
 // pseudo jump and link
 static int __yield_value;
@@ -47,7 +42,6 @@ static int __yield_value;
     data[b] = __tmp;
 
 #define cmp_swap(a,b)       \
-    assert(a<mx); assert(b<mx);\
     h1 = a; h2 = b;         \
     if (data[a] < data[b]){ \
         swap(a,b);          \
@@ -75,42 +69,82 @@ RGB colorwheel(int angle) {
     }
 }
 
-static int bubblesort(){
+// sorting algorithm internals
+static int i,j;
+static int inversions;
+static int gap;
+static int iMin;
+
+static int bubblesort() {
     CONTINUE(1);
-    h1 = -1;
-    h2 = -1;
-    for (j = mx-1;j>0;j--){
+    for (j = mx-1; j>0; j--) {
         inversions = 0;
-        for (i = 0;i<j;i++){
+        for (i = 0; i<j; i++) {
             cmp_swap(i,i+1);
             YIELD(1);
         }
-        if (inversions == 0){
+        if (inversions == 0) {
             return 1;
         }
     }
     return 1;
 }
 
-static int insertion_sort(){
+static int selection_sort() {
     CONTINUE(1);
-    gap = mx;
-    do {
-        inversions = 0;
-        gap = (int)floor(gap/1.3);
-        for (i=0;i+gap<mx;i++){
-            cmp_swap(i,i+gap);
+    CONTINUE(2);
+    for (j = 0; j < mx-1; j++) {
+        iMin = j;
+        h1 = iMin;
+        for (i = j+1; i < mx; i++) {
+            h2 = i;
             YIELD(1);
+            if (data[i] > data[iMin]) {
+                iMin = i;
+                h1 = iMin;
+            }
         }
-    } while (gap > 1 && inversions > 0);
+        h2 = j;
+        swap(j, iMin);
+        YIELD(2);
+    }
     return 1;
 }
 
-static int sort(){
-    switch (sorting_algorithm){
-        case 0: return bubblesort();
-        case 1: return insertion_sort();
-        default: return bubblesort();
+static int insertion_sort() {
+    CONTINUE(1);
+    for (i=1; i<mx; i++) {
+        for (j=i; j>0&&data[j-1]<data[j]; j--) {
+            cmp_swap(j-1,j);
+            YIELD(1);
+        }
+    }
+    return 1;
+}
+
+static int comb_sort() {
+    CONTINUE(1);
+    gap = mx;
+    do {
+        gap = (int)floor(gap/1.3);
+        for (i=0; i+gap<mx; i++) {
+            cmp_swap(i,i+gap);
+            YIELD(1);
+        }
+    } while (gap > 0);
+    return 1;
+}
+
+
+
+
+static int sort() {
+    switch (sorting_algorithm) {
+    case 0: return bubblesort();
+    case 1: return comb_sort();
+    case 2: return insertion_sort();
+    case 3: return selection_sort();
+    default: return bubblesort();
     }
 }
 
@@ -119,38 +153,39 @@ int draw(int argc, char* argv[]) {
     matrix_clear();
     int rval = 0;
     rval = sort();
-    if (h1 >= 0 || h2 >= 0){
-        for (int y=0;y<my;y++){
+    if (h1 >= 0 || h2 >= 0) {
+        for (int y=0; y<my; y++) {
             if (h1 >= 0) matrix_set(h1,y,RGB(80,80,80));
             if (h2 >= 0) matrix_set(h2,y,RGB(80,80,80));
         }
     }
 
-    for (int i=0; i<mx; i++) {
-        int range = data[i]-2;
-        for (int j=my-1; j>range; j--) {
-            RGB color = colorwheel(data[i]*1000/mx);
-            matrix_set(i,j,color);
+    for (int x=0; x<mx; x++) {
+        int range = data[x]-2;
+        for (int y=my-1; y>range; y--) {
+            RGB color = colorwheel(data[x]*1000/mx);
+            matrix_set(x,y,color);
         }
     }
 
     matrix_render();
 
-
+    if (rval > 0) return 1;
     frame++;
     nexttick += FRAMETIME;
     timer_add(nexttick, modno, 0, NULL);
-    return rval;
+    return 0;
 }
 
 void reset(void) {
     data[0] = 1;
-    for (int i=1;i<mx;i++){
+    for (int i=1; i<mx; i++) {
         int other = randn(i);
         data[i] = data[other];
         data[other] = i+1;
     }
     __yield_value = -1;
+    sorting_algorithm = randn(3);
     nexttick = udate();
     matrix_clear();
     frame = 0;
