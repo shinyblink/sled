@@ -27,8 +27,10 @@ MODULES_DEFAULT += bgm_fish bgm_pixelflut
 MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
 
 # Include local configuration.
-
+ifneq (,$(wildcard sledconf))
 include sledconf
+endif
+
 
 # Default configuration starts here. This all uses ?=, so SLEDconfig makes the final decision.
 
