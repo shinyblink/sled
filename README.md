@@ -8,16 +8,14 @@ Read the Satanic Bible by Anton Szandor LaVey.
 # Getting started (SDL2 Tutorial on debian)
 
 ```bash
-sudo apt-get install gcc make git libsdl2-dev    # install dependencies
-git clone https://github.com/shinyblink/sled.git # get sled
+sudo apt-get install gcc make git libsdl2-dev
+git clone https://github.com/shinyblink/sled.git
 cd sled
-cp Makefiles/sledconf.sdl2 sledconf # use the sdl2 config
 make
 ./sled
 ```
 
-`sledconf` is required but not in the repository. Examples are given in the `Makefiles/` folder. You might just copy one.
-
+You can overwrite the default build by using `sledconf` locally. Examples are given in the `Makefiles/` folder. You might just copy one e.g. `cp Makefiles/sledconf.sdl2 sledconf` to get a sensible initial configuration.
 
 # Getting started on developing modules
 
@@ -26,7 +24,7 @@ This assumes you already got something to run (see Getting Started)
 ## How to select modules
 Modules are compiled into `*.so` files into `modules/`. You can delete any module you don't want to run from the `modules/` folder.
 
-Additionally the `GNUmakefile` includes the `sledconf` file which selects which modules are build with the `MODULES` variable. It should contain at least one outputmodule and one additional module to run.
+Additionally the `GNUmakefile` includes the `sledconf` file which selects which modules are build with the `MODULES` variable. It should contain at least one outputmodule and one additional module to run. Please copy a file from `Makefiles/` to `sledconf` for changing your build locally and don't change the `GNUmakefile`.
 
 ```make
 MODULES := $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
