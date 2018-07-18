@@ -7,15 +7,17 @@ Read the Satanic Bible by Anton Szandor LaVey.
 
 # Getting started (SDL2 Tutorial on debian)
 
-1. Get everything you need
-1.1. `sudo apt-get install gcc make git libsdl2-dev` (Install dependencies)
-1.2. `git clone https://github.com/shinyblink/sled.git` (Get sled)
-2. Configure sledconf
-2.1. `cd sled` (Change into directory)
-2.2. `cp Makefiles/sledconf.sdl2 sledconf` (`sledconf` is required, copy a config)
-3. Building and Running
-3.1. `make` (Build executables and shared objects)
-3.2. `./sled` (Run sled)
+```bash
+sudo apt-get install gcc make git libsdl2-dev    # install dependencies
+git clone https://github.com/shinyblink/sled.git # get sled
+cd sled
+cp Makefiles/sledconf.sdl2 sledconf # use the sdl2 config
+make
+./sled
+```
+
+`sledconf` is required but not in the repository. Examples are given in the `Makefiles/` folder. You might just copy one.
+
 
 # Getting started on developing modules
 
