@@ -73,12 +73,12 @@ void randomize_star(star_t * star) {
     r = rr & 0xff;
     rr >>= 8;
     r -= 128;
-    star->fx = r*star->fz/128.0*0.5;
+    star->fx = r*star->fz/128.0*0.5*mx/scale;
 
     r = rr & 0xff;
     rr >>= 8;
     r -= 128;
-    star->fy = r*star->fz/128.0*0.5;
+    star->fy = r*star->fz/128.0*0.5*my/scale;
 
     r = rr & 0xff;
     rr >>= 8;
