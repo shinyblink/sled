@@ -29,6 +29,8 @@ MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 
 # Include local configuration.
 ifneq (,$(wildcard sledconf))
 include sledconf
+else
+COPY_SLEDCONF ?= default_sledconf
 endif
 
 
@@ -143,13 +145,18 @@ include Makefiles/3ds.GNUmakefile
 
 # --- All/Cleaning begins here ---
 ifeq ($(STATIC),0)
- all: $(PROJECT) $(MODULES_SO)
+ all: $(PROJECT) $(MODULES_SO) $(COPY_SLEDCONF)
 else
- all: $(PROJECT)
+ all: $(PROJECT) $(COPY_SLEDCONF)
 endif
 
-clean:
+clean: FORCE
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
+
+default_sledconf: FORCE
+	[ -e sledconf ] || cp Makefiles/sledconf.default sledconf
+
+FORCE:
 
 # --- Generic object conversion rule begins here ---
 %.o: %.c
