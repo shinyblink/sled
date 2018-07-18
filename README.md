@@ -5,6 +5,78 @@ Modular LED Matrix controller.
 # Manual
 Read the Satanic Bible by Anton Szandor LaVey.
 
+# Getting started (SDL2 Tutorial on debian)
+
+1. Get everything you need
+1.1. `sudo apt-get install gcc make git libsdl2-dev` (Install dependencies)
+1.2. `git clone https://github.com/shinyblink/sled.git` (Get sled)
+2. Configure sledconf
+2.1. `cd sled` (Change into directory)
+2.2. `cp Makefiles/sledconf.sdl2 sledconf` (`sledconf` is required, copy a config)
+3. Building and Running
+3.1. `make` (Build executables and shared objects)
+3.2. `./sled` (Run sled)
+
+# Getting started on developing modules
+
+This assumes you already got something to run (see Getting Started)
+
+## How to select modules
+Modules are compiled into `*.so` files into `modules/`. You can delete any module you don't want to run from the `modules/` folder.
+
+Additionally the `GNUmakefile` includes the `sledconf` file which selects which modules are build with the `MODULES` variable. It should contain at least one outputmodule and one additional module to run.
+
+```make
+MODULES := $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
+```
+This will build all modules that are listed in the GNUmakefile.
+
+```make
+MODULES := out_$(DEFAULT_OUTMOD)
+MODULES += gfx_newshinyeffect
+MODULES += gfx_another_effect gfx_effect3
+```
+Only the listed modules will be build. This is good for testing. The third line can be commented out fast (by putting a `#` in front of the line) so only `gfx_newshinyeffect` will be build.
+
+The old modules will still be in the `modules/` folder and thus will still be loaded by sled. You can remove them with `rm modules/gfx_*` or `make clean` before building with `make`.
+
+## Build a new module
+
+The sources for the modules are located in `src/modules/`. Looking inside a graphic effect module (e.g. `gfx_rainbow.c`) you see that gfx modules provide an interface via four functions.
+```c
+int init(int moduleno, char* argstr); // Called once at program start
+int deinit(void); // Called once on program exit
+void reset(void); // Called on module change to this module
+int draw(int argc, char* argv[]); // Called once per frame
+```
+All other functions and variables should be declared `static` and used internally only.
+
+The `draw(...)` function should returns 0 while the module is running and 1 if it's done.
+Also each module has it's own timer that is controlled with `timer_add(...)` from `timers.h` that controls the next time `draw(...)` is called. This mechanism allows modules to control their own framerates.
+You can use `matrix_set(...)` and `matrix_render()` to output images platform independently.
+
+To get an idea of how `gfx_*` modules work just look (and copy/modify) some modules.
+
+## Testing
+
+If you wrote a module add it to `MODULES` in `sledconf` to test it locally or add it to `MODULES_DEFAULT` in the `GNUmakefile` if it's done.
+
+Also try it with different output sizes. `MATRIX_X` and `MATRIX_Y` can be used to control the output size for the sdl2 output.
+
+## Before you commit/merge into master
+
+Check that:
+* [ ] It compiles after a `make clean`
+* [ ] It works with other modules and quits after a reasonable time
+* [ ] It works with different display sizes
+    * [ ] not 2^n
+    * [ ] Landscape
+    * [ ] Portrait
+    * [ ] small sizes (<=16x16)
+    * [ ] big sizes (>=256x256)
+* [ ] It has a short description
+* [ ] It's well formatted (no mixed tabs/spaces) (have you considered `astyle`)
+
 # Hardware
 
 Matrix consisting of ws2812b pixels.
@@ -24,7 +96,7 @@ Connected to the ports of the specific board you're using.
 	- Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
 	- You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
 
-# Software
+# Building Options
 
 Common:
 * Some C99 compiler
