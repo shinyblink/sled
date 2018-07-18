@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define FPS 100
+#define FPS 300
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (RANDOM_TIME * FPS) * 10
 
@@ -19,7 +19,7 @@ static int mx, my;
 
 static int * data;
 
-static int sorting_algorithm=4;
+static int sorting_algorithm=5;
 
 // highlighting
 static int h1;
@@ -69,8 +69,35 @@ static int inversions;
 static int gap;
 static int iMin;
 static int start,end,child,root,swapable;
+static int last;
 
-static int heap_sort(){
+static int coctail_shaker_sort(){
+    CONTINUE(1);
+    CONTINUE(2);
+    start = 0;
+    end = mx-1;
+    while(1) {
+        inversions = 0;
+        for (i=start;i<end;i++) {
+            if (data[i] < data[i+1]) last = i;
+            cmp_swap(i,i+1);
+            YIELD(1);
+        }
+        end = last;
+        if (!inversions) break;
+        inversions = 0;
+        for (i=end-1;i>=start;i--){
+            if (data[i] < data[i+1]) last = i;
+            cmp_swap(i,i+1);
+            YIELD(2);
+        }
+        start = last;
+        if (!inversions) break;
+    }
+    return 1;
+}
+
+static int heapsort(){
     CONTINUE(1);
     CONTINUE(2);
     //CONTINUE(3);
@@ -195,7 +222,8 @@ static int sort() {
     case 1: return comb_sort();
     case 2: return insertion_sort();
     case 3: return selection_sort();
-    case 4: return heap_sort();
+    case 4: return heapsort();
+    case 5: return coctail_shaker_sort();
     default: return bubblesort();
     }
 }
@@ -237,7 +265,7 @@ void reset(void) {
         data[other] = i+1;
     }
     __yield_value = -1;
-    sorting_algorithm = randn(4);
+    sorting_algorithm = randn(5);
     nexttick = udate();
     matrix_clear();
     frame = 0;
