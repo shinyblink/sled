@@ -1,4 +1,4 @@
-// Simple projectile/ball animation.
+// Draws white dots that burn away
 
 #include <types.h>
 #include <matrix.h>
@@ -52,7 +52,7 @@ static void calc() {
     if (threshold) threshold--;
 
     for (int i=0; i<mx; i++) {
-        for (int j=0; j<mx; j++) {
+        for (int j=0; j<my; j++) {
             int * px = (field+i+j*mx);
             if (*px == 255) {
                 *px = 0;
@@ -78,8 +78,8 @@ static void calc() {
 int draw(int argc, char* argv[]) {
     calc();
     for (int i=0; i<mx; i++) {
-        for (int j=0; j<mx; j++) {
-            char px = *(field+i+j*mx);
+        for (int j=0; j<my; j++) {
+            char px = *(field+i*my+j);
             matrix_set(i,j,RGB(px,px,px));
         }
     }
