@@ -21,6 +21,7 @@ static int mx, my;
 static int * data;
 
 static int sorting_algorithm=8;
+static int __rval=0;
 
 // highlighting
 static int h1;
@@ -334,40 +335,7 @@ static int sort() {
 }
 
 
-int draw(int argc, char* argv[]) {
-    matrix_clear();
-    int rval = 0;
-    rval = sort();
-    if (h1 >= 0 || h2 >= 0) {
-        for (int y=0; y<my; y++) {
-            if (h1 >= 0) matrix_set(h1,y,RGB(80,80,80));
-            if (h2 >= 0) matrix_set(h2,y,RGB(80,80,80));
-        }
-    }
-
-    for (int x=0; x<mx; x++) {
-        int range = (data[x])*my/mx;
-        if (range >= my) range = my;
-        if (range < 1) range = 1;
-        for (int y=my-1; y>range-2; y--) {
-            RGB color = colorwheel(data[x]*1000/mx);
-            matrix_set(x,y,color);
-        }
-    }
-
-    matrix_render();
-
-    if (rval > 0) {
-        printf("\nRan for %d frames\n",frame);
-        return 1;
-    }
-    frame++;
-    nexttick += FRAMETIME;
-    timer_add(nexttick, modno, 0, NULL);
-    return 0;
-}
-
-void reset(void) {
+void randomize_and_reset(){
     data[0] = 1;
     for (int i=1; i<mx; i++) {
         int other = randn(i);
@@ -388,9 +356,47 @@ void reset(void) {
     }
     __yield_value = -1;
 #endif
-    nexttick = udate();
-    matrix_clear();
     frame = 0;
+}
+int draw(int argc, char* argv[]) {
+    matrix_clear();
+    if (__rval==1){
+        randomize_and_reset();
+        __rval=0;
+    }
+    __rval = sort();
+    if (h1 >= 0 || h2 >= 0) {
+        for (int y=0; y<my; y++) {
+            if (h1 >= 0) matrix_set(h1,y,RGB(80,80,80));
+            if (h2 >= 0) matrix_set(h2,y,RGB(80,80,80));
+        }
+    }
+
+    for (int x=0; x<mx; x++) {
+        int range = (data[x])*my/mx;
+        if (range >= my) range = my;
+        if (range < 1) range = 1;
+        for (int y=my-1; y>range-2; y--) {
+            RGB color = colorwheel(data[x]*1000/mx);
+            matrix_set(x,y,color);
+        }
+    }
+
+    matrix_render();
+
+    if (__rval > 0) {
+        //printf("\nRan for %d frames\n",frame);
+        return 1;
+    }
+    frame++;
+    nexttick += FRAMETIME;
+    timer_add(nexttick, modno, 0, NULL);
+    return 0;
+}
+
+void reset(void) {
+    randomize_and_reset();
+    nexttick = udate();
 }
 
 int init(int moduleno, char* argstr) {
