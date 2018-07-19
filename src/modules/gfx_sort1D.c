@@ -198,7 +198,7 @@ static int coctail_shaker_sort(){
     return 1;
 }
 
-static int heapsort(){
+static int heap_sort(){
     CONTINUE(1);
     CONTINUE(2);
     //CONTINUE(3);
@@ -325,7 +325,7 @@ static int sort() {
     case 1: return comb_sort(); // mx*log(mx)*2
     case 2: return insertion_sort(); // mx*mx/4
     case 3: return selection_sort(); // mx*mx/2
-    case 4: return heapsort();       // mx*log(mx)*1.5
+    case 4: return heap_sort();       // mx*log(mx)*1.5
     case 5: return coctail_shaker_sort(); //mx*mx /3 
     case 6: return odd_even_mergesort(); //mx*log(mx)*1.5
     case 7: return bitonic_sort(); //mx*log(mx)*1.5
