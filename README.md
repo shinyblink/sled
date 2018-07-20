@@ -214,6 +214,8 @@ They are the following:
 
 * `gfx_starfield`: Fly through random stars executing random turns. by @cyriax0
 
+* `gfx_reddot`: A red dot that oscillates in brightness. by @cyriax0
+
 * `gfx_sparkburn`: A short transitve effect. by @cyriax0
 
 ---
