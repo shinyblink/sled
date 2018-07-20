@@ -216,6 +216,8 @@ They are the following:
 
 * `gfx_reddot`: A red dot that oscillates in brightness. by @cyriax0
 
+* `gfx_sparkburn`: A short transitve effect. by @cyriax0
+
 ---
 
 If you want to only build a specific set of modules, pass a `MODULES="myfavouritemodule bestmodule"` to the `make` line.
