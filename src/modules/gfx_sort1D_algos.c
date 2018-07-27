@@ -152,7 +152,7 @@ static int coctail_shaker_sort(){
     while(1) {
         inversions = 0;
         for (i=start;i<end;i++) {
-            if (data[i] < data[i+1]) last = i;
+            if (data[i] > data[i+1]) last = i;
             cmp_swap(i,i+1);
             YIELD(1);
         }
@@ -160,7 +160,7 @@ static int coctail_shaker_sort(){
         if (!inversions) break;
         inversions = 0;
         for (i=end-1;i>=start;i--){
-            if (data[i] < data[i+1]) last = i;
+            if (data[i] > data[i+1]) last = i;
             cmp_swap(i,i+1);
             YIELD(2);
         }
@@ -186,10 +186,10 @@ static int heap_sort(){
             child = 2*root+1;
             swapable = root;
             h1 = swapable; h2 = child; YIELD(1);
-            if (data[swapable] > data[child]) swapable = child;
+            if (data[swapable] < data[child]) swapable = child;
             if (child +1 <= end) {
                 h1 = swapable; h2 = child+1; YIELD(2);
-                if (data[swapable] > data[child+1]) swapable = child+1;
+                if (data[swapable] < data[child+1]) swapable = child+1;
             }
             if (swapable == root) break;
             else {
@@ -210,10 +210,10 @@ static int heap_sort(){
             child = 2*root+1;
             swapable = root;
             h1 = swapable; h2 = child; YIELD(4);
-            if (data[swapable] > data[child]) swapable = child;
+            if (data[swapable] < data[child]) swapable = child;
             if (child +1 <= end) {
                 h1 = swapable; h2 = child+1; YIELD(5);
-                if (data[swapable] > data[child+1]) swapable = child+1;
+                if (data[swapable] < data[child+1]) swapable = child+1;
             }
             if (swapable == root) break;
             else {
@@ -276,7 +276,7 @@ static int selection_sort() {
         for (i = j+1; i < n; i++) {
             h2 = i;
             YIELD(1);
-            if (data[i] > data[iMin]) {
+            if (data[i] < data[iMin]) {
                 iMin = i;
                 h1 = iMin;
             }
@@ -305,7 +305,7 @@ static int tournament_sort(){
 static int insertion_sort() {
     CONTINUE(1);
     for (i=1; i<n; i++) {
-        for (j=i; j>0&&data[j-1]<data[j]; j--) {
+        for (j=i; j>0&&data[j-1]>data[j]; j--) {
             cmp_swap(j-1,j);
             YIELD(1);
         }
@@ -335,7 +335,7 @@ static int shell_sort() {
     for(stage=0;stage<8;stage++){
         step = shellsort_gaps[stage];
         for (i=1; i<n; i++) {
-            for (j=i; j-step>=0&&data[j-step]<data[j]; j-=step) {
+            for (j=i; j-step>=0&&data[j-step]>data[j]; j-=step) {
                 cmp_swap(j-step,j);
                 YIELD(1);
             }
@@ -371,9 +371,7 @@ static int quick_sort1(){
         stack_p -= 2;
         if (rr - ll <= 0) continue;
         l=ll;
-        printf("\n-- %d < %d < %d < %d--\n",ll,l,r,rr);
         for(r=ll;r<rr;r++){
-            printf("\n %d < %d < %d < %d\n",ll,l,r,rr);
             h1=l;h2=r;
             if(data[r] < data[rr]){
                 swap(l,r);
