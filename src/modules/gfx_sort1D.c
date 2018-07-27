@@ -19,7 +19,7 @@
 
 
 // Speed settings
-#define FPS 60
+#define FPS 30
 #ifndef GFX_SORT_1D_TIME
 //#define GFX_SORT_1D_TIME 30
 #endif
@@ -31,6 +31,11 @@
     #define TARGET_FRAMES (RANDOM_TIME * FPS)
     #define TARGET_TIME   (RANDOM_TIME * T_SECOND)
 #endif
+
+#define RANGIFY(dir, var)\
+   if (var < 0) var = 0;\
+   if (var >= m##dir ) var = m##dir -1;
+
 
 static int modno;
 static ulong frame;
@@ -109,7 +114,7 @@ static void draw_dots(){
         if (hx <= 1) x1 = 0; else x1 = hx-1;
         if (hx >= mx-2) x2 = mx-1; else x2 = hx+1;
         if (hy <= 1) y1 = 0; else y1 = hy-1;
-        if (hy >= my-2) y2 = mx-1; else y2 = hy+1;
+        if (hy >= my-2) y2 = my-1; else y2 = hy+1;
         for (int x=x1;x<=x2;x++){
             for (int y=y1;y<=y2;y++){
                 matrix_set(x,y,RGB(255,255,255));
@@ -122,6 +127,8 @@ static void draw_dots(){
         int x2=(h1<h2)?h2:h1;
         int y1 = (data[h1]-1)*my/n;
         int y2 = (data[h2]-1)*my/n;
+        RANGIFY(y,y1);
+        RANGIFY(y,y2);
         for (int x=x1;x<=x2;x++){
             matrix_set(x,y1,RGB(80,80,80));
             matrix_set(x,y2,RGB(80,80,80));
@@ -129,6 +136,7 @@ static void draw_dots(){
     }
     for (int x=0; x<mx; x++) {
         int y = (data[x]-1)*my/mx;
+        RANGIFY(y,y);
         if (y < 0) y=0;
         if (y >= my) y=my-1;
         matrix_set(x,y,colorwheel(data[x]*1000/mx));
