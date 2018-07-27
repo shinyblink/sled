@@ -23,6 +23,7 @@
 #ifndef GFX_SORT_1D_TIME
 //#define GFX_SORT_1D_TIME 30
 #endif
+#define END_WAIT_TIME (T_SECOND /2)
 
 #ifdef GFX_SORT_1D_TIME
     #define TARGET_FRAMES (GFX_SORT_1D_TIME * FPS)
@@ -213,20 +214,26 @@ int draw(int argc, char* argv[]) {
 
     ulong thistick = udate();
 
-    if (__rval==1){
+    if (__rval==2){
         randomize_and_reset();
         __rval=0;
     }
     for (int i = 0;i<hyper_speed;i++) {
-        if (__rval=sort()) break;
+        if (!__rval) {
+            __rval=sort();
+            sort_frames++;
+        }
         if (draw_style == 2) draw_lines_helper_draw(i);
-        sort_frames++;
     }
+    if (__rval){h1=-1;h2=-1;}
 
     draw_select();
     matrix_render();
 
-    if (__rval > 0) {
+    if (__rval == 1){
+        frame++;
+        nexttick = thistick + END_WAIT_TIME;
+        timer_add(nexttick, modno, 0, NULL);
         //printf("\nRan for %d frames\n",frame);
         #if 0
         int pred = predict(sorting_algorithm);
@@ -237,9 +244,12 @@ int draw(int argc, char* argv[]) {
                 pred - sort_frames,
                 pred*1.0/sort_frames);
         #endif
+        __rval = 2;
+        return 0;
+    }
+    if (__rval > 1) {
         return 1;
     }
-
     frame++;
     nexttick = thistick + frame_time;
     timer_add(nexttick, modno, 0, NULL);
