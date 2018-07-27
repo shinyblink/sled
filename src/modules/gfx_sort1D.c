@@ -53,8 +53,9 @@ void randomize_and_reset(){
     }
     __yield_value = -1;
     sorting_algorithm = randn(SORTING_ALGORITHM_MAX_ID);
-    draw_style = randn(1);
+    draw_style = randn(2);
     highlight_style = randn(2)+1;
+    matrix_clear();
 #if 0
     int expected_runtime = 0;
     while (sort() == 0) expected_runtime++;
@@ -79,7 +80,7 @@ static void draw_dots(){
         int hx;
         if (i) hx = h1; else hx = h2;
         if (hx < 0) continue;
-        int hy = (data[hx]-1)*my/mx;
+        int hy = (data[hx]-1)*my/n;
         if (hx <= 1) x1 = 0; else x1 = hx-1;
         if (hx >= mx-2) x2 = mx-1; else x2 = hx+1;
         if (hy <= 1) y1 = 0; else y1 = hy-1;
@@ -94,8 +95,8 @@ static void draw_dots(){
     if (h1 >= 0 && h2 >= 0){
         int x1=(h1<h2)?h1:h2;
         int x2=(h1<h2)?h2:h1;
-        int y1 = (data[h1]-1)*my/mx;
-        int y2 = (data[h2]-1)*my/mx;
+        int y1 = (data[h1]-1)*my/n;
+        int y2 = (data[h2]-1)*my/n;
         for (int x=x1;x<=x2;x++){
             matrix_set(x,y1,RGB(80,80,80));
             matrix_set(x,y2,RGB(80,80,80));
@@ -128,11 +129,40 @@ static void draw_bars(){
     }
 }
 
+static void draw_lines(){
+    int y;
+    if (frame < my){
+        y = frame%my;
+    } else {
+        for (int y = 0;y<my-1;y++){
+            for (int x = 0;x<mx;x++){
+                matrix_set(x,y,matrix_get(x,y+1));
+            }
+        }
+        y = my-1;
+    }
+    for (int x=0; x<mx; x++) {
+        matrix_set(x,y,colorwheel(data[x]*1000/mx));
+    }
+    if (h1 >= 0) {
+        RGB c = matrix_get(h1,y);
+        c.red /= 1.4; c.green /= 1.4; c.blue /=1.4;
+        matrix_set(h1,y,c);
+    }
+    if (h2 >= 0) {
+        RGB c = matrix_get(h2,y);
+        c.red /= 1.4; c.green /= 1.4; c.blue /=1.4;
+        matrix_set(h2,y,c);
+    }
+
+}
+
 static void draw_select(){
     switch (draw_style){
         default:
         case 0: return draw_bars();
         case 1: return draw_dots();
+        case 2: return draw_lines();
     }
 }
 
