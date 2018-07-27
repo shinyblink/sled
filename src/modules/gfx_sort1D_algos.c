@@ -2,6 +2,7 @@
 
 static int * data;
 static int n;
+static int logn;
 
 static int sorting_algorithm=12;
 static int __rval=0;
@@ -341,6 +342,21 @@ static int shell_sort() {
     return 1;
 }
 
+static int pred_bubblesort(){ return n*n/2;}
+static int pred_comb_sort(){ return n*logn*2;}
+static int pred_insertion_sort(){return n*n/4;}
+static int pred_selection_sort(){return n*n/2;}
+static int pred_heap_sort(){return n*logn*3/2;}
+static int pred_coctail_shaker_sort(){ return n*n/3;}
+static int pred_odd_even_mergesort(){ return n*logn*logn/4;}
+static int pred_bitonic_sort(){ return n*logn*logn/3.5;}
+static int pred_pairwise_sorting_net(){ return n*logn*logn/4;}
+static int pred_shell_sort(){return n*logn/1.66;}
+static int pred_selection_sort2(){ return n*n/2;}
+static int pred_selection_sort3(){ return n*n/2;}
+static int pred_tournament_sort(){ return n*n/2;}
+
+
 
 
 static int sort() {
@@ -359,6 +375,26 @@ static int sort() {
     case 11: return selection_sort3();
     case 12: return tournament_sort(); //n*n/2*log(n)
     default: return bubblesort();
+    }
+}
+
+static int predict(int sorting_algorithm){
+    for (logn=1;1<<logn<n;logn++);
+    switch (sorting_algorithm) {
+    case 0: return pred_bubblesort(); // n*n/2
+    case 1: return pred_comb_sort(); // n*log(n)*2
+    case 2: return pred_insertion_sort(); // n*n/4
+    case 3: return pred_selection_sort(); // n*n/2
+    case 4: return pred_heap_sort();       // n*log(n)*1.5
+    case 5: return pred_coctail_shaker_sort(); //n*n /3 
+    case 6: return pred_odd_even_mergesort(); //n*log(n)*1.5
+    case 7: return pred_bitonic_sort(); //n*log(n)*1.5
+    case 8: return pred_pairwise_sorting_net(); //n&log(n)*15
+    case 9: return pred_shell_sort();
+    case 10: return pred_selection_sort2();
+    case 11: return pred_selection_sort3();
+    case 12: return pred_tournament_sort(); //n*n/2*log(n)
+    default: return pred_bubblesort();
     }
 }
 

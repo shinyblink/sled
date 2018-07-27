@@ -17,17 +17,32 @@
 //      static int h1;
 //      static int h2;
 
-#define FPS 300
-#define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS) * 10
+
+// Speed settings
+#define FPS 60
+#ifndef GFX_SORT_1D_TIME
+//#define GFX_SORT_1D_TIME 30
+#endif
+
+#ifdef GFX_SORT_1D_TIME
+    #define TARGET_FRAMES (GFX_SORT_1D_TIME * FPS)
+    #define TARGET_TIME (GFX_SORT_1D_TIME * T_SECOND)
+#else
+    #define TARGET_FRAMES (RANDOM_TIME * FPS)
+    #define TARGET_TIME   (RANDOM_TIME * T_SECOND)
+#endif
 
 static int modno;
 static ulong frame;
 static ulong nexttick;
+static ulong frame_time;
+static int hyper_speed;
 static int mx, my;
 
 static int draw_style=0;
 static int highlight_style=1;
+
+static int sort_frames=0;
 
 static RGB colorwheel(int angle){
     //angle = angle % 1536;
@@ -53,10 +68,11 @@ void randomize_and_reset(){
     }
     __yield_value = -1;
     sorting_algorithm = randn(SORTING_ALGORITHM_MAX_ID);
+    //sorting_algorithm = 1;
     draw_style = randn(2);
     highlight_style = randn(2)+1;
     matrix_clear();
-#if 0
+    #if 0
     int expected_runtime = 0;
     while (sort() == 0) expected_runtime++;
     p rintf("\nRuntime Algo %d: %d frames\n",sorting_algorithm,expected_runtime);
@@ -67,8 +83,17 @@ void randomize_and_reset(){
         data[other] = i+1;
     }
     __yield_value = -1;
-#endif
+    #endif
     frame = 0;
+    sort_frames = 0;
+
+    // predict time
+    int predicted_steps = predict(sorting_algorithm);
+    frame_time = TARGET_TIME/predicted_steps;
+    hyper_speed = ceil(predicted_steps *1.0/ TARGET_FRAMES);
+    frame_time *= hyper_speed;
+    //printf("\n hyper %d, frame %d pred time %f\n",hyper_speed,frame_time,1.0*predicted_steps/hyper_speed*frame_time/T_SECOND);
+
 }
 
 static void draw_dots(){
@@ -131,8 +156,8 @@ static void draw_bars(){
 
 static void draw_lines(){
     int y;
-    if (frame < my){
-        y = frame%my;
+    if (sort_frames < my){
+        y = sort_frames%my;
     } else {
         for (int y = 0;y<my-1;y++){
             for (int x = 0;x<mx;x++){
@@ -168,21 +193,38 @@ static void draw_select(){
 
 
 int draw(int argc, char* argv[]) {
+
+    ulong thistick = udate();
+
     if (__rval==1){
         randomize_and_reset();
         __rval=0;
     }
-    __rval = sort();
+    for (int i = 0;i<hyper_speed;i++) {
+        if (__rval=sort()) break;
+        if (draw_style == 2) draw_select();
+        sort_frames++;
+    }
 
-    matrix_render();
     draw_select();
+    matrix_render();
 
     if (__rval > 0) {
         //printf("\nRan for %d frames\n",frame);
+        #if 0
+        int pred = predict(sorting_algorithm);
+        printf("\n Algo %d ran %d should %d diff %d frac %f",
+                sorting_algorithm,
+                sort_frames,
+                pred,
+                pred - sort_frames,
+                pred*1.0/sort_frames);
+        #endif
         return 1;
     }
+
     frame++;
-    nexttick += FRAMETIME;
+    nexttick = thistick + frame_time;
     timer_add(nexttick, modno, 0, NULL);
     return 0;
 }
