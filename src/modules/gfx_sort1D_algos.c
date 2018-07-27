@@ -12,7 +12,7 @@ static int __rval=0;
 static int h1;
 static int h2;
 
-#define SORTING_ALGORITHM_MAX_ID 14
+#define SORTING_ALGORITHM_MAX_ID 17
 
 // pseudo jump and link
 static int __yield_value;
@@ -38,6 +38,7 @@ static int __yield_value;
 
 // sorting algorithm internals
 static int i,j;
+static int a,b,c,d;
 static int inversions;
 static int step,stage,stride;
 static int iMin;
@@ -359,7 +360,7 @@ static int shuffle(){
     return 1;
 }
 
-static int quick_sort1(){
+static int quick_sortLL(){
     CONTINUE(1);
     CONTINUE(2);
     data2[0] = 0;
@@ -381,13 +382,12 @@ static int quick_sort1(){
         }
         swap(l,rr);
         if (stack_p+4 < n){
-            if (l-ll < rr -l){
+            if (l-ll > rr -l){
                 data2[stack_p+0] = ll;
                 data2[stack_p+1] = l-1;
                 data2[stack_p+2] = l+1;
                 data2[stack_p+3] = rr;
                 stack_p += 4;
-
             } else {
                 data2[stack_p+0] = l+1;
                 data2[stack_p+1] = rr;
@@ -401,6 +401,114 @@ static int quick_sort1(){
             for (i=1; i<n; i++)for (j=i; j>0&&data[j-1]<data[j]; j--)
             {cmp_swap(j-1,j);YIELD(2);}
             return 1;
+        }
+    }
+    return 1;
+}
+
+static int quick_sortLR(){
+    CONTINUE(1);
+    CONTINUE(2);
+    data2[0] = 0;
+    data2[1] = n-1;
+    stack_p = 2;
+    while(stack_p > 0){
+        ll = data2[stack_p-2];
+        rr = data2[stack_p-1];
+        stack_p -= 2;
+        if (rr - ll <= 0) continue;
+        // partition
+        for(h1=l=ll,h2=r=rr;l<r;){
+            YIELD(1);
+            if (data[r] > data[ll]){
+                h2=--r;continue;
+            }
+            if (data[l] <= data[ll]){
+                h1=++l;continue;
+            }
+            swap(l,r);
+        }
+        swap(ll,l);
+        // end partition
+        if (stack_p+4 < n){
+            if (l-ll > rr -l){
+                data2[stack_p+0] = ll;
+                data2[stack_p+1] = l-1;
+                data2[stack_p+2] = l+1;
+                data2[stack_p+3] = rr;
+                stack_p += 4;
+            } else {
+                data2[stack_p+0] = l+1;
+                data2[stack_p+1] = rr;
+                data2[stack_p+2] = ll;
+                data2[stack_p+3] = l-1;
+                stack_p += 4;
+            }
+        // Change to Insertion Sort, because stack space ran out
+        // Shouldnt happen!
+        } else {
+            for (i=1; i<n; i++)for (j=i; j>0&&data[j-1]<data[j]; j--)
+            {cmp_swap(j-1,j);YIELD(2);}
+            return 1;
+        }
+    }
+    return 1;
+}
+
+static int merge_sort_inplace(){
+    CONTINUE(1);
+    for (step=1;step<n;step*=2){
+        for (i=0;i+step<n;i+=2*step){
+            l=i;
+            r=i+step;
+            for (j=i;(j<i+2*step)&&(j<n)&&(l<r)&&(r<i+2*step);j++){
+                h1=l;h2=r;
+                YIELD(1);
+                if (data[l] < data[r]){
+                    l++; continue;
+                }
+                last=data[r];
+                for (ll=r-1;ll>=l;ll--) data[ll+1]=data[ll];
+                data[l]=last;
+                r++; l++;
+            }
+        }
+    }
+    return 1;
+}
+
+
+static int radix_sort_LSD(){
+    CONTINUE(1);
+    for (stage = 0;stage<logn;stage+=2){
+        a=0;b=0;c=0;
+        for(i=0;i<n;i++){
+            last = data[i];
+            h1=i;
+            switch ((last>>stage)&0x3) {
+                case 0:
+                    h2=a;
+                    for (ll=i-1;ll>=a;ll--) data[ll+1]=data[ll];
+                    data[a]=last;
+                    a++;b++;c++;
+                    break;
+                case 1:
+                    h2=b;
+                    for (ll=i-1;ll>=b;ll--) data[ll+1]=data[ll];
+                    data[b]=last;
+                    b++;c++;
+                    break;
+                case 2:
+                    h2=c;
+                    for (ll=i-1;ll>=c;ll--) data[ll+1]=data[ll];
+                    data[c]=last;
+                    c++;
+                    break;
+                case 3:
+                    h2=i;
+                    break;
+            }
+            YIELD(1);
         }
     }
     return 1;
@@ -420,7 +528,8 @@ static int pred_selection_sort2(){ return n*n/2;}
 static int pred_selection_sort3(){ return n*n/2;}
 static int pred_tournament_sort(){ return n*n/2;}
 static int pred_shuffle(){return n;}
-static int pred_quick_sort1(){return n*logn;}
+static int pred_quick_sort(){return n*logn;}
+static int pred_merge_sort(){return n*logn;}
 
 
 
@@ -441,7 +550,10 @@ static int sort() {
     case 11: return selection_sort3();
     case 12: return tournament_sort(); //n*n/2*log(n)
     case 13: return shuffle();
-    case 14: return quick_sort1();
+    case 14: return quick_sortLL();
+    case 15: return quick_sortLR();
+    case 16: return merge_sort_inplace();
+    case 17: return radix_sort_LSD();
     default: return bubblesort();
     }
 }
@@ -463,7 +575,10 @@ static int predict(int sorting_algorithm){
     case 11: return pred_selection_sort3();
     case 12: return pred_tournament_sort(); //n*n/2*log(n)
     case 13: return pred_shuffle();
-    case 14: return pred_quick_sort1();
+    case 14: return pred_quick_sort();
+    case 15: return pred_quick_sort();
+    case 16: return pred_merge_sort();
+    case 17: return n*logn;
     default: return pred_bubblesort();
     }
 }
