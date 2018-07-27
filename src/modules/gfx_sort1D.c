@@ -75,6 +75,7 @@ void randomize_and_reset(){
     sorting_algorithm = randn(SORTING_ALGORITHM_MAX_ID);
     //sorting_algorithm = 1;
     draw_style = randn(2);
+    //draw_style = 2;
     highlight_style = randn(2)+1;
     matrix_clear();
     #if 0
@@ -97,7 +98,7 @@ void randomize_and_reset(){
     frame_time = TARGET_TIME/predicted_steps;
     hyper_speed = ceil(predicted_steps *1.0/ TARGET_FRAMES);
     frame_time *= hyper_speed;
-    //printf("\n hyper %d, frame %d pred time %f\n",hyper_speed,frame_time,1.0*predicted_steps/hyper_speed*frame_time/T_SECOND);
+    printf("\n hyper %d, frame %d pred time %f\n",hyper_speed,frame_time,1.0*predicted_steps/hyper_speed*frame_time/T_SECOND);
 
 }
 
@@ -162,18 +163,25 @@ static void draw_bars(){
     }
 }
 
-static void draw_lines(){
+static void draw_lines_helper_move(){
+    if (hyper_speed > my) return;
+    if (sort_frames < my) return;
+    for (int y = 0;y<my-hyper_speed;y++){
+        for (int x = 0;x<mx;x++){
+            matrix_set(x,y,matrix_get(x,y+hyper_speed));
+        }
+    }
+}
+static void draw_lines_helper_draw(int offset){
+    if (!offset) draw_lines_helper_move();
     int y;
     if (sort_frames < my){
         y = sort_frames%my;
     } else {
-        for (int y = 0;y<my-1;y++){
-            for (int x = 0;x<mx;x++){
-                matrix_set(x,y,matrix_get(x,y+1));
-            }
-        }
-        y = my-1;
+        y = my-hyper_speed+offset;
     }
+    if (y<0) return;
+
     for (int x=0; x<mx; x++) {
         matrix_set(x,y,colorwheel(data[x]*1000/mx));
     }
@@ -187,15 +195,16 @@ static void draw_lines(){
         c.red /= 1.4; c.green /= 1.4; c.blue /=1.4;
         matrix_set(h2,y,c);
     }
-
 }
+
+
 
 static void draw_select(){
     switch (draw_style){
         default:
         case 0: return draw_bars();
         case 1: return draw_dots();
-        case 2: return draw_lines();
+        case 2: return draw_lines_helper_draw(hyper_speed-1);
     }
 }
 
@@ -210,7 +219,7 @@ int draw(int argc, char* argv[]) {
     }
     for (int i = 0;i<hyper_speed;i++) {
         if (__rval=sort()) break;
-        if (draw_style == 2) draw_select();
+        if (draw_style == 2) draw_lines_helper_draw(i);
         sort_frames++;
     }
 
