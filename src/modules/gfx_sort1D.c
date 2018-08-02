@@ -200,6 +200,7 @@ int draw(int argc, char* argv[]) {
     if (__rval==2){
         randomize_and_reset();
         __rval=0;
+        return 1;
     }
     for (int i = 0;i<hyper_speed;i++) {
         if (!__rval) {
@@ -228,9 +229,6 @@ int draw(int argc, char* argv[]) {
         #endif
         __rval = 2;
         return 0;
-    }
-    if (__rval > 1) {
-        return 1;
     }
     frame++;
     nexttick = thistick + frame_time;
