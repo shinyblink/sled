@@ -77,7 +77,7 @@ else
  CFLAGS += -Og -ggdb
  CPPFLAGS += -DDEBUG
 endif
-CFLAGS ?= -O2 -march=native
+CPPFLAGS += -Wall
 
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
@@ -167,7 +167,7 @@ ifeq ($(STATIC),0)
  # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
  modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
 else
  # To build all modwraps, run kslink
  $(MODULES_WC) src/slloadcore.gen.c: $(MODULES_C) static/kslink
