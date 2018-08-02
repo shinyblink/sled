@@ -210,7 +210,7 @@ They are the following:
 
 * `gfx_bttrblls`: Tweak of `gfx_balls` with fractional speeds and less noisy colors. by @cyriax0
 
-* `gfx_sort1`: 2D partial bubblesort on color ranges, may change direction. by @cyriax0
+* `gfx_sort2D`: 2D partial bubblesort on color ranges, may change direction. by @cyriax0
 
 * `gfx_starfield`: Fly through random stars executing random turns. by @cyriax0
 

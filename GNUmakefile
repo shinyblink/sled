@@ -6,8 +6,8 @@ MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
 MODULES_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerboard
 MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinematrix
-MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort1 gfx_xorrid
-MODULES_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_mandelbrot2
+MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
+MODULES_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2
 
 MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
@@ -20,8 +20,8 @@ OUTMODS_AVAILABLE += out_sf75_bi_spidev
 MODULES_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
 MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
-MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort1
-MODULES_DEFAULT += gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D
+MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D
+MODULES_DEFAULT += gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix
 MODULES_DEFAULT += gfx_mandelbrot2
 
 MODULES_DEFAULT += bgm_fish bgm_pixelflut
