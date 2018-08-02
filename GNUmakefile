@@ -7,7 +7,7 @@ MODULES_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerb
 MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinematrix
 MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
-MODULES_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix
+MODULES_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2
 
 MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
@@ -22,6 +22,7 @@ MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
 MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D
 MODULES_DEFAULT += gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix
+MODULES_DEFAULT += gfx_mandelbrot2
 
 MODULES_DEFAULT += bgm_fish bgm_pixelflut
 MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
@@ -77,7 +78,7 @@ else
  CFLAGS += -Og -ggdb
  CPPFLAGS += -DDEBUG
 endif
-CFLAGS ?= -O2 -march=native
+CPPFLAGS += -Wall
 
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
@@ -167,7 +168,7 @@ ifeq ($(STATIC),0)
  # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
  modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
 else
  # To build all modwraps, run kslink
  $(MODULES_WC) src/slloadcore.gen.c: $(MODULES_C) static/kslink
