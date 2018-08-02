@@ -1,3 +1,6 @@
+// Mandelbrot with progressive rendering (iterations)
+// Positions are manually selected in the points array
+
 #include <types.h>
 #include <matrix.h>
 #include <timers.h>
@@ -17,12 +20,12 @@ typedef struct
 
 typedef struct
 {
-   complex c;
-   double s;
-   int mi;
-   int ipf;
-   int si;
-   int ei;
+   complex c; // center
+   double s;  // scale
+   int mi;    // max iterations
+   int ipf;   // iterations per frame
+   int si;    // start iteration for color scheme
+   int ei;    // end iteration for color scheme
 } point;
 
 static const point points[] = {
@@ -144,6 +147,8 @@ int draw(int argc, char* argv[])
    return 0;
 }
 
-int deinit(void) {
+int deinit(void)
+{
    return 0;
 }
+
