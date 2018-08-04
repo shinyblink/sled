@@ -6,8 +6,8 @@ MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
 MODULES_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerboard
 MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinematrix
-MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort1 gfx_xorrid
-MODULES_AVAILABLE += gfx_starfield
+MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
+MODULES_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2
 
 MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
@@ -20,15 +20,20 @@ OUTMODS_AVAILABLE += out_sf75_bi_spidev
 MODULES_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
 MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
-MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort1
-MODULES_DEFAULT += gfx_xorrid gfx_starfield
+MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D
+MODULES_DEFAULT += gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix
+MODULES_DEFAULT += gfx_mandelbrot2
 
 MODULES_DEFAULT += bgm_fish bgm_pixelflut
 MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
 
 # Include local configuration.
-
+ifneq (,$(wildcard sledconf))
 include sledconf
+else
+COPY_SLEDCONF ?= default_sledconf
+endif
+
 
 # Default configuration starts here. This all uses ?=, so SLEDconfig makes the final decision.
 
@@ -73,7 +78,7 @@ else
  CFLAGS += -Og -ggdb
  CPPFLAGS += -DDEBUG
 endif
-CFLAGS ?= -O2 -march=native
+CPPFLAGS += -Wall
 
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
@@ -141,13 +146,18 @@ include Makefiles/3ds.GNUmakefile
 
 # --- All/Cleaning begins here ---
 ifeq ($(STATIC),0)
- all: $(PROJECT) $(MODULES_SO)
+ all: $(PROJECT) $(MODULES_SO) $(COPY_SLEDCONF)
 else
- all: $(PROJECT)
+ all: $(PROJECT) $(COPY_SLEDCONF)
 endif
 
-clean:
+clean: FORCE
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
+
+default_sledconf: FORCE
+	[ -e sledconf ] || cp Makefiles/sledconf.default sledconf
+
+FORCE:
 
 # --- Generic object conversion rule begins here ---
 %.o: %.c
@@ -158,7 +168,7 @@ ifeq ($(STATIC),0)
  # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
  modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
-	$(CC) $(CFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null`
 else
  # To build all modwraps, run kslink
  $(MODULES_WC) src/slloadcore.gen.c: $(MODULES_C) static/kslink

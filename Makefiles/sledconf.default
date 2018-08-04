@@ -1,0 +1,70 @@
+# Example SLED configuration for SDL2. These are the same as the defaults.
+# There may be other overridable things, see GNUmakefile for the absolute list.
+# This is the default sledconf that will be copied if no sledconf exists
+
+
+
+## NOTICE:
+## Use `make clean` after you modified this file
+##
+
+
+
+   ####################
+   # General settings #
+   ####################
+
+## executable name
+PROJECT := sled
+
+## Debug mode
+## 0 -> Compile with optimzation and without debug symbols
+## 1 -> Compile without optimziation and with debug symbols and define DEBUG
+DEBUG := 0
+
+## Static vs. Dynamic linking
+## 0 -> dynamic linking (use system libs)
+## 1 -> static linking (bundle libs into exe)
+STATIC := 0
+
+## Which platform to use (from src/os/os_*)
+PLATFORM := unix
+
+## Which output module to us (from src/modules/out_*)
+DEFAULT_OUTMOD := sdl2
+
+## Directory to put modules into
+DEFAULT_MODULEDIR := "./modules"
+
+
+
+   ##########################
+   # Module build selection #
+   ##########################
+
+## required output module
+MODULES := out_$(DEFAULT_OUTMOD)
+
+## single modules for testing purposes
+#MODULES += gfx_clock
+#MODULES += gfx_twinkle
+
+## Build all modules (from GNUmakefile)
+## Comment this out if you want to build only single modules
+MODULES += $(MODULES_DEFAULT)
+
+
+
+   ############################
+   # Output size configuraion #
+   ############################
+
+## X and Y dimensions
+MATRIX_X := 64
+MATRIX_Y := 64
+
+## pixel size
+SDL_SCALE_FACTOR := 4
+
+## run SDL in fullscreen mode (overwrites X and Y dimensions)
+#CFLAGS += -DSDLFULLSCREEN

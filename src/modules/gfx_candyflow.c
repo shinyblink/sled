@@ -163,16 +163,17 @@ int draw(int argc, char* argv[]) {
 			float sc = sinestuff(v.x, v.y, pc10, runvar[11]);
 
 			// add changing base hue to sine curve point
-			float hue = pc01 + (sc * pc121) + sinf((v.x+v.y)/2);
-
-			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
-			byte b_hue = ((int)(hue*256) & 0xFF);
+			float hue = ((x-mx2 + y-my2)*5) +  pc01 + (sc * pc121) + sinf((v.x+v.y)/2);
 
 			// calculate int value of HSV float value
-			int b_val = (int)(_abs(sc+0.125)*320);
+			int i_val = (int)(_abs(sc+0.125)*320);
+			byte b_val = _min(255, i_val);
+
+			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
+			byte b_hue = ((int)(hue*256) + i_val) & 0xFF;
 
 			// convert HSV to RGB
-			RGB color = HSV2RGB(HSV( (b_hue+b_val) & 0xFF, 255, _min(255, b_val) ));
+			RGB color = HSV2RGB(HSV( b_hue, 255, b_val ));
 
 			// set pixel in matrix framebuffer
 			matrix_set(x,y, color);

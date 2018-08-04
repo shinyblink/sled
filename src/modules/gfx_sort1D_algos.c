@@ -713,7 +713,6 @@ static int predict(int sorting_algorithm){
     case 18: return n*logn*2;
     case 19: return n*logn*2;
     case 20: return n*logn;
-
     default: return pred_bubblesort();
     }
 }

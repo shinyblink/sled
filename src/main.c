@@ -379,6 +379,7 @@ int sled_main(int argc, char** argv) {
 						if (lastmod != tnext.moduleno) // not an animation.
 							printf("\nModule chose to pass its turn to draw.");
 						pick_next(lastmod, udate() + T_MILLISECOND);
+						lastmod = -1;
 					} else {
 						eprintf("Module %s failed to draw: Returned %i", mod->name, ret);
 						timers_quitting = 1;
