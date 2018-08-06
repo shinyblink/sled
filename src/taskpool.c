@@ -18,7 +18,7 @@
 // and the reading pointer refuses to go *past* the writing pointer,
 //  which would turn an empty ring into a full one.
 
-static void tp_putjob(taskpool* pool, taskpool_job job) {
+static inline void tp_putjob(taskpool* pool, taskpool_job job) {
 	oscore_mutex_lock(pool->lock);
 	// Cleanup the event coming in
 	oscore_event_wait_until(pool->progress, 0);
@@ -42,7 +42,7 @@ static void tp_putjob(taskpool* pool, taskpool_job job) {
 	oscore_event_signal(pool->wakeup);
 }
 
-static taskpool_job tp_getjob(taskpool* pool) {
+static inline taskpool_job tp_getjob(taskpool* pool) {
 	taskpool_job job = {
 		.func = NULL,
 		.ctx = NULL
@@ -55,9 +55,9 @@ static taskpool_job tp_getjob(taskpool* pool) {
 		oscore_mutex_unlock(pool->lock); // Note: This should be before the signal in case that has a scheduling effect.
 		// Made progress.
 		oscore_event_signal(pool->progress);
-	} else {
-		oscore_mutex_unlock(pool->lock);
+		return job;
 	}
+	oscore_mutex_unlock(pool->lock);
 	return job;
 }
 
@@ -108,9 +108,10 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	if (workers > 1) {
 		for (int i = 0; i < workers; i++) {
 			pool->tasks[pool->workers] = oscore_task_create(pool_name, taskpool_function, pool);
-			if (pool->tasks[pool->workers])
+			if (pool->tasks[pool->workers]) {
 				oscore_task_setprio(pool->tasks[pool->workers], TPRIO_LOW);
 				pool->workers++;
+			}
 		}
 		pool->workers = workers;
 	} else {

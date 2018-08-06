@@ -50,7 +50,7 @@ static ulong px_mtlastframe;
 static oscore_task px_task;
 
 
-#define FPS 30
+#define FPS 60
 // #define PX_MTCOUNTDOWN_MAX 120
 #define FRAMETIME (T_SECOND / FPS)
 #define PX_PORT 1337

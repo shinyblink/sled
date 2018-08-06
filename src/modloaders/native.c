@@ -92,7 +92,7 @@ int native_loaddir(char** filtnames, int* filtno, int* filters) {
 		char type[4];
 		util_strlcpy(type, d_name, 4);
 
-		if (strcmp(type, "gfx") != 0 && strcmp(type, "flt") != 0)
+		if (strcmp(type, "gfx") != 0 && strcmp(type, "flt") != 0 && strcmp(type, "bgm"))
 			continue;
 
 		int fltindex = 0;

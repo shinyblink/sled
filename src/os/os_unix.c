@@ -122,9 +122,8 @@ struct sched_param param;
 #if defined(__linux__) || defined(__FreeBSD__)
 	if (prio == TPRIO_LOW)
 		policy = SCHED_BATCH;
-#else
-	param.sched_priority++; // decrease priority.
 #endif
+	param.sched_priority++; // decrease priority.
 
 	pthread_setschedparam(*(pthread_t*) task, policy, &param);
 }
