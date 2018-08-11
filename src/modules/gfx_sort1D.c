@@ -21,7 +21,7 @@
 // Speed settings
 #define FPS 30
 #ifndef GFX_SORT_1D_TIME
-#define GFX_SORT_1D_TIME 200
+#define GFX_SORT_1D_TIME 20
 #endif
 #define END_WAIT_TIME (T_SECOND /2)
 
@@ -74,9 +74,9 @@ void randomize_and_reset(){
     }
     __yield_value = -1;
     sorting_algorithm = randn(SORTING_ALGORITHM_MAX_ID);
-    //sorting_algorithm = 19;
+    //sorting_algorithm = 17;
     draw_style = randn(2);
-    draw_style = 0;
+    //draw_style = 0;
     highlight_style = randn(2)+1;
     //highlight_style = 3;
     matrix_clear();
