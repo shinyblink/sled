@@ -1,5 +1,6 @@
 // os_unix
 // The platform specific code for UNIX-likes.
+// Mostly POSIX, but might contain some extensions.
 
 #define _GNU_SOURCE
 
@@ -97,7 +98,7 @@ oscore_task oscore_task_create(const char* name, oscore_task_function func, void
 }
 
 void oscore_task_yield(void) {
-	// nothing.
+	pthread_yield();
 }
 
 void oscore_task_exit(void * status) {
@@ -119,7 +120,7 @@ struct sched_param param;
 	int policy;
 	pthread_getschedparam(pthread_self(), &policy, &param);
 
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__linux__)
 	if (prio == TPRIO_LOW)
 		policy = SCHED_BATCH;
 #endif
