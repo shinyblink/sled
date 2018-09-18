@@ -18,19 +18,17 @@
 static int modno;
 static ulong frame;
 static ulong nexttick;
-static const char precalc[] = {1,2,3};
 
 static int mx,my;
 static int bx,by;
 
-static float blur_factor = 16.0f;
-static int draw_radius = 10; // Doesn't matter right now
+static float blur_factor;
+static float blur_factor_dividend = 8; // blur_factor = min(mx,my)/blur_factor_dividend
 static float max_intensity = 400.0f;
-static float max_max_intensity = 600.f;
-static float min_max_intensity = 200.f;
-static int frame_offset =0;
-static float intensity_cycle_speed = 0.05;
-static const int deadzone = 50;
+//static float max_max_intensity = 600.f;
+//static float min_max_intensity = 200.f;
+static int deadzone;
+static int deadzone_dividend = 4; // deadzone = mx / deadzone_dividend
 
 static int blur_function(int radius_sq) {
     int intensity=0;
@@ -44,15 +42,17 @@ static RGB intense_red(int intensity){
     if (intensity > 511) intensity = 511;
     if (intensity < 256) {
         return RGB(0,intensity,intensity/2);
+        //return RGB(0,intensity/2,intensity);
     } else {
         return RGB(intensity-256,255,intensity/2);
+        //return RGB(intensity-256,255,intensity/2);
     }
 }
 
 static int intensity_from_pixel(RGB px){
     if (px.red){
         return px.red + 256;
-    } else {\
+    } else {
         return px.green;
     }
 }
@@ -61,6 +61,8 @@ static int intensity_from_pixel(RGB px){
 int init(int moduleno, char* argstr) {
     mx = matrix_getx();
     my = matrix_gety();
+    blur_factor = ((mx<my)?mx:my)/blur_factor_dividend;
+    deadzone = mx/deadzone_dividend;
     modno = moduleno;
     frame = 0;
     return 0;
@@ -69,24 +71,19 @@ int init(int moduleno, char* argstr) {
 
 void reset(void) {
     nexttick = udate();
-    matrix_clear();
+    //matrix_clear();
     //bx = randn((mx-1)/4);
     bx = -deadzone;
     by = randn((my-1)/2)+my/4;
     frame = 0;
-    frame_offset = randn(6*(int)1.0/intensity_cycle_speed);
 }
 
 int draw(int argc, char* argv[]) {
     //matrix_clear();
-    int x_min = (bx-draw_radius>0)?bx-draw_radius:0;
-    int x_max = (bx+draw_radius<mx)?bx+draw_radius:mx;
-    int y_min = (by-draw_radius>0)?by-draw_radius:0;
-    int y_max = (by+draw_radius<my)?by+draw_radius:my;
-    x_min = 0;
-    x_max = mx;
-    y_min = 0;
-    y_max = my;
+    int x_min = 0;
+    int x_max = mx;
+    int y_min = 0;
+    int y_max = my;
     //printf("%d %d / %d %d\n",x_min,x_max,y_min,y_max);
     for (int x = x_min; x<x_max; x++) {
         for (int y=y_min; y<y_max; y++) {
@@ -100,9 +97,8 @@ int draw(int argc, char* argv[]) {
     }
     //bx += randn(2)-1;
     bx += 1;
-    by += randn(4)-2;
-    //by += randn(2)-1;
-    //max_intensity = min_max_intensity+(sin((frame_offset+frame)*intensity_cycle_speed)+1)*(max_max_intensity-min_max_intensity)+randn(100)-50;
+    //by += randn(4)-2;
+    by += randn(2)-1;
  
     if (bx < 0) bx = 0;
     if (by < 0) by = 0;
