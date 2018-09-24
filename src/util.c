@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <limits.h>
 
-
 size_t util_strlcpy(char* dst, char* src, size_t bufsz) {
 	strncpy(dst, src, bufsz);
 	dst[bufsz - 1] = 0;

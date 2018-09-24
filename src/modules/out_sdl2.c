@@ -13,7 +13,6 @@
 #error Define MATRIX_Y as the matrixes Y size.
 #endif
 
-
 #include <types.h>
 #include <string.h>
 #include <assert.h>

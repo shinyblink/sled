@@ -108,7 +108,7 @@ int init(int modno, char* argstr) {
 	}
 
 	// Allocate the message buffer.
-  message = calloc((NUMPIX * 3) + 3, 1);
+	message = calloc((NUMPIX * 3) + 3, 1);
 	assert(message); // 2lazy to handle it properly.
 	message[0] = 0xAA;
 
