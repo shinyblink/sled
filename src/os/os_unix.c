@@ -100,6 +100,9 @@ oscore_task oscore_task_create(const char* name, oscore_task_function func, void
 void oscore_task_yield(void) {
 #ifdef pthread_yield
 	pthread_yield();
+#else
+#include <sched.h>
+	sched_yield();
 #endif
 }
 
