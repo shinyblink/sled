@@ -18,8 +18,8 @@
 PROJECT := sled
 
 ## Debug mode
-## 0 -> Compile with optimzation and without debug symbols
-## 1 -> Compile without optimziation and with debug symbols and define DEBUG
+## 0 -> Compile with optimization and without debug symbols
+## 1 -> Compile without optimization and with debug symbols and define DEBUG
 DEBUG := 0
 
 ## Static vs. Dynamic linking
