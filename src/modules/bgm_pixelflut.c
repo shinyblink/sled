@@ -109,8 +109,9 @@ static inline uint32_t fast_strtoul16(const char *str, const char **endptr) {
 // end shamelessly ripped from pixelnuke
 
 static void net_send(px_buffer_t * client, char * str) {
-	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
-	send(client->socket, "\n", 1, MSG_NOSIGNAL);
+	size_t len = strlen(str);
+	str[len] = '\n';
+	send(client->socket, str, len + 1, MSG_NOSIGNAL);
 }
 
 static void net_err(px_buffer_t * client, char * str) {
