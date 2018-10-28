@@ -321,6 +321,9 @@ static void px_nbs(int sock) {
 	fcntl(sock, F_SETFL, flags);
 }
 
+// temporary..
+#define PIXELFLUT_USE_SELECT 1
+#ifdef PIXELFLUT_USE_SELECT
 static void * px_thread_func(void * n) {
 	px_client_t * list = 0;
 	int server;
@@ -348,37 +351,54 @@ static void * px_thread_func(void * n) {
 	px_nbs(server);
 	px_nbs(px_shutdown_fd_ot);
 	// --
-	fd_set rset;
+	fd_set rset, active_fds;
 	char sdbuf;
-	while (read(px_shutdown_fd_ot, &sdbuf, 1) <= 0) {
-		// Accept?
-		int accepted = accept(server, NULL, NULL);
-		if (accepted >= 0) {
-			px_nbs(accepted);
-			px_client_new(&list, accepted);
+
+	FD_ZERO(&active_fds);
+	FD_SET(px_shutdown_fd_ot, &active_fds);
+	FD_SET(server, &active_fds);
+
+	while (1) {
+		rset = active_fds;
+		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
+
+		if(FD_ISSET(px_shutdown_fd_ot, &rset) && (read(px_shutdown_fd_ot, &sdbuf, 1) <= 0)) {
+			break;
 		}
-		// select zeroes FDs >:(
-		FD_ZERO(&rset);
+
+		// Accept?
+		if(FD_ISSET(server, &rset)) {
+			int accepted = accept(server, NULL, NULL);
+			if (accepted >= 0) {
+				px_nbs(accepted);
+				px_client_new(&list, accepted);
+				FD_SET(accepted, &active_fds);
+			}
+		}
+
 		// Go through all clients, holding the BGMI lock so that the status of "are we in control of the matrix" cannot change.
 		px_client_t ** backptr = &list;
 		while (*backptr) {
-			if (px_client_update(*backptr)) {
-				void * on = (*backptr)->next;
-				// we don't want to close the socket until all taskpool threads are done
-				taskpool_wait(TP_GLOBAL);
-				close((*backptr)->socket);
-				free((*backptr)->buffer);
-				free(*backptr);
-				*backptr = on;
-				px_clientcount--;
-			} else {
-				FD_SET((*backptr)->socket, &rset);
+			if (FD_ISSET((*backptr)->socket, &rset)) {
+				if(px_client_update(*backptr)) {
+					void *on = (*backptr)->next;
+					// we don't want to close the socket until all taskpool threads are done
+					taskpool_wait(TP_GLOBAL);
+					close((*backptr)->socket);
+					FD_CLR((*backptr)->socket, &active_fds);
+					free((*backptr)->buffer);
+					free(*backptr);
+					*backptr = on;
+					px_clientcount--;
+				}
+				else {
+					backptr = (px_client_t**) &((*backptr)->next);
+				}
+			}
+			else {
 				backptr = (px_client_t**) &((*backptr)->next);
 			}
 		}
-		FD_SET(px_shutdown_fd_ot, &rset);
-		FD_SET(server, &rset);
-		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
 	}
 	// we don't want to close the socket until all taskpool threads are done
 	taskpool_wait(TP_GLOBAL);
@@ -393,6 +413,7 @@ static void * px_thread_func(void * n) {
 	close(server);
 	return NULL;
 }
+#endif
 
 int init(int moduleno, char* argstr) {
 	px_mtcountdown = FPS; // frames
