@@ -15,7 +15,18 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+
+// Has further effects in px_thread_func
+#ifndef __linux__
+#define PIXELFLUT_USE_SELECT
+#endif
+
+#ifdef PIXELFLUT_USE_SELECT
 #include <sys/select.h>
+#else
+#include <sys/epoll.h>
+#endif
+
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -65,6 +76,9 @@ typedef struct {
 
 typedef struct {
 	int socket; // The socket
+#ifndef PIXELFLUT_USE_SELECT
+	void * prev; // The previous client
+#endif
 	void * next; // The next client
 	px_buffer_t * buffer; // The current line buffer.
 } px_client_t;
@@ -288,29 +302,37 @@ static int px_client_update(px_client_t * client) {
 	return 0;
 }
 
-// Allows or closes the socket.
-static int px_client_new(px_client_t ** list, int sock) {
+// Allows or closes the socket. By being called, this transfers responsibility for the socket to the list.
+// If the client isn't created successfully, then the socket has to be closed.
+static px_client_t * px_client_new(px_client_t ** list, int sock) {
 	px_client_t * c = malloc(sizeof(px_client_t));
 	if (!c) {
 		close(sock);
-		return 0;
+		return NULL;
 	}
 	c->socket = sock;
+#ifndef PIXELFLUT_USE_SELECT
+	c->prev = NULL;
+#endif
 	c->next = NULL;
 	c->buffer = malloc(sizeof(px_buffer_t));
 	if (!c->buffer) {
 		free(c);
 		close(sock);
-		return 0;
+		return NULL;
 	}
 	c->buffer->socket = sock;
 	c->buffer->line[0] = 0;
 	c->buffer->linelen = 0;
-	if (*list)
+	if (*list) {
 		c->next = *list;
+#ifndef PIXELFLUT_USE_SELECT
+		((px_client_t *)(c->next))->prev = c;
+#endif
+	}
 	*list = c;
 	px_clientcount++;
-	return 1;
+	return c;
 }
 
 // Makes an FD nonblocking
@@ -320,9 +342,7 @@ static void px_nbs(int sock) {
 	fcntl(sock, F_SETFL, flags);
 }
 
-// temporary..
-#define PIXELFLUT_USE_SELECT 1
-#ifdef PIXELFLUT_USE_SELECT
+// The main server thread. Manages sockets. Tries not to explode.
 static void * px_thread_func(void * n) {
 	px_client_t * list = 0;
 	int server;
@@ -341,23 +361,25 @@ static void * px_thread_func(void * n) {
 	// prepare server...
 	if (bind(server, (struct sockaddr *) &sa_bpwr, sizeof(sa_bpwr))) {
 		fputs("error binding socket! -- Pixelflut\n", stderr);
+		close(server);
 		return NULL;
 	}
 	if (listen(server, 32)) {
 		fputs("error finalizing socket! -- Pixelflut\n", stderr);
+		close(server);
 		return NULL;
 	}
 	px_nbs(server);
 	px_nbs(px_shutdown_fd_ot);
 	// --
+#ifdef PIXELFLUT_USE_SELECT
+	// select
 	fd_set rset, active_fds;
-	char sdbuf;
-
 	FD_ZERO(&active_fds);
 	FD_SET(px_shutdown_fd_ot, &active_fds);
 	FD_SET(server, &active_fds);
-
 	while (1) {
+		// select is simple to use
 		rset = active_fds;
 		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
 
@@ -370,8 +392,8 @@ static void * px_thread_func(void * n) {
 			int accepted = accept(server, NULL, NULL);
 			if (accepted >= 0) {
 				px_nbs(accepted);
-				px_client_new(&list, accepted);
-				FD_SET(accepted, &active_fds);
+				if (px_client_new(&list, accepted))
+					FD_SET(accepted, &active_fds);
 			}
 		}
 
@@ -380,12 +402,13 @@ static void * px_thread_func(void * n) {
 		while (*backptr) {
 			if (FD_ISSET((*backptr)->socket, &rset)) {
 				if(px_client_update(*backptr)) {
-					void *on = (*backptr)->next;
 					// we don't want to close the socket until all taskpool threads are done
+					// NOTE! This code doesn't handle ->prev because we don't use it!
 					taskpool_wait(TP_GLOBAL);
 					close((*backptr)->socket);
 					FD_CLR((*backptr)->socket, &active_fds);
 					free((*backptr)->buffer);
+					void *on = (*backptr)->next;
 					free(*backptr);
 					*backptr = on;
 					px_clientcount--;
@@ -399,9 +422,81 @@ static void * px_thread_func(void * n) {
 			}
 		}
 	}
-	// we don't want to close the socket until all taskpool threads are done
+#else
+	fputs("we are using epoll -- Pixelflut\n", stderr);
+#define PIXELFLUT_EPOLL_EVS 512
+	// epoll
+	int epoll_obj = epoll_create(128);
+	if (epoll_obj == -1) {
+		fputs("could not access epoll! -- Pixelflut\n", stderr);
+		close(server);
+		return NULL;
+	}
+	struct epoll_event epoll_work;
+	struct epoll_event epoll_events[PIXELFLUT_EPOLL_EVS];
+
+	memset(&epoll_work, 0, sizeof(epoll_work));
+	epoll_work.events = EPOLLIN;
+
+	epoll_work.data.fd = px_shutdown_fd_ot;
+	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, px_shutdown_fd_ot, &epoll_work);
+
+	epoll_work.data.fd = server;
+	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, server, &epoll_work);
+
+	int running = 1;
+
+	while (running) {
+		// epoll is somewhat more event-based. This means trouble.
+		int eventcount = epoll_wait(epoll_obj, epoll_events, PIXELFLUT_EPOLL_EVS, -1);
+		if (eventcount <= 0)
+			fputs("Not more bugs!\n", stderr);
+		for (int i = 0; i < eventcount; i++) {
+			// REGARDING USERDATA BEING A UNION!
+			// There is an implicit assumption here that a valid client pointer cannot equal either core FD value.
+			// If this assumption turns out to be false... yeah, can't help you there.
+			if (epoll_events[i].data.fd == server) {
+				int accepted = accept(server, NULL, NULL);
+				if (accepted >= 0) {
+					px_nbs(accepted);
+					px_client_t * client = px_client_new(&list, accepted);
+					if (client) {
+						epoll_work.data.ptr = client;
+						epoll_ctl(epoll_obj, EPOLL_CTL_ADD, accepted, &epoll_work);
+					}
+				}
+			} else if (epoll_events[i].data.fd == px_shutdown_fd_ot) {
+				running = 0;
+				break;
+			} else {
+				px_client_t * client = epoll_events[i].data.ptr;
+				if (px_client_update(client)) {
+					// Waiting to ensure buffer & such aren't being poked at
+					taskpool_wait(TP_GLOBAL);
+					// Don't pass NULL, older kernels are ticklish.
+					epoll_ctl(epoll_obj, EPOLL_CTL_DEL, client->socket, &epoll_work);
+					close(client->socket);
+					free(client->buffer);
+					px_client_t * pr = (px_client_t *) client->prev;
+					px_client_t * nx = (px_client_t *) client->next;
+					free(client);
+					if (pr)
+						pr->next = nx;
+					if (nx)
+						nx->prev = pr;
+					px_clientcount--;
+				}
+			}
+		}
+	}
+#endif
+	// we don't want to close the socket & free client buffers/etc. until all taskpool threads are done
 	taskpool_wait(TP_GLOBAL);
 	// Close & Deallocate
+#ifndef PIXELFLUT_USE_SELECT
+	// epoll cleanup
+	close(epoll_obj);
+#endif
 	while (list) {
 		px_client_t * nxt = (px_client_t*) list->next;
 		free(list->buffer);
@@ -412,7 +507,6 @@ static void * px_thread_func(void * n) {
 	close(server);
 	return NULL;
 }
-#endif
 
 int init(int moduleno, char* argstr) {
 	px_mtcountdown = FPS; // frames
