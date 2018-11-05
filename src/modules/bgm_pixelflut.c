@@ -228,12 +228,12 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 		} */
 	} else if (fast_str_startswith("SIZE", line)) {
 		char str[64];
-		int len = snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
+		int len = snprintf(str, 64, "SIZE %d %d\n", px_mx, px_my);
 		if (len > 0 && len < 64)
 			net_send(client, str, len);
 	} else if (fast_str_startswith("STATS", line)) {
 		char str[128];
-		int len = snprintf(str, 128, "STATS px:%u conn:%u", px_pixelcount, px_clientcount);
+		int len = snprintf(str, 128, "STATS px:%u conn:%u\n", px_pixelcount, px_clientcount);
 		if (len > 0 && len < 128)
 			net_send(client, str, len);
 	} else if (fast_str_startswith("HELP", line)) {
