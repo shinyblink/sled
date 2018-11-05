@@ -142,7 +142,7 @@ static void poke_main_thread(void) {
 static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 	// In the original version, this was ripped from pixelnuke,
 	//  and it remains that way, but hopefully I've changed it enough.
-	if (line[0] == 'P' && line[1] == 'X') {
+	if (line[0] == 'P' && line[1] == 'X' && line[2]) {
 		const char * ptr = line + 3;
 		const char * endptr = ptr;
 
