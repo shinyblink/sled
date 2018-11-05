@@ -102,6 +102,8 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 
 	// -- Do this last. It's thread creation. --
 
+	int no_cpus = oscore_ncpus();
+
 	// If the oscore has NO thread support, not even faking, we still want basic GFX modules that use taskpool to not break.
 	// So if pool->workers is 0, then we're just pretending.
 	pool->workers = 0;
@@ -110,6 +112,8 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 			pool->tasks[pool->workers] = oscore_task_create(pool_name, taskpool_function, pool);
 			if (pool->tasks[pool->workers]) {
 				oscore_task_setprio(pool->tasks[pool->workers], TPRIO_LOW);
+				if (no_cpus == workers)
+					oscore_task_pin(pool->tasks[pool->workers], pool->workers);
 				pool->workers++;
 			}
 		}

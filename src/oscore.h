@@ -30,6 +30,7 @@ void oscore_task_yield(void);
 void oscore_task_exit(void * status);
 void * oscore_task_join(oscore_task task);
 int oscore_ncpus(void);
+void oscore_task_pin(oscore_task task, int cpu);
 
 #define TPRIO_HIGH 1
 #define TPRIO_NORMAL 0

@@ -138,6 +138,15 @@ int oscore_ncpus(void) {
 	return sysconf(_SC_NPROCESSORS_ONLN);
 }
 
+void oscore_task_pin(oscore_task task, int cpu) {
+#ifdef pthread_setaffinity_np
+	cpu_set_t cpuset;
+	CPU_ZERO(&cpuset);
+	CPU_SET(cpu, &cpuset);
+	pthread_setaffinity_np(*((pthread_t*) task), sizeof(cpu_set_t), &cpuset);
+#endif
+}
+
 // -- mutex
 oscore_mutex oscore_mutex_new(void) {
 	pthread_mutex_t * mutex = malloc(sizeof(pthread_mutex_t));
