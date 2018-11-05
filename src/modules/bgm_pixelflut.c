@@ -108,16 +108,12 @@ static inline uint32_t fast_strtoul16(const char *str, const char **endptr) {
 }
 // end shamelessly ripped from pixelnuke
 
-static void net_send(px_buffer_t * client, char * str) {
-	size_t len = strlen(str);
-	str[len] = '\n';
-	send(client->socket, str, len + 1, MSG_NOSIGNAL);
+static inline void net_send(px_buffer_t * client, const char * str, size_t len) {
+	send(client->socket, str, len, MSG_NOSIGNAL);
 }
 
-static void net_err(px_buffer_t * client, char * str) {
-	send(client->socket, "ERROR: ", 7, MSG_NOSIGNAL);
+static inline void net_sendstr(px_buffer_t * client, const char * str) {
 	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
-	send(client->socket, "\n", 1, MSG_NOSIGNAL);
 }
 
 static void poke_main_thread(void) {
@@ -138,11 +134,11 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		uint32_t x = fast_strtoul10(ptr, &endptr);
 		if (endptr == ptr) {
-			net_err(client, "ERROR: Invalid command (expected decimal as first parameter)");
+			net_sendstr(client, "ERROR: Invalid command (expected decimal as first parameter)\n");
 			return 1;
 		}
 		if (!*endptr) {
-			net_err(client, "ERROR: Invalid command (second parameter required)");
+			net_sendstr(client, "ERROR: Invalid command (second parameter required)\n");
 			return 1;
 		}
 
@@ -150,7 +146,7 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		uint32_t y = fast_strtoul10((ptr = endptr), &endptr);
 		if (endptr == ptr) {
-			net_err(client, "Invalid command (expected decimal as second parameter)");
+			net_sendstr(client, "ERROR: Invalid command (expected decimal as second parameter)\n");
 			return 1;
 		}
 
@@ -165,8 +161,9 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 			RGB pixel = RGB(0, 0, 0);
 			if (inbounds)
 				pixel = px_array[index];
-			sprintf(str, "PX %u %u %02X%02X%02X", x, y, pixel.red, pixel.green, pixel.blue);
-			net_send(client, str);
+			int len = sprintf(str, "PX %u %u %02X%02X%02X\n", x, y, pixel.red, pixel.green, pixel.blue);
+			if (len > 0)
+				net_send(client, str, len);
 			return 0;
 		}
 
@@ -175,7 +172,7 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 		// PX <x> <y> BB|RRGGBB|RRGGBBAA
 		uint32_t c = fast_strtoul16((ptr = endptr), &endptr);
 		if (endptr == ptr) {
-			net_err(client, "Third parameter missing or invalid (should be hex color)");
+			net_sendstr(client, "ERROR: Third parameter missing or invalid (should be hex color)\n");
 			return 1;
 		}
 
@@ -196,7 +193,7 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 			pixel.green = c;
 			pixel.blue = c;
 		} else {
-			net_err(client, "Color hex code must be 2, 6 or 8 characters long (WW, RGB or RGBA)");
+			net_sendstr(client, "ERROR: Color hex code must be 2, 6 or 8 characters long (WW, RGB or RGBA)\n");
 			return 1;
 		}
 
@@ -213,26 +210,27 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		uint32_t x = fast_strtoul10(ptr, &endptr);
 		if (endptr == ptr) {
-			net_err(client, "ERROR: Invalid command (expected decimal as first parameter");
+			net_sendstr(client, "ERROR: Invalid command (expected decimal as first parameter\n");
 		} */
 	} else if (fast_str_startswith("SIZE", line)) {
 		char str[64];
-		snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
-		net_send(client, str);
+		int len = snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
+		if (len > 0 && len < 64)
+			net_send(client, str, len);
 	} else if (fast_str_startswith("STATS", line)) {
 		char str[128];
-		snprintf(str, 128, "STATS px:%u conn:%u", px_pixelcount, px_clientcount);
-		net_send(client, str);
+		int len = snprintf(str, 128, "STATS px:%u conn:%u", px_pixelcount, px_clientcount);
+		if (len > 0 && len < 128)
+			net_send(client, str, len);
 	} else if (fast_str_startswith("HELP", line)) {
-		net_send(client,
-							 "\
+		const char * help = "\
 PX x y: Get color at position (x,y)\n\
 PX x y rrggbb(aa): Draw a pixel (alpha ignored)\n\
 SIZE: Get canvas size\n\
-STATS: Return statistics");
-
+STATS: Return statistics\n";
+		net_sendstr(client, help);
 	} else {
-		net_err(client, "Unknown command");
+		net_sendstr(client, "ERROR: Unknown command\n");
 		return 1;
 	}
 	// END ripped from pixelnuke
@@ -363,7 +361,7 @@ static void * px_thread_func(void * n) {
 		rset = active_fds;
 		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
 
-		if(FD_ISSET(px_shutdown_fd_ot, &rset) && (read(px_shutdown_fd_ot, &sdbuf, 1) <= 0)) {
+		if(FD_ISSET(px_shutdown_fd_ot, &rset)) {
 			break;
 		}
 
