@@ -17,14 +17,14 @@
 #include <sys/socket.h>
 
 // Has further effects in px_thread_func
-#ifndef __linux__
-#define PIXELFLUT_USE_SELECT
+#ifdef __linux__
+#define PIXELFLUT_USE_EPOLL
 #endif
 
-#ifdef PIXELFLUT_USE_SELECT
-#include <sys/select.h>
-#else
+#ifdef PIXELFLUT_USE_EPOLL
 #include <sys/epoll.h>
+#else
+#include <sys/select.h>
 #endif
 
 #include <netinet/in.h>
@@ -76,7 +76,7 @@ typedef struct {
 
 typedef struct {
 	int socket; // The socket
-#ifndef PIXELFLUT_USE_SELECT
+#ifdef PIXELFLUT_USE_EPOLL
 	void * prev; // The previous client
 #endif
 	void * next; // The next client
@@ -311,7 +311,7 @@ static px_client_t * px_client_new(px_client_t ** list, int sock) {
 		return NULL;
 	}
 	c->socket = sock;
-#ifndef PIXELFLUT_USE_SELECT
+#ifdef PIXELFLUT_USE_EPOLL
 	c->prev = NULL;
 #endif
 	c->next = NULL;
@@ -326,7 +326,7 @@ static px_client_t * px_client_new(px_client_t ** list, int sock) {
 	c->buffer->linelen = 0;
 	if (*list) {
 		c->next = *list;
-#ifndef PIXELFLUT_USE_SELECT
+#ifdef PIXELFLUT_USE_EPOLL
 		((px_client_t *)(c->next))->prev = c;
 #endif
 	}
@@ -372,57 +372,7 @@ static void * px_thread_func(void * n) {
 	px_nbs(server);
 	px_nbs(px_shutdown_fd_ot);
 	// --
-#ifdef PIXELFLUT_USE_SELECT
-	// select
-	fd_set rset, active_fds;
-	FD_ZERO(&active_fds);
-	FD_SET(px_shutdown_fd_ot, &active_fds);
-	FD_SET(server, &active_fds);
-	while (1) {
-		// select is simple to use
-		rset = active_fds;
-		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
-
-		if(FD_ISSET(px_shutdown_fd_ot, &rset)) {
-			break;
-		}
-
-		// Accept?
-		if(FD_ISSET(server, &rset)) {
-			int accepted = accept(server, NULL, NULL);
-			if (accepted >= 0) {
-				px_nbs(accepted);
-				if (px_client_new(&list, accepted))
-					FD_SET(accepted, &active_fds);
-			}
-		}
-
-		// Go through all clients, holding the BGMI lock so that the status of "are we in control of the matrix" cannot change.
-		px_client_t ** backptr = &list;
-		while (*backptr) {
-			if (FD_ISSET((*backptr)->socket, &rset)) {
-				if(px_client_update(*backptr)) {
-					// we don't want to close the socket until all taskpool threads are done
-					// NOTE! This code doesn't handle ->prev because we don't use it!
-					taskpool_wait(TP_GLOBAL);
-					close((*backptr)->socket);
-					FD_CLR((*backptr)->socket, &active_fds);
-					free((*backptr)->buffer);
-					void *on = (*backptr)->next;
-					free(*backptr);
-					*backptr = on;
-					px_clientcount--;
-				}
-				else {
-					backptr = (px_client_t**) &((*backptr)->next);
-				}
-			}
-			else {
-				backptr = (px_client_t**) &((*backptr)->next);
-			}
-		}
-	}
-#else
+#ifdef PIXELFLUT_USE_EPOLL
 	fputs("we are using epoll -- Pixelflut\n", stderr);
 #define PIXELFLUT_EPOLL_EVS 512
 	// epoll
@@ -489,11 +439,61 @@ static void * px_thread_func(void * n) {
 			}
 		}
 	}
+#else
+	// select
+	fd_set rset, active_fds;
+	FD_ZERO(&active_fds);
+	FD_SET(px_shutdown_fd_ot, &active_fds);
+	FD_SET(server, &active_fds);
+	while (1) {
+		// select is simple to use
+		rset = active_fds;
+		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
+
+		if(FD_ISSET(px_shutdown_fd_ot, &rset)) {
+			break;
+		}
+
+		// Accept?
+		if(FD_ISSET(server, &rset)) {
+			int accepted = accept(server, NULL, NULL);
+			if (accepted >= 0) {
+				px_nbs(accepted);
+				if (px_client_new(&list, accepted))
+					FD_SET(accepted, &active_fds);
+			}
+		}
+
+		// Go through all clients, holding the BGMI lock so that the status of "are we in control of the matrix" cannot change.
+		px_client_t ** backptr = &list;
+		while (*backptr) {
+			if (FD_ISSET((*backptr)->socket, &rset)) {
+				if(px_client_update(*backptr)) {
+					// we don't want to close the socket until all taskpool threads are done
+					// NOTE! This code doesn't handle ->prev because we don't use it!
+					taskpool_wait(TP_GLOBAL);
+					close((*backptr)->socket);
+					FD_CLR((*backptr)->socket, &active_fds);
+					free((*backptr)->buffer);
+					void *on = (*backptr)->next;
+					free(*backptr);
+					*backptr = on;
+					px_clientcount--;
+				}
+				else {
+					backptr = (px_client_t**) &((*backptr)->next);
+				}
+			}
+			else {
+				backptr = (px_client_t**) &((*backptr)->next);
+			}
+		}
+	}
 #endif
 	// we don't want to close the socket & free client buffers/etc. until all taskpool threads are done
 	taskpool_wait(TP_GLOBAL);
 	// Close & Deallocate
-#ifndef PIXELFLUT_USE_SELECT
+#ifdef PIXELFLUT_USE_EPOLL
 	// epoll cleanup
 	close(epoll_obj);
 #endif
