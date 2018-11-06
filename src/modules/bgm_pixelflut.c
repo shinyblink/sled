@@ -68,6 +68,13 @@ static oscore_task px_task;
 // The maximum, including 0, size of a line.
 #define PX_LINESIZE 0x2000
 
+const static char PX_helpmsg[] =
+	"PX x y: Get color at position (x,y)\n"
+	"PX x y rrggbb(aa): Draw a pixel (alpha ignored)\n"
+	"SIZE: Get canvas size\n"
+	"STATS: Return statistics\n";
+
+
 typedef struct {
 	int socket;
 	size_t linelen;
@@ -237,12 +244,7 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 		if (len > 0 && len < 128)
 			net_send(client, str, len);
 	} else if (fast_str_startswith("HELP", line)) {
-		const char * help = "\
-PX x y: Get color at position (x,y)\n\
-PX x y rrggbb(aa): Draw a pixel (alpha ignored)\n\
-SIZE: Get canvas size\n\
-STATS: Return statistics\n";
-		net_sendstr(client, help);
+		net_send(client, PX_helpmsg, sizeof(PX_helpmsg));
 	} else {
 		net_sendstr(client, "ERROR: Unknown command\n");
 		return 1;
