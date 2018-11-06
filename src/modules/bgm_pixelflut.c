@@ -70,7 +70,7 @@ static oscore_task px_task;
 
 const static char PX_helpmsg[] =
 	"PX x y: Get color at position (x,y)\n"
-	"PX x y rrggbb(aa): Draw a pixel (alpha ignored)\n"
+	"PX x y rrggbb(aa): Draw a pixel (optional alpha)\n"
 	"SIZE: Get canvas size\n"
 	"STATS: Return statistics\n";
 
@@ -198,6 +198,7 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 		}
 
 		RGB pixel;
+		byte alpha = 255;
 		if (endptr - ptr == 6) {
 			// 0x00RRGGBB
 			pixel.red = c >> 16;
@@ -208,6 +209,9 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 			pixel.red = c >> 24;
 			pixel.green = c >> 16;
 			pixel.blue = c >> 8;
+			alpha = c;
+			if (!alpha)
+				return 0;
 		} else if (endptr - ptr == 2) {
 			// 0x000000Gr
 			pixel.red = c;
@@ -222,6 +226,9 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		if (!inbounds)
 			return 0;
+
+		if (alpha != 255)
+			pixel = RGBlerp(alpha, px_array[index], pixel);
 
 		matrix_set(x, y, pixel);
 		px_array[index] = pixel;
