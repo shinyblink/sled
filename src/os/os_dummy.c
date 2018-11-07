@@ -24,11 +24,10 @@ oscore_event oscore_event_new(void) {
 int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
 	ulong tnow = udate();
 	if (tnow >= desired_usec)
-		return tnow;
+		return 0;
 	ulong sleeptime = desired_usec - tnow;
-
 	usleep(sleeptime);
-	return 1;
+	return 0;
 }
 
 void oscore_event_signal(oscore_event ev) {

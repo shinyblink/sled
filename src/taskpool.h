@@ -6,48 +6,49 @@
 #include "oscore.h"
 #include <stddef.h>
 
-#ifdef __linux__
-// need to check where this works as well.
-// it's using pipe() and some fnctls.
-#define TP_PIPES
-#endif
+// The new queue system plan is like this:
+// Each thread has it's own read head, and are all attached to the same queue.
+// A thread only executes an object under two conditions:
+// 1. when it has found a 'next' object, which it retrieves *before execution*, and it will then advance to after execution
+// 2. when the object is of type TASKPOOL_QUEUE_SHUTDOWN which will by definition never have a next object.
+// The 'next' pointer MUST ONLY EVER BE SET ONCE, ATOMICALLY.
+// The queue objects have a reference counter, which starts at the amount of workers, and is lowered via get-and-decrement on execution.
+// Note that any other data needed for execution must be retrieved before execution.
+// This requires that the queue be interleaved between 'NOP' objects and 'JOB' objects.
+// For added efficiency, commands may specify many JOB objects followed by one NOP object.
 
-#ifdef TP_PIPES
-#define TP_CMD_JOB 1
-#define TP_CMD_DONE 2
-#define TP_CMD_QUIT 3
-typedef struct {
-		byte type;
-		int pos;
-} taskpool_command;
-#endif
+// Execution details:
+// 'TASKPOOL_QUEUE_NOP': Used as a spacer to ensure execution of the last object. No effects of its own.
+// 'TASKPOOL_QUEUE_JOB': Executes a job. The old reference counter value (hence get-and-decrement) is checked against the total worker counter,
+//   which is what it starts at in the first place. If it's the total worker counter - 1, then this thread was first and runs the job. Otherwise the job is ignored.
+// 'TASKPOOL_QUEUE_SHUTDOWN': See the note above on immediate execution. The reference counter still applies and is used for the cleanup of the queue.
+// 'TASKPOOL_QUEUE_WAIT': The deallocating thread must signal the waitover event.
+#define TASKPOOL_QUEUE_NOP 0
+#define TASKPOOL_QUEUE_JOB 1
+#define TASKPOOL_QUEUE_SHUTDOWN 2
+#define TASKPOOL_QUEUE_WAIT 3
 
 typedef struct {
 	void (*func)(void*);
 	void* ctx;
 } taskpool_job;
 
+typedef struct taskpool_queue_object {
+	byte type;
+	int refcount;
+	struct taskpool_queue_object * next; // Write atomically, but with no conditions - access is controlled by the get-and-set in taskpool.
+	taskpool_job jobdata;
+} taskpool_queue_object;
+
 typedef struct {
+	// Amount of entries in tasks. If 0, then we're just pretending.
 	int workers;
-	oscore_task* tasks;
-
-	int queue_size;
-	taskpool_job* jobs;
-
-#ifdef TP_PIPES
-	int cmdpipe[2];
-	int retpipe[2];
-
-#else
-	// The job that *has just been read*, and the job that *has just been written*.
-	int jobs_reading, jobs_writing;
-
-	oscore_mutex lock;
-	oscore_event wakeup; // Used to wake up threads.
-	oscore_event progress; // Threads trigger this to report forward progress to the main thread.
-
-	int shutdown; // Shutdown control variable (Internal)
-#endif
+	oscore_task * tasks;
+	oscore_event waitover;
+	// The last queue object. Write with get-and-set.
+	// This has to be done first because if the taskpool queue object was done first,
+	//  the possibility would arise of another writer using a head that's deallocated.
+	taskpool_queue_object * whead;
 } taskpool; // for now
 
 // Queue size must be at least 2.
