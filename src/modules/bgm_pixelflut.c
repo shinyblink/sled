@@ -149,6 +149,8 @@ static void poke_main_thread(void) {
 static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 	// In the original version, this was ripped from pixelnuke,
 	//  and it remains that way, but hopefully I've changed it enough.
+	if (!(line[0] && line[1]))
+		return 0;
 	if (line[0] == 'P' && line[1] == 'X' && line[2]) {
 		const char * ptr = line + 3;
 		const char * endptr = ptr;
@@ -265,11 +267,11 @@ static void px_buffer_update(void * buf) {
 	char * line = buffer->line;
 	while (1) {
 		char * ch = strchr(line, '\n');
-		if (ch)
-			*ch = 0;
-		px_buffer_executeline(line, buf);
 		if (!ch)
 			break;
+
+		*ch = 0;
+		px_buffer_executeline(line, buffer);
 		line = ch + 1;
 	}
 	free(buffer);
