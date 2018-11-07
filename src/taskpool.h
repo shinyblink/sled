@@ -48,11 +48,16 @@ typedef struct {
 	// Used to prevent OOM-by-overload. Atomically inc/dec'd by all involved threads as queue objects move through the system.
 	int usage;
 	oscore_task * tasks;
-	oscore_event waitover, incoming; // waitover is threads -> main, incoming is basically a dummy but is signalled main -> threads
+	oscore_event waitover, incoming; // waitover is threads -> writer, incoming is basically a dummy but is signalled writer -> threads
 	// The last queue object. Write with get-and-set.
 	// This has to be done first because if the taskpool queue object was done first,
 	//  the possibility would arise of another writer using a head that's deallocated.
 	taskpool_queue_object * whead;
+	// This is the first queue object of the freelist, written to by writer threads.
+	// 0 when 'locked'.
+	taskpool_queue_object * ffoot;
+	// This is the last queue object of the freelist, written to by task threads.
+	taskpool_queue_object * fhead;
 } taskpool; // for now
 
 // Queue size must be at least 2.

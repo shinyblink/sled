@@ -46,7 +46,10 @@ static void * taskpool_function(void* ctx) {
 				oscore_event_signal(pool->waitover);
 			}
 			atomic_fetch_sub(&(pool->usage), 1);
-			free(qobj);
+			// We own qobj now, which means we can do this:
+			qobj->next = 0;
+			taskpool_queue_object * t2 = atomic_exchange(&(pool->fhead), qobj);
+			atomic_store(&(t2->next), qobj);
 		}
 		// Shutdown has a next of 0
 		qobj = qobjnxt;
@@ -60,6 +63,25 @@ static int taskpool_overloaded(taskpool * pool) {
 	return usage >= TASKPOOL_MAX_USAGE;
 }
 
+static taskpool_queue_object * taskpool_alloc_obj(taskpool * pool) {
+	// This can't be done sanely without race conditions, but we don't want a lock, at least of the kind that'll introduce delays.
+	// This only locks it against other writer threads (if any), and if it can't immediately lock it'll just malloc.
+	taskpool_queue_object * locked = atomic_exchange(&(pool->ffoot), 0);
+	if (locked) {
+		taskpool_queue_object * lx = atomic_load(&(locked->next));
+		if (lx) {
+			// Advance, this 'unlocks'
+			atomic_store(&(pool->ffoot), lx);
+			return lx;
+		}
+		// Failed to advance, so restore things (unlock)
+		atomic_store(&(pool->ffoot), locked);
+	}
+	taskpool_queue_object * tqo = malloc(sizeof(taskpool_queue_object));
+	assert(tqo);
+	return tqo;
+}
+
 static void taskpool_inject_obj(taskpool * pool, taskpool_queue_object * obj) {
 	atomic_fetch_add(&(pool->usage), 1);
 	// Now for the writing side of things.
@@ -68,8 +90,7 @@ static void taskpool_inject_obj(taskpool * pool, taskpool_queue_object * obj) {
 }
 
 static void taskpool_new_job(taskpool * pool, taskpool_job job) {
-	taskpool_queue_object * tqo = malloc(sizeof(taskpool_queue_object));
-	assert(tqo);
+	taskpool_queue_object * tqo = taskpool_alloc_obj(pool);
 	tqo->type = TASKPOOL_QUEUE_JOB;
 	tqo->refcount = pool->workers;
 	tqo->next = 0;
@@ -77,8 +98,7 @@ static void taskpool_new_job(taskpool * pool, taskpool_job job) {
 	taskpool_inject_obj(pool, tqo);
 }
 static void taskpool_new_cmd(taskpool * pool, byte cmd) {
-	taskpool_queue_object * tqo = malloc(sizeof(taskpool_queue_object));
-	assert(tqo);
+	taskpool_queue_object * tqo = taskpool_alloc_obj(pool);
 	tqo->type = cmd;
 	tqo->refcount = pool->workers;
 	tqo->next = 0;
@@ -102,6 +122,13 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	tqo->refcount = pool->workers;
 	tqo->next = 0;
 	pool->whead = tqo;
+
+	tqo = malloc(sizeof(taskpool_queue_object));
+	// Only field that needs to be valid
+	tqo->next = 0;
+	assert(tqo);
+	pool->fhead = tqo;
+	pool->ffoot = tqo;
 
 	// -- Do this last. It's thread creation. --
 
@@ -204,6 +231,7 @@ void taskpool_destroy(taskpool* pool) {
 		for (int i = 0; i < pool->workers; i++)
 			oscore_task_join(pool->tasks[i]);
 	}
+	// LEAK: Not bothering to handle freelist for now, want to get perf. stats first
 	oscore_event_free(pool->waitover);
 	oscore_event_free(pool->incoming);
 	free(pool->tasks);
