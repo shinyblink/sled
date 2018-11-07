@@ -23,6 +23,7 @@ static void * taskpool_function(void* ctx) {
 			while (!atomic_load(&(qobj->next))) {
 				// Burn CPU
 				oscore_task_yield();
+				oscore_event_wait_until(pool->incoming, oscore_udate() + 1000);
 			}
 		}
 		qobjnxt = qobj->next;
@@ -44,6 +45,7 @@ static void * taskpool_function(void* ctx) {
 				// All threads have passed checkpoint, signal
 				oscore_event_signal(pool->waitover);
 			}
+			atomic_fetch_sub(&(pool->usage), 1);
 			free(qobj);
 		}
 		// Shutdown has a next of 0
@@ -52,7 +54,14 @@ static void * taskpool_function(void* ctx) {
 	return 0;
 }
 
+// Checked at submission
+static int taskpool_overloaded(taskpool * pool) {
+	int usage = atomic_load(&(pool->usage));
+	return usage >= TASKPOOL_MAX_USAGE;
+}
+
 static void taskpool_inject_obj(taskpool * pool, taskpool_queue_object * obj) {
+	atomic_fetch_add(&(pool->usage), 1);
 	// Now for the writing side of things.
 	taskpool_queue_object * t2 = atomic_exchange(&(pool->whead), obj);
 	atomic_store(&(t2->next), obj);
@@ -80,6 +89,9 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	// Create the threads.
 	taskpool* pool = calloc(sizeof(taskpool), 1);
 	assert(pool);
+
+	pool->waitover = oscore_event_new();
+	pool->incoming = oscore_event_new();
 
 	pool->tasks = calloc(sizeof(oscore_task), workers);
 	assert(pool->tasks);
@@ -112,8 +124,8 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 }
 
 int taskpool_submit(taskpool* pool, void (*func)(void*), void* ctx) {
-	if (pool->workers == 0) {
-		// We're faking. This isn't a real taskpool.
+	if (taskpool_overloaded(pool) || (pool->workers == 0)) {
+		// Faking due to unreal taskpool or overload condition.
 		func(ctx);
 		return 0;
 	}
@@ -128,7 +140,10 @@ int taskpool_submit(taskpool* pool, void (*func)(void*), void* ctx) {
 
 // Hellish stuff to run stuff in parallel.
 inline void taskpool_submit_array(taskpool* pool, int count, void (*func)(void*), void* ctx, size_t size) {
-	if (pool->workers == 0) {
+	if (taskpool_overloaded(pool) || (pool->workers == 0)) {
+		// Faking due to unreal taskpool or overload condition.
+		// In the case of overload it's possible that some free space could exist
+		//  half-way through, but short of very high counts or very long tasks, the taskpool itself will still be totally flooded.
 		for (int i = 0; i < count; i++)
 			func(ctx + (i * size));
 	} else {
@@ -174,7 +189,7 @@ void taskpool_wait(taskpool* pool) {
 	if (pool->workers) {
 		taskpool_new_cmd(pool, TASKPOOL_QUEUE_WAIT);
 		taskpool_new_cmd(pool, TASKPOOL_QUEUE_NOP);
-		while (!oscore_event_wait_until(pool->waitover, udate() + 1000)) {
+		while (!oscore_event_wait_until(pool->waitover, oscore_udate() + 1000)) {
 			// ... You know, for added 'in case the wait wasn't enough'
 			oscore_task_yield();
 		}
@@ -184,8 +199,13 @@ void taskpool_wait(taskpool* pool) {
 void taskpool_destroy(taskpool* pool) {
 	// This command cleans up the ->whead, so we can just ignore the threads from now on, I hope?
 	// ... or do we need to join them?
-	if (pool->workers)
+	if (pool->workers) {
 		taskpool_new_cmd(pool, TASKPOOL_QUEUE_SHUTDOWN);
+		for (int i = 0; i < pool->workers; i++)
+			oscore_task_join(pool->tasks[i]);
+	}
+	oscore_event_free(pool->waitover);
+	oscore_event_free(pool->incoming);
 	free(pool->tasks);
 	free(pool);
 	pool = NULL;

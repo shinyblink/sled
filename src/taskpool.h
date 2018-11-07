@@ -28,6 +28,8 @@
 #define TASKPOOL_QUEUE_SHUTDOWN 2
 #define TASKPOOL_QUEUE_WAIT 3
 
+#define TASKPOOL_MAX_USAGE 80
+
 typedef struct {
 	void (*func)(void*);
 	void* ctx;
@@ -43,8 +45,10 @@ typedef struct taskpool_queue_object {
 typedef struct {
 	// Amount of entries in tasks. If 0, then we're just pretending.
 	int workers;
+	// Used to prevent OOM-by-overload. Atomically inc/dec'd by all involved threads as queue objects move through the system.
+	int usage;
 	oscore_task * tasks;
-	oscore_event waitover;
+	oscore_event waitover, incoming; // waitover is threads -> main, incoming is basically a dummy but is signalled main -> threads
 	// The last queue object. Write with get-and-set.
 	// This has to be done first because if the taskpool queue object was done first,
 	//  the possibility would arise of another writer using a head that's deallocated.
