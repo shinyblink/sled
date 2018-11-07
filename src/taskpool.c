@@ -1,10 +1,67 @@
 // Taskpool.
+#define _GNU_SOURCE
 #include "taskpool.h"
 #include <stdlib.h>
 #include "types.h"
 #include "timers.h"
-#include <stdlib.h>
 
+#include <stdlib.h>
+#include <stddef.h>
+#include <assert.h>
+
+#ifdef TP_PIPES
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <err.h>
+
+//#define TP_SEND(fd, cmd) write((fd), (char*) &(cmd), sizeof(taskpool_command))
+//#define TP_RECV(fd, cmd) read((fd), (char*) &(cmd), sizeof(taskpool_command))
+
+static inline void TP_SEND(int fd, taskpool_command* cmd) {
+	int ret = write(fd, (char*) cmd, sizeof(taskpool_command));
+	if (!ret) {
+		err(2, "taskpool: job write failure");
+	}
+}
+
+static inline void TP_RECV(int fd, taskpool_command* cmd) {
+	int ret = read(fd, (char*) cmd, sizeof(taskpool_command));
+	if (!ret) {
+		err(2, "taskpool: job reading failure");
+	}
+}
+
+static inline void tp_putjob(taskpool* pool, taskpool_job job) {
+	taskpool_command cmd;
+	TP_RECV(pool->retpipe[0], &cmd);
+
+	pool->jobs[cmd.pos] = job;
+	cmd.type = TP_CMD_JOB;
+	TP_SEND(pool->cmdpipe[1], &cmd);
+}
+
+static void * taskpool_function(void* ctx) {
+	taskpool* pool = (taskpool*) ctx;
+	taskpool_job job;
+	taskpool_command cmd;
+	while (1) {
+		TP_RECV(pool->cmdpipe[0], &cmd);
+		if (cmd.type == TP_CMD_QUIT)
+			return NULL;
+		job = pool->jobs[cmd.pos];
+
+		if (job.func) {
+			job.func(job.ctx);
+			// We did a job. Now yield for RT sanity
+			oscore_task_yield();
+		}
+		cmd.type = TP_CMD_DONE;
+		TP_SEND(pool->retpipe[1], &cmd);
+	}
+}
+
+#else
 // So, the locking system needed a bit of a rethink...
 // (the taskpool can't run until the queue is full)
 // In particular, it didn't consider the existence of oscore_event,
@@ -45,7 +102,7 @@ static inline void tp_putjob(taskpool* pool, taskpool_job job) {
 static inline taskpool_job tp_getjob(taskpool* pool) {
 	taskpool_job job = {
 		.func = NULL,
-		.ctx = NULL
+		.ctx = NULL,
 	};
 	oscore_mutex_lock(pool->lock);
 	// If we aren't already at the end of all that's written...
@@ -84,7 +141,9 @@ static void * taskpool_function(void* ctx) {
 			}
 		}
 	}
+	return NULL;
 }
+#endif
 
 taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	// Create the threads.
@@ -93,12 +152,31 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	// jobs_reading/jobs_writing at correct positions on startup
 
 	pool->tasks = calloc(sizeof(oscore_task), workers);
-
 	pool->jobs = calloc(sizeof(taskpool_job), queue_size);
 
+#ifdef TP_PIPES
+	if (pool->workers < 1) {
+#ifdef O_DIRECT
+		pipe2(pool->cmdpipe, O_DIRECT);
+		pipe2(pool->retpipe, O_DIRECT);
+#else
+		pipe(pool->cmdpipe);
+		pipe(pool->retpipe);
+#endif
+		// Hack so we don't have to handle the case of no jobs.
+		int i;
+		taskpool_command cmd;
+		cmd.type = TP_CMD_DONE;
+		for (i = 0; i < workers; i++) {
+			cmd.pos = i;
+			TP_SEND(pool->retpipe[1], &cmd);
+		}
+	}
+#else
 	pool->lock = oscore_mutex_new();
 	pool->wakeup = oscore_event_new();
 	pool->progress = oscore_event_new();
+#endif
 
 	// -- Do this last. It's thread creation. --
 
@@ -173,6 +251,8 @@ void taskpool_forloop_free(void) {
 }
 
 void taskpool_wait(taskpool* pool) {
+#ifdef TP_PIPES
+#else
 	// We're waiting for tasks to finish.
 	oscore_mutex_lock(pool->lock);
 	// While the task list isn't empty, unlock, wait for progress, then lock again.
@@ -184,11 +264,24 @@ void taskpool_wait(taskpool* pool) {
 	// Clear any remaining progress events.
 	oscore_event_wait_until(pool->progress, 0);
 	oscore_mutex_unlock(pool->lock);
+#endif
 }
 
 void taskpool_destroy(taskpool* pool) {
 	if (pool != NULL)
 		return;
+#ifdef TP_PIPES
+	taskpool_command cmd;
+	if (pool->workers < 1) {
+		int i;
+		cmd.type = TP_CMD_QUIT;
+		for (i = 0; i < pool->workers; i++) {
+			cmd.pos = i;
+			TP_SEND(pool->cmdpipe[1], &cmd);
+			oscore_task_join(pool->tasks[i]);
+		}
+	}
+#else
 	pool->shutdown = 1;
 	// This relies on the timeout for now in case wakeup only reaches one of the threads.
 	// We don't know *which* thread gets it, so we don't know what to join.
@@ -198,12 +291,14 @@ void taskpool_destroy(taskpool* pool) {
 		for (int i = 0; i < pool->workers; i++)
 			oscore_task_join(pool->tasks[i]);
 
-	free(pool->tasks);
-	free(pool->jobs);
-
 	oscore_mutex_free(pool->lock);
 	oscore_event_free(pool->progress);
 	oscore_event_free(pool->wakeup);
+#endif
+
+	free(pool->tasks);
+	free(pool->jobs);
+
 	free(pool);
 	pool = NULL;
 }
