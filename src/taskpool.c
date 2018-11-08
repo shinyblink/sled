@@ -20,7 +20,7 @@ static void * taskpool_function(void* ctx) {
 		byte objtype = qobj->type;
 		// Shutdown ignores the wait-for-next
 		if (objtype != TASKPOOL_QUEUE_SHUTDOWN) {
-			while (!atomic_load(&(qobj->next))) {
+			while (!atomic_load_explicit(&(qobj->next), memory_order_acquire)) {
 				// Burn CPU
 				oscore_task_yield();
 				oscore_event_wait_until(pool->incoming, oscore_udate() + 1000);
@@ -48,8 +48,8 @@ static void * taskpool_function(void* ctx) {
 			atomic_fetch_sub(&(pool->usage), 1);
 			// We own qobj now, which means we can do this:
 			qobj->next = 0;
-			taskpool_queue_object * t2 = atomic_exchange(&(pool->fhead), qobj);
-			atomic_store(&(t2->next), qobj);
+			taskpool_queue_object * t2 = atomic_exchange_explicit(&(pool->fhead), qobj, memory_order_acq_rel);
+			atomic_store_explicit(&(t2->next), qobj, memory_order_release);
 		}
 		// Shutdown has a next of 0
 		qobj = qobjnxt;
@@ -66,9 +66,9 @@ static int taskpool_overloaded(taskpool * pool) {
 static taskpool_queue_object * taskpool_alloc_obj(taskpool * pool) {
 	// This can't be done sanely without race conditions, but we don't want a lock, at least of the kind that'll introduce delays.
 	// This only locks it against other writer threads (if any), and if it can't immediately lock it'll just malloc.
-	taskpool_queue_object * locked = atomic_exchange(&(pool->ffoot), 0);
+	taskpool_queue_object * locked = atomic_exchange_explicit(&(pool->ffoot), 0, memory_order_acq_rel);
 	if (locked) {
-		taskpool_queue_object * lx = atomic_load(&(locked->next));
+		taskpool_queue_object * lx = atomic_load_explicit(&(locked->next), memory_order_acquire);
 		if (lx) {
 			// Advance, this 'unlocks'
 			atomic_store(&(pool->ffoot), lx);
@@ -85,8 +85,8 @@ static taskpool_queue_object * taskpool_alloc_obj(taskpool * pool) {
 static void taskpool_inject_obj(taskpool * pool, taskpool_queue_object * obj) {
 	atomic_fetch_add(&(pool->usage), 1);
 	// Now for the writing side of things.
-	taskpool_queue_object * t2 = atomic_exchange(&(pool->whead), obj);
-	atomic_store(&(t2->next), obj);
+	taskpool_queue_object * t2 = atomic_exchange_explicit(&(pool->whead), obj, memory_order_acq_rel);
+	atomic_store_explicit(&(t2->next), obj, memory_order_release);
 }
 
 static void taskpool_new_job(taskpool * pool, taskpool_job job) {
