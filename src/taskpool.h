@@ -5,6 +5,7 @@
 #include "types.h"
 #include "oscore.h"
 #include <stddef.h>
+#include <stdatomic.h>
 
 // The new queue system plan is like this:
 // Each thread has it's own read head, and are all attached to the same queue.
@@ -37,8 +38,8 @@ typedef struct {
 
 typedef struct taskpool_queue_object {
 	byte type;
-	int refcount;
-	struct taskpool_queue_object * next; // Write atomically, but with no conditions - access is controlled by the get-and-set in taskpool.
+	_Atomic(int) refcount;
+	_Atomic(struct taskpool_queue_object*) next; // Write atomically, but with no conditions - access is controlled by the get-and-set in taskpool.
 	taskpool_job jobdata;
 } taskpool_queue_object;
 
@@ -46,18 +47,18 @@ typedef struct {
 	// Amount of entries in tasks. If 0, then we're just pretending.
 	int workers;
 	// Used to prevent OOM-by-overload. Atomically inc/dec'd by all involved threads as queue objects move through the system.
-	int usage;
+	_Atomic(int) usage;
 	oscore_task * tasks;
 	oscore_event waitover, incoming; // waitover is threads -> writer, incoming is basically a dummy but is signalled writer -> threads
 	// The last queue object. Write with get-and-set.
 	// This has to be done first because if the taskpool queue object was done first,
 	//  the possibility would arise of another writer using a head that's deallocated.
-	taskpool_queue_object * whead;
+	_Atomic(taskpool_queue_object*) whead;
 	// This is the first queue object of the freelist, written to by writer threads.
 	// 0 when 'locked'.
-	taskpool_queue_object * ffoot;
+	_Atomic(taskpool_queue_object*) ffoot;
 	// This is the last queue object of the freelist, written to by task threads.
-	taskpool_queue_object * fhead;
+	_Atomic(taskpool_queue_object*) fhead;
 } taskpool; // for now
 
 // Queue size must be at least 2.

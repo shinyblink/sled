@@ -30,7 +30,7 @@ static void * taskpool_function(void* ctx) {
 		if (objtype == TASKPOOL_QUEUE_JOB)
 			job = qobj->jobdata;
 		// This may doom the object to being deleted, so don't read from here on in
-		int rc = atomic_fetch_sub(&(qobj->refcount), 1);
+		int rc = atomic_fetch_sub_explicit(&(qobj->refcount), 1, memory_order_relaxed);
 		if (rc == pool->workers) {
 			if (objtype == TASKPOOL_QUEUE_JOB) {
 				// We've been elected for job execution
@@ -45,7 +45,7 @@ static void * taskpool_function(void* ctx) {
 				// All threads have passed checkpoint, signal
 				oscore_event_signal(pool->waitover);
 			}
-			atomic_fetch_sub(&(pool->usage), 1);
+			atomic_fetch_sub_explicit(&(pool->usage), 1, memory_order_acquire);
 			// We own qobj now, which means we can do this:
 			qobj->next = 0;
 			taskpool_queue_object * t2 = atomic_exchange_explicit(&(pool->fhead), qobj, memory_order_acq_rel);
@@ -59,7 +59,7 @@ static void * taskpool_function(void* ctx) {
 
 // Checked at submission
 static int taskpool_overloaded(taskpool * pool) {
-	int usage = atomic_load(&(pool->usage));
+	int usage = atomic_load_explicit(&(pool->usage), memory_order_relaxed);
 	return usage >= TASKPOOL_MAX_USAGE;
 }
 
@@ -71,11 +71,11 @@ static taskpool_queue_object * taskpool_alloc_obj(taskpool * pool) {
 		taskpool_queue_object * lx = atomic_load_explicit(&(locked->next), memory_order_acquire);
 		if (lx) {
 			// Advance, this 'unlocks'
-			atomic_store(&(pool->ffoot), lx);
+			atomic_store_explicit(&(pool->ffoot), lx, memory_order_release);
 			return lx;
 		}
 		// Failed to advance, so restore things (unlock)
-		atomic_store(&(pool->ffoot), locked);
+		atomic_store_explicit(&(pool->ffoot), locked, memory_order_release);
 	}
 	taskpool_queue_object * tqo = malloc(sizeof(taskpool_queue_object));
 	assert(tqo);
@@ -83,7 +83,7 @@ static taskpool_queue_object * taskpool_alloc_obj(taskpool * pool) {
 }
 
 static void taskpool_inject_obj(taskpool * pool, taskpool_queue_object * obj) {
-	atomic_fetch_add(&(pool->usage), 1);
+	atomic_fetch_add_explicit(&(pool->usage), 1, memory_order_acquire);
 	// Now for the writing side of things.
 	taskpool_queue_object * t2 = atomic_exchange_explicit(&(pool->whead), obj, memory_order_acq_rel);
 	atomic_store_explicit(&(t2->next), obj, memory_order_release);
