@@ -14,7 +14,7 @@ tasks:
       CC=clang gmake -j
       ./sled
       gmake clean
-  - clang-static:
+  - clang-static: |
       cd sled
       sed 's/STATIC := 0/STATIC := 1/' Makefiles/sledconf.ci > sledconf
       CC=clang gmake
