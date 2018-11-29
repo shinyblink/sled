@@ -1,0 +1,20 @@
+image: freebsd
+sources:
+  - https://github.com/vifino/sled
+environment:
+  - ASAN_OPTIONS: detect_odr_violation=1
+tasks:
+  - setup: |
+      cd sled
+      cp Makefiles/sledconf.ci sledconf
+  - clang-dynamic: |
+      cd sled
+      CC=clang make -j
+      ./sled
+      make clean
+  - clang-static:
+      cd sled
+      sed 's/STATIC := 0/STATIC := 1/' Makefiles/sledconf.ci > sledconf
+      CC=clang make -j
+      ./sled
+      make clean
