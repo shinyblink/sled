@@ -46,10 +46,13 @@ typedef struct taskpool_queue_object {
 typedef struct {
 	// Amount of entries in tasks. If 0, then we're just pretending.
 	int workers;
+	// This starts at 0 and is incremented when worker threads start to allocate their place in the incoming array.
+	_Atomic(int) workeridatomic;
 	// Used to prevent OOM-by-overload. Atomically inc/dec'd by all involved threads as queue objects move through the system.
 	_Atomic(int) usage;
 	oscore_task * tasks;
-	oscore_event waitover, incoming; // waitover is threads -> writer, incoming is basically a dummy but is signalled writer -> threads
+	oscore_event waitover; // waitover is threads -> writer, incoming is basically a dummy but is signalled writer -> threads
+	oscore_event * incoming; // This is an array of events, length equal to that of tasks. Workers = 0 behavior is dependent on calloc behavior.
 	// The last queue object. Write with get-and-set.
 	// This has to be done first because if the taskpool queue object was done first,
 	//  the possibility would arise of another writer using a head that's deallocated.

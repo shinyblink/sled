@@ -13,6 +13,11 @@
 
 static void * taskpool_function(void* ctx) {
 	taskpool* pool = (taskpool*) ctx;
+
+	// Relaxed works for this because it's just picking a unique worker id,
+	//  so long as worker IDs do not go out of bounds (thread overcreation somehow?) this is fine
+	int workerid = atomic_fetch_add_explicit(&(pool->workeridatomic), 1, memory_order_relaxed);
+
 	taskpool_queue_object * qobj = atomic_load(&(pool->whead));
 	taskpool_job job;
 	taskpool_queue_object * qobjnxt;
@@ -23,7 +28,7 @@ static void * taskpool_function(void* ctx) {
 			while (!atomic_load_explicit(&(qobj->next), memory_order_acquire)) {
 				// Burn CPU
 				oscore_task_yield();
-				oscore_event_wait_until(pool->incoming, oscore_udate() + 1000);
+				oscore_event_wait_until(pool->incoming[workerid], oscore_udate() + 1000);
 			}
 		}
 		qobjnxt = qobj->next;
@@ -87,6 +92,8 @@ static void taskpool_inject_obj(taskpool * pool, taskpool_queue_object * obj) {
 	// Now for the writing side of things.
 	taskpool_queue_object * t2 = atomic_exchange_explicit(&(pool->whead), obj, memory_order_acq_rel);
 	atomic_store_explicit(&(t2->next), obj, memory_order_release);
+	for (int i = 0; i < pool->workers; i++)
+		oscore_event_signal(pool->incoming[i]);
 }
 
 static void taskpool_new_job(taskpool * pool, taskpool_job job) {
@@ -111,7 +118,7 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	assert(pool);
 
 	pool->waitover = oscore_event_new();
-	pool->incoming = oscore_event_new();
+	pool->incoming = calloc(sizeof(oscore_event), workers);
 
 	pool->tasks = calloc(sizeof(oscore_task), workers);
 	assert(pool->tasks);
@@ -138,12 +145,19 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	// So if pool->workers is 0, then we're just pretending.
 	pool->workers = 0;
 	for (int i = 0; i < workers; i++) {
-		pool->tasks[pool->workers] = oscore_task_create(pool_name, taskpool_function, pool);
-		if (pool->tasks[pool->workers]) {
-			oscore_task_setprio(pool->tasks[pool->workers], TPRIO_LOW);
+		// Assigned worker IDs cannot exceed {0 .. i - 1} so long as the amount of pool tasks == i,
+		//  so this is fine.
+		pool->incoming[i] = oscore_event_new();
+		pool->tasks[i] = oscore_task_create(pool_name, taskpool_function, pool);
+		if (pool->tasks[i]) {
+			oscore_task_setprio(pool->tasks[i], TPRIO_LOW);
 			if (cpus_are_workers)
-				oscore_task_pin(pool->tasks[pool->workers], pool->workers);
+				oscore_task_pin(pool->tasks[i], i);
 			pool->workers++;
+		} else {
+			// Creating event failed, don't continue to try & remove event.
+			oscore_event_free(pool->incoming[i]);
+			break;
 		}
 	}
 
@@ -228,12 +242,14 @@ void taskpool_destroy(taskpool* pool) {
 	// ... or do we need to join them?
 	if (pool->workers) {
 		taskpool_new_cmd(pool, TASKPOOL_QUEUE_SHUTDOWN);
-		for (int i = 0; i < pool->workers; i++)
+		for (int i = 0; i < pool->workers; i++) {
 			oscore_task_join(pool->tasks[i]);
+			oscore_event_free(pool->incoming[i]);
+		}
 	}
 	// LEAK: Not bothering to handle freelist for now, want to get perf. stats first
 	oscore_event_free(pool->waitover);
-	oscore_event_free(pool->incoming);
+	free(pool->incoming);
 	free(pool->tasks);
 	free(pool);
 	pool = NULL;
