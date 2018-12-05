@@ -31,6 +31,8 @@
 
 #define TASKPOOL_MAX_USAGE 80
 
+// #define TASKPOOL_DEBUG_ALLTHETHINGS
+
 typedef struct {
 	void (*func)(void*);
 	void* ctx;
@@ -57,11 +59,6 @@ typedef struct {
 	// This has to be done first because if the taskpool queue object was done first,
 	//  the possibility would arise of another writer using a head that's deallocated.
 	_Atomic(taskpool_queue_object*) whead;
-	// This is the first queue object of the freelist, written to by writer threads.
-	// 0 when 'locked'.
-	_Atomic(taskpool_queue_object*) ffoot;
-	// This is the last queue object of the freelist, written to by task threads.
-	_Atomic(taskpool_queue_object*) fhead;
 } taskpool; // for now
 
 // Queue size must be at least 2.

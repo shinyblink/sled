@@ -11,6 +11,18 @@
 
 #include <stdatomic.h>
 
+static taskpool_queue_object * taskpool_alloc_obj(taskpool * pool) {
+	// This is where you would stick 'freelist attempt 2'
+	taskpool_queue_object * tqo = malloc(sizeof(taskpool_queue_object));
+	assert(tqo);
+	return tqo;
+}
+
+static void taskpool_free_obj(taskpool * pool, taskpool_queue_object * obj) {
+	free(obj);
+}
+
+
 static void * taskpool_function(void* ctx) {
 	taskpool* pool = (taskpool*) ctx;
 
@@ -23,15 +35,18 @@ static void * taskpool_function(void* ctx) {
 	taskpool_queue_object * qobjnxt;
 	while (qobj) {
 		byte objtype = qobj->type;
-		// Shutdown ignores the wait-for-next
+		// Shutdown ignores the wait-for-next.
+		qobjnxt = 0;
 		if (objtype != TASKPOOL_QUEUE_SHUTDOWN) {
-			while (!atomic_load_explicit(&(qobj->next), memory_order_acquire)) {
+			while (!(qobjnxt = atomic_load_explicit(&(qobj->next), memory_order_acquire))) {
 				// Burn CPU
 				oscore_task_yield();
 				oscore_event_wait_until(pool->incoming[workerid], oscore_udate() + 1000);
 			}
+#ifdef TASKPOOL_DEBUG_ALLTHETHINGS
+			printf("Worker %i doing task execute\n", workerid);
+#endif
 		}
-		qobjnxt = qobj->next;
 		if (objtype == TASKPOOL_QUEUE_JOB)
 			job = qobj->jobdata;
 		// This may doom the object to being deleted, so don't read from here on in
@@ -50,11 +65,11 @@ static void * taskpool_function(void* ctx) {
 				// All threads have passed checkpoint, signal
 				oscore_event_signal(pool->waitover);
 			}
-			atomic_fetch_sub_explicit(&(pool->usage), 1, memory_order_acquire);
-			// We own qobj now, which means we can do this:
-			qobj->next = 0;
-			taskpool_queue_object * t2 = atomic_exchange_explicit(&(pool->fhead), qobj, memory_order_acq_rel);
-			atomic_store_explicit(&(t2->next), qobj, memory_order_release);
+			int num = atomic_fetch_sub_explicit(&(pool->usage), 1, memory_order_relaxed);
+#ifdef TASKPOOL_DEBUG_ALLTHETHINGS
+			printf("Reducing usage by 1 now %i\n", num);
+#endif
+			taskpool_free_obj(pool, qobj);
 		}
 		// Shutdown has a next of 0
 		qobj = qobjnxt;
@@ -68,27 +83,11 @@ static int taskpool_overloaded(taskpool * pool) {
 	return usage >= TASKPOOL_MAX_USAGE;
 }
 
-static taskpool_queue_object * taskpool_alloc_obj(taskpool * pool) {
-	// This can't be done sanely without race conditions, but we don't want a lock, at least of the kind that'll introduce delays.
-	// This only locks it against other writer threads (if any), and if it can't immediately lock it'll just malloc.
-	taskpool_queue_object * locked = atomic_exchange_explicit(&(pool->ffoot), 0, memory_order_acq_rel);
-	if (locked) {
-		taskpool_queue_object * lx = atomic_load_explicit(&(locked->next), memory_order_acquire);
-		if (lx) {
-			// Advance, this 'unlocks'
-			atomic_store_explicit(&(pool->ffoot), lx, memory_order_release);
-			return lx;
-		}
-		// Failed to advance, so restore things (unlock)
-		atomic_store_explicit(&(pool->ffoot), locked, memory_order_release);
-	}
-	taskpool_queue_object * tqo = malloc(sizeof(taskpool_queue_object));
-	assert(tqo);
-	return tqo;
-}
-
 static void taskpool_inject_obj(taskpool * pool, taskpool_queue_object * obj) {
-	atomic_fetch_add_explicit(&(pool->usage), 1, memory_order_acquire);
+	int num = atomic_fetch_add_explicit(&(pool->usage), 1, memory_order_relaxed);
+#ifdef TASKPOOL_DEBUG_ALLTHETHINGS
+	printf("Increasing usage by 1 now %i\n", num);
+#endif
 	// Now for the writing side of things.
 	taskpool_queue_object * t2 = atomic_exchange_explicit(&(pool->whead), obj, memory_order_acq_rel);
 	atomic_store_explicit(&(t2->next), obj, memory_order_release);
@@ -129,13 +128,6 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	tqo->refcount = pool->workers;
 	tqo->next = 0;
 	pool->whead = tqo;
-
-	tqo = malloc(sizeof(taskpool_queue_object));
-	// Only field that needs to be valid
-	tqo->next = 0;
-	assert(tqo);
-	pool->fhead = tqo;
-	pool->ffoot = tqo;
 
 	// -- Do this last. It's thread creation. --
 
