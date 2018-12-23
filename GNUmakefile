@@ -8,6 +8,7 @@ MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinematrix
 MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
 MODULES_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2
+MODULES_AVAILABLE += gfx_disturbedcandy
 
 MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
@@ -22,7 +23,7 @@ MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
 MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D
 MODULES_DEFAULT += gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix
-MODULES_DEFAULT += gfx_mandelbrot2
+MODULES_DEFAULT += gfx_mandelbrot2 gfx_disturbedcandy
 
 MODULES_DEFAULT += bgm_fish bgm_pixelflut
 MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
