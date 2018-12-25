@@ -15,7 +15,18 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+
+// Has further effects in px_thread_func
+#ifdef __linux__
+#define PIXELFLUT_USE_EPOLL
+#endif
+
+#ifdef PIXELFLUT_USE_EPOLL
+#include <sys/epoll.h>
+#else
 #include <sys/select.h>
+#endif
+
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -57,6 +68,13 @@ static oscore_task px_task;
 // The maximum, including 0, size of a line.
 #define PX_LINESIZE 0x2000
 
+const static char PX_helpmsg[] =
+	"PX x y: Get color at position (x,y)\n"
+	"PX x y rrggbb(aa): Draw a pixel (optional alpha)\n"
+	"SIZE: Get canvas size\n"
+	"STATS: Return statistics\n";
+
+
 typedef struct {
 	int socket;
 	size_t linelen;
@@ -65,6 +83,9 @@ typedef struct {
 
 typedef struct {
 	int socket; // The socket
+#ifdef PIXELFLUT_USE_EPOLL
+	void * prev; // The previous client
+#endif
 	void * next; // The next client
 	px_buffer_t * buffer; // The current line buffer.
 } px_client_t;
@@ -108,15 +129,12 @@ static inline uint32_t fast_strtoul16(const char *str, const char **endptr) {
 }
 // end shamelessly ripped from pixelnuke
 
-static void net_send(px_buffer_t * client, char * str) {
-	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
-	send(client->socket, "\n", 1, MSG_NOSIGNAL);
+static inline void net_send(px_buffer_t * client, const char * str, size_t len) {
+	send(client->socket, str, len, MSG_NOSIGNAL);
 }
 
-static void net_err(px_buffer_t * client, char * str) {
-	send(client->socket, "ERROR: ", 7, MSG_NOSIGNAL);
+static inline void net_sendstr(px_buffer_t * client, const char * str) {
 	send(client->socket, str, strlen(str), MSG_NOSIGNAL);
-	send(client->socket, "\n", 1, MSG_NOSIGNAL);
 }
 
 static void poke_main_thread(void) {
@@ -131,17 +149,19 @@ static void poke_main_thread(void) {
 static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 	// In the original version, this was ripped from pixelnuke,
 	//  and it remains that way, but hopefully I've changed it enough.
-	if (line[0] == 'P' && line[1] == 'X') {
+	if (!(line[0] && line[1]))
+		return 0;
+	if (line[0] == 'P' && line[1] == 'X' && line[2]) {
 		const char * ptr = line + 3;
 		const char * endptr = ptr;
 
 		uint32_t x = fast_strtoul10(ptr, &endptr);
 		if (endptr == ptr) {
-			net_err(client, "ERROR: Invalid command (expected decimal as first parameter)");
+			net_sendstr(client, "ERROR: Invalid command (expected decimal as first parameter)\n");
 			return 1;
 		}
 		if (!*endptr) {
-			net_err(client, "ERROR: Invalid command (second parameter required)");
+			net_sendstr(client, "ERROR: Invalid command (second parameter required)\n");
 			return 1;
 		}
 
@@ -149,7 +169,7 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		uint32_t y = fast_strtoul10((ptr = endptr), &endptr);
 		if (endptr == ptr) {
-			net_err(client, "Invalid command (expected decimal as second parameter)");
+			net_sendstr(client, "ERROR: Invalid command (expected decimal as second parameter)\n");
 			return 1;
 		}
 
@@ -164,8 +184,9 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 			RGB pixel = RGB(0, 0, 0);
 			if (inbounds)
 				pixel = px_array[index];
-			sprintf(str, "PX %u %u %02X%02X%02X", x, y, pixel.red, pixel.green, pixel.blue);
-			net_send(client, str);
+			int len = sprintf(str, "PX %u %u %02X%02X%02X\n", x, y, pixel.red, pixel.green, pixel.blue);
+			if (len > 0)
+				net_send(client, str, len);
 			return 0;
 		}
 
@@ -174,11 +195,12 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 		// PX <x> <y> BB|RRGGBB|RRGGBBAA
 		uint32_t c = fast_strtoul16((ptr = endptr), &endptr);
 		if (endptr == ptr) {
-			net_err(client, "Third parameter missing or invalid (should be hex color)");
+			net_sendstr(client, "ERROR: Third parameter missing or invalid (should be hex color)\n");
 			return 1;
 		}
 
 		RGB pixel;
+		byte alpha = 255;
 		if (endptr - ptr == 6) {
 			// 0x00RRGGBB
 			pixel.red = c >> 16;
@@ -189,13 +211,16 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 			pixel.red = c >> 24;
 			pixel.green = c >> 16;
 			pixel.blue = c >> 8;
+			alpha = c;
+			if (!alpha)
+				return 0;
 		} else if (endptr - ptr == 2) {
 			// 0x000000Gr
 			pixel.red = c;
 			pixel.green = c;
 			pixel.blue = c;
 		} else {
-			net_err(client, "Color hex code must be 2, 6 or 8 characters long (WW, RGB or RGBA)");
+			net_sendstr(client, "ERROR: Color hex code must be 2, 6 or 8 characters long (WW, RGB or RGBA)\n");
 			return 1;
 		}
 
@@ -203,6 +228,9 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		if (!inbounds)
 			return 0;
+
+		if (alpha != 255)
+			pixel = RGBlerp(alpha, px_array[index], pixel);
 
 		matrix_set(x, y, pixel);
 		px_array[index] = pixel;
@@ -212,26 +240,22 @@ static int px_buffer_executeline(const char * line, px_buffer_t * client) {
 
 		uint32_t x = fast_strtoul10(ptr, &endptr);
 		if (endptr == ptr) {
-			net_err(client, "ERROR: Invalid command (expected decimal as first parameter");
+			net_sendstr(client, "ERROR: Invalid command (expected decimal as first parameter\n");
 		} */
 	} else if (fast_str_startswith("SIZE", line)) {
 		char str[64];
-		snprintf(str, 64, "SIZE %d %d", px_mx, px_my);
-		net_send(client, str);
+		int len = snprintf(str, 64, "SIZE %d %d\n", px_mx, px_my);
+		if (len > 0 && len < 64)
+			net_send(client, str, len);
 	} else if (fast_str_startswith("STATS", line)) {
 		char str[128];
-		snprintf(str, 128, "STATS px:%u conn:%u", px_pixelcount, px_clientcount);
-		net_send(client, str);
+		int len = snprintf(str, 128, "STATS px:%u conn:%u\n", px_pixelcount, px_clientcount);
+		if (len > 0 && len < 128)
+			net_send(client, str, len);
 	} else if (fast_str_startswith("HELP", line)) {
-		net_send(client,
-							 "\
-PX x y: Get color at position (x,y)\n\
-PX x y rrggbb(aa): Draw a pixel (alpha ignored)\n\
-SIZE: Get canvas size\n\
-STATS: Return statistics");
-
+		net_send(client, PX_helpmsg, sizeof(PX_helpmsg));
 	} else {
-		net_err(client, "Unknown command");
+		net_sendstr(client, "ERROR: Unknown command\n");
 		return 1;
 	}
 	// END ripped from pixelnuke
@@ -243,11 +267,11 @@ static void px_buffer_update(void * buf) {
 	char * line = buffer->line;
 	while (1) {
 		char * ch = strchr(line, '\n');
-		if (ch)
-			*ch = 0;
-		px_buffer_executeline(line, buf);
 		if (!ch)
 			break;
+
+		*ch = 0;
+		px_buffer_executeline(line, buffer);
 		line = ch + 1;
 	}
 	free(buffer);
@@ -289,29 +313,37 @@ static int px_client_update(px_client_t * client) {
 	return 0;
 }
 
-// Allows or closes the socket.
-static int px_client_new(px_client_t ** list, int sock) {
+// Allows or closes the socket. By being called, this transfers responsibility for the socket to the list.
+// If the client isn't created successfully, then the socket has to be closed.
+static px_client_t * px_client_new(px_client_t ** list, int sock) {
 	px_client_t * c = malloc(sizeof(px_client_t));
 	if (!c) {
 		close(sock);
-		return 0;
+		return NULL;
 	}
 	c->socket = sock;
+#ifdef PIXELFLUT_USE_EPOLL
+	c->prev = NULL;
+#endif
 	c->next = NULL;
 	c->buffer = malloc(sizeof(px_buffer_t));
 	if (!c->buffer) {
 		free(c);
 		close(sock);
-		return 0;
+		return NULL;
 	}
 	c->buffer->socket = sock;
 	c->buffer->line[0] = 0;
 	c->buffer->linelen = 0;
-	if (*list)
+	if (*list) {
 		c->next = *list;
+#ifdef PIXELFLUT_USE_EPOLL
+		((px_client_t *)(c->next))->prev = c;
+#endif
+	}
 	*list = c;
 	px_clientcount++;
-	return 1;
+	return c;
 }
 
 // Makes an FD nonblocking
@@ -321,6 +353,7 @@ static void px_nbs(int sock) {
 	fcntl(sock, F_SETFL, flags);
 }
 
+// The main server thread. Manages sockets. Tries not to explode.
 static void * px_thread_func(void * n) {
 	px_client_t * list = 0;
 	int server;
@@ -339,50 +372,142 @@ static void * px_thread_func(void * n) {
 	// prepare server...
 	if (bind(server, (struct sockaddr *) &sa_bpwr, sizeof(sa_bpwr))) {
 		fputs("error binding socket! -- Pixelflut\n", stderr);
+		close(server);
 		return NULL;
 	}
 	if (listen(server, 32)) {
 		fputs("error finalizing socket! -- Pixelflut\n", stderr);
+		close(server);
 		return NULL;
 	}
 	px_nbs(server);
 	px_nbs(px_shutdown_fd_ot);
 	// --
-	fd_set rset;
-	char sdbuf;
-	while (read(px_shutdown_fd_ot, &sdbuf, 1) <= 0) {
-		// Accept?
-		int accepted = accept(server, NULL, NULL);
-		if (accepted >= 0) {
-			px_nbs(accepted);
-			px_client_new(&list, accepted);
+#ifdef PIXELFLUT_USE_EPOLL
+	fputs("we are using epoll -- Pixelflut\n", stderr);
+#define PIXELFLUT_EPOLL_EVS 512
+	// epoll
+	int epoll_obj = epoll_create(128);
+	if (epoll_obj == -1) {
+		fputs("could not access epoll! -- Pixelflut\n", stderr);
+		close(server);
+		return NULL;
+	}
+	struct epoll_event epoll_work;
+	struct epoll_event epoll_events[PIXELFLUT_EPOLL_EVS];
+
+	memset(&epoll_work, 0, sizeof(epoll_work));
+	epoll_work.events = EPOLLIN;
+
+	epoll_work.data.fd = px_shutdown_fd_ot;
+	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, px_shutdown_fd_ot, &epoll_work);
+
+	epoll_work.data.fd = server;
+	epoll_ctl(epoll_obj, EPOLL_CTL_ADD, server, &epoll_work);
+
+	int running = 1;
+
+	while (running) {
+		// epoll is somewhat more event-based. This means trouble.
+		int eventcount = epoll_wait(epoll_obj, epoll_events, PIXELFLUT_EPOLL_EVS, -1);
+		if (eventcount <= 0)
+			fputs("Not more bugs!\n", stderr);
+		for (int i = 0; i < eventcount; i++) {
+			// REGARDING USERDATA BEING A UNION!
+			// There is an implicit assumption here that a valid client pointer cannot equal either core FD value.
+			// If this assumption turns out to be false... yeah, can't help you there.
+			if (epoll_events[i].data.fd == server) {
+				int accepted = accept(server, NULL, NULL);
+				if (accepted >= 0) {
+					px_nbs(accepted);
+					px_client_t * client = px_client_new(&list, accepted);
+					if (client) {
+						epoll_work.data.ptr = client;
+						epoll_ctl(epoll_obj, EPOLL_CTL_ADD, accepted, &epoll_work);
+					}
+				}
+			} else if (epoll_events[i].data.fd == px_shutdown_fd_ot) {
+				running = 0;
+				break;
+			} else {
+				px_client_t * client = epoll_events[i].data.ptr;
+				if (px_client_update(client)) {
+					// Waiting to ensure buffer & such aren't being poked at
+					taskpool_wait(TP_GLOBAL);
+					// Don't pass NULL, older kernels are ticklish.
+					epoll_ctl(epoll_obj, EPOLL_CTL_DEL, client->socket, &epoll_work);
+					close(client->socket);
+					free(client->buffer);
+					px_client_t * pr = (px_client_t *) client->prev;
+					px_client_t * nx = (px_client_t *) client->next;
+					free(client);
+					if (pr)
+						pr->next = nx;
+					if (nx)
+						nx->prev = pr;
+					px_clientcount--;
+				}
+			}
 		}
-		// select zeroes FDs >:(
-		FD_ZERO(&rset);
+	}
+#else
+	// select
+	fd_set rset, active_fds;
+	FD_ZERO(&active_fds);
+	FD_SET(px_shutdown_fd_ot, &active_fds);
+	FD_SET(server, &active_fds);
+	while (1) {
+		// select is simple to use
+		rset = active_fds;
+		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
+
+		if(FD_ISSET(px_shutdown_fd_ot, &rset)) {
+			break;
+		}
+
+		// Accept?
+		if(FD_ISSET(server, &rset)) {
+			int accepted = accept(server, NULL, NULL);
+			if (accepted >= 0) {
+				px_nbs(accepted);
+				if (px_client_new(&list, accepted))
+					FD_SET(accepted, &active_fds);
+			}
+		}
+
 		// Go through all clients, holding the BGMI lock so that the status of "are we in control of the matrix" cannot change.
 		px_client_t ** backptr = &list;
 		while (*backptr) {
-			if (px_client_update(*backptr)) {
-				void * on = (*backptr)->next;
-				// we don't want to close the socket until all taskpool threads are done
-				taskpool_wait(TP_GLOBAL);
-				close((*backptr)->socket);
-				free((*backptr)->buffer);
-				free(*backptr);
-				*backptr = on;
-				px_clientcount--;
-			} else {
-				FD_SET((*backptr)->socket, &rset);
+			if (FD_ISSET((*backptr)->socket, &rset)) {
+				if(px_client_update(*backptr)) {
+					// we don't want to close the socket until all taskpool threads are done
+					// NOTE! This code doesn't handle ->prev because we don't use it!
+					taskpool_wait(TP_GLOBAL);
+					close((*backptr)->socket);
+					FD_CLR((*backptr)->socket, &active_fds);
+					free((*backptr)->buffer);
+					void *on = (*backptr)->next;
+					free(*backptr);
+					*backptr = on;
+					px_clientcount--;
+				}
+				else {
+					backptr = (px_client_t**) &((*backptr)->next);
+				}
+			}
+			else {
 				backptr = (px_client_t**) &((*backptr)->next);
 			}
 		}
-		FD_SET(px_shutdown_fd_ot, &rset);
-		FD_SET(server, &rset);
-		select(FD_SETSIZE, &rset, NULL, NULL, NULL);
 	}
-	// we don't want to close the socket until all taskpool threads are done
+#endif
+	// we don't want to close the socket & free client buffers/etc. until all taskpool threads are done
 	taskpool_wait(TP_GLOBAL);
 	// Close & Deallocate
+#ifdef PIXELFLUT_USE_EPOLL
+	// epoll cleanup
+	close(epoll_obj);
+#endif
 	while (list) {
 		px_client_t * nxt = (px_client_t*) list->next;
 		free(list->buffer);

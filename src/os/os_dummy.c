@@ -71,6 +71,8 @@ int oscore_ncpus(void) {
 	return 1;
 }
 
+void oscore_task_pin(oscore_task task, int cpu) {}
+
 // -- mutex
 oscore_mutex oscore_mutex_new(void) {
 	return NULL;

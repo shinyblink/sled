@@ -83,6 +83,8 @@ int oscore_ncpus(void) {
 	return 1; // For now.
 }
 
+void oscore_task_pin(oscore_task task, int cpu) {}
+
 // -- mutex
 // TODO: fill this in.
 oscore_mutex oscore_mutex_new(void) {
