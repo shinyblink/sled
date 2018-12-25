@@ -1,5 +1,4 @@
-// Rather simple rainbow.
-// Uses HSV.
+// A fire-like animation.
 
 #include <types.h>
 #include <matrix.h>
@@ -24,10 +23,10 @@ static int mx, my;
 static int fx, fy, fo, current_fire;
 static RGB fire_palette[256];
 
-inline int ringmod(int x, int m) {
+static inline int ringmod(int x, int m) {
 	return (x % m) + (x<0?m:0);
 }
-inline int clamp(int l, int x, int u) {
+static inline int clamp(int l, int x, int u) {
 	return (x<l?l:(x>u?u:x));
 }
 
@@ -36,14 +35,14 @@ inline int clamp(int l, int x, int u) {
 #define LFXY(_X,_Y) fire_buffer[LAST][ ringmod(_X, mx) + (clamp(0, _Y, mx)*mx) ]
 #define CFXY(_X,_Y) fire_buffer[CUR][ ringmod(_X, mx) + (clamp(0, _Y, mx)*mx) ]
 
-RGB fire_palette_func(byte shade) {
+static RGB fire_palette_func(byte shade) {
  	double r = 1-cos(((shade/255.0)*M_PI)/2);
  	double g = ((1-cos(((shade/255.0)*6*M_PI)/2))/2) * (r*r*0.5);
  	double b = (1-cos((bmin(shade-128,0)/128.0)*0.5*M_PI)) * r;
  	return RGB(r*255, g*255, b*255);
 }
 
-void fire_addcoal() {
+static void fire_addcoal() {
 	int i1 = randn(fx);
 	int i2 = i1 + randn(fx/6) + (fx/8);
 	for( int x = i1; x <= i2; x++ ) {
@@ -51,7 +50,7 @@ void fire_addcoal() {
 	}
 }
 
-void fire_cooldown() {
+static void fire_cooldown() {
 	int d = randn(7) + 3;
 	for( int x = 0; x < fx; x++ ) {
 		for( int y = 0; y < 2; y++ ) {
@@ -70,10 +69,10 @@ void fire_cooldown() {
 				CFXY(x, y) -= 1;
 			}
 		}
-	}	
+	}
 }
 
-void fire_generation() {
+static void fire_generation() {
 	fire_addcoal();
 	fire_cooldown();
 	CUR = LAST;
