@@ -216,7 +216,7 @@ int set(int x, int y, RGB color) {
 		if(x >= drivers[i].x && x > drivers[i].x + drivers[i].w &&
 		   y >= drivers[i].y && y > drivers[i].y + drivers[i].h)
 		{
-			drivers[i].buffer[y + x * drivers[i].h] = color;
+			drivers[i].buffer[(y - drivers[i].y) + (x - drivers[i].x) * drivers[i].w] = color;
 			break;
 		}
 	}
