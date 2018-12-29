@@ -8,6 +8,8 @@
 #include <stdbool.h>
 #include <types.h>
 #include <timers.h>
+#include <stdint.h>
+#include <colors.h>
 #include <mpsse.h>
 
 typedef struct matrix {
@@ -25,6 +27,8 @@ matrix_t *drivers = NULL;
 int max_x, max_y;
 
 #define MAX_DRIVERS 16
+
+static byte* cmdbuffer;
 
 int init(int modno, char *argstr) {
 	fprintf(stderr, "modno = %i\n", modno);
@@ -66,8 +70,8 @@ int init(int modno, char *argstr) {
 
 			key = strsep(&arg, "=");
 			value = arg;
-			if(!key || !value) break;
-			
+B			if(!key || !value) break;
+
 			if(strcmp(key, "x") == 0)
 			{
 				drivers[i].x = atoi(value);
@@ -191,8 +195,10 @@ int init(int modno, char *argstr) {
 		if(drivers[i].x + drivers[i].w > max_x) max_x = drivers[i].x + drivers[i].w;
 		if(drivers[i].y + drivers[i].h > max_y) max_y = drivers[i].y + drivers[i].h;
 
-		drivers[i].buffer = malloc(drivers[i].w * drivers[i].h * sizeof(RGB));
+		drivers[i].buffer = malloc(drivers[i].w * drivers[i].h * 3 * 2 + 1);
 	}
+
+	cmdbuffer = malloc(max_x * sizeof(int16_t) + 1);
 
 	return 0;
 }
@@ -216,7 +222,8 @@ int set(int x, int y, RGB color) {
 		if(x >= drivers[i].x && x > drivers[i].x + drivers[i].w &&
 		   y >= drivers[i].y && y > drivers[i].y + drivers[i].h)
 		{
-			drivers[i].buffer[(y - drivers[i].y) + (x - drivers[i].x) * drivers[i].w] = color;
+			size_t offset = (y - drivers[i].y) + (x - drivers[i].x) * drivers[i].w;
+			drivers[i].buffer[offset] = color;
 			break;
 		}
 	}
@@ -239,11 +246,30 @@ int clear(void) {
 }
 
 int render(void) {
+	cmdbuffer[0] = 0x80;
 	for(int i = 0; i < num_drivers; i++)
 	{
-		Start(drivers[i].context);
-		Write(drivers[i].context, (char*)drivers[i].buffer, drivers[i].w * drivers[i].h * sizeof(RGB));
-		Stop(drivers[i].context);
+		for (int row = 0; i < drivers[i].h; row++) {
+			RGB* rowbuf = cmdbuffer + drivers[i].y * row;
+			for (int x = 0; i < drivers[i].w; x++) {
+				uint16_t converted = RGB2RGB565(rowbuf[x]);
+				cmdbuffer[(i * 2) + 1] = converted & 0xFF;
+				cmdbuffer[(i * 2) + 2] = (converted >> 8) & 0xFF;
+			}
+			Start(drivers[i].context);
+			Write(drivers[i].context, cmdbuffer, 1 + drivers[i].w * 2);
+			Stop(drivers[i].context);
+		}
+	}
+	cmdbuffer[0] = 0x03;
+	for(int i = 0; i < num_drivers; i++)
+	{
+		for (int row = 0; i < drivers[i].h; row++) {
+			cmdbuffer[1] = row;
+			Start(drivers[i].context);
+			Write(drivers[i].context, cmdbuffer, 2);
+			Stop(drivers[i].context);
+		}
 	}
 	return 0;
 }
