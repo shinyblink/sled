@@ -70,7 +70,7 @@ int init(int modno, char *argstr) {
 
 			key = strsep(&arg, "=");
 			value = arg;
-B			if(!key || !value) break;
+			if(!key || !value) break;
 
 			if(strcmp(key, "x") == 0)
 			{
@@ -178,12 +178,13 @@ B			if(!key || !value) break;
 			drivers[i].iface = IFACE_A;
 		}
 
-		drivers[i].context = OpenIndex(drivers[i].vid, drivers[i].pid, SPI0, THIRTY_MHZ, LSB, drivers[i].iface, NULL, NULL, drivers[i].index);
+		drivers[i].context = OpenIndex(drivers[i].vid, drivers[i].pid, SPI0, ONE_MHZ, LSB, drivers[i].iface, NULL, NULL, drivers[i].index);
 		if(!drivers[i].context->open)
 		{
 			fprintf(stderr, "error: Driver %i failed to open!\n", i);
 			init_error = true;
 		}
+		printf("%x\n", drivers[i].context->tris);
 	}
 	if(init_error) return -1;
 
@@ -195,10 +196,10 @@ B			if(!key || !value) break;
 		if(drivers[i].x + drivers[i].w > max_x) max_x = drivers[i].x + drivers[i].w;
 		if(drivers[i].y + drivers[i].h > max_y) max_y = drivers[i].y + drivers[i].h;
 
-		drivers[i].buffer = malloc(drivers[i].w * drivers[i].h * 3 * 2 + 1);
+		drivers[i].buffer = calloc(drivers[i].w * drivers[i].h * sizeof(RGB), 1);
 	}
 
-	cmdbuffer = malloc(max_x * sizeof(int16_t) + 1);
+	cmdbuffer = calloc(max_x * sizeof(int16_t) + 1, 1);
 
 	return 0;
 }
@@ -246,31 +247,35 @@ int clear(void) {
 }
 
 int render(void) {
-	cmdbuffer[0] = 0x80;
 	for(int i = 0; i < num_drivers; i++)
 	{
-		for (int row = 0; i < drivers[i].h; row++) {
-			RGB* rowbuf = cmdbuffer + drivers[i].y * row;
-			for (int x = 0; i < drivers[i].w; x++) {
+		for (int row = 0; row < drivers[i].h; row++) {
+			cmdbuffer[0] = 0x80;
+			RGB* rowbuf = cmdbuffer + row * drivers[i].y;
+			for (int x = 0; x < drivers[i].w; x++) {
 				uint16_t converted = RGB2RGB565(rowbuf[x]);
-				cmdbuffer[(i * 2) + 1] = converted & 0xFF;
-				cmdbuffer[(i * 2) + 2] = (converted >> 8) & 0xFF;
+				cmdbuffer[(x * 2) + 1] = converted & 0xFF;
+				cmdbuffer[(x * 2) + 2] = (converted >> 8) & 0xFF;
 			}
 			Start(drivers[i].context);
 			Write(drivers[i].context, cmdbuffer, 1 + drivers[i].w * 2);
 			Stop(drivers[i].context);
-		}
-	}
-	cmdbuffer[0] = 0x03;
-	for(int i = 0; i < num_drivers; i++)
-	{
-		for (int row = 0; i < drivers[i].h; row++) {
+
+			cmdbuffer[0] = 0x03;
 			cmdbuffer[1] = row;
 			Start(drivers[i].context);
 			Write(drivers[i].context, cmdbuffer, 2);
 			Stop(drivers[i].context);
 		}
 	}
+	for (int i = 0; i < num_drivers; i++) {
+		// Switch buffers.
+		cmdbuffer[0] = 0x04;
+		Start(drivers[i].context);
+		Write(drivers[i].context, cmdbuffer, 2);
+		Stop(drivers[i].context);
+	}
+
 	return 0;
 }
 
