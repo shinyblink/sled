@@ -1,7 +1,9 @@
 os:
   - linux
   - osx
-osx_image: xcode9.2
+osx_image:
+  - xcode9.2
+  - xcode10.1
 language: c
 compiler: clang
 script:
