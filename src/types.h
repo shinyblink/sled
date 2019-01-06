@@ -46,7 +46,7 @@ extern RGB RGBlerp(byte v, RGB rgbA, RGB rgbB);
 
 // Module and timer stuff.
 #ifndef MAX_MODULES
-#define MAX_MODULES 32
+#define MAX_MODULES 64
 #endif
 
 #ifndef MAX_TIMERS
