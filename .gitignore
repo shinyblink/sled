@@ -1,19 +1,36 @@
-sled
-sled.fish
-tags
+
+
+# config
 sledconf
+
+# build output
 *.o
 *.so
+/modules
+sled
+sled.fish
+
+# crashy stuff
 *.core
 *.swp
+
 *.un~
 *.d
 *~
 .#*
-/modules
+
+tags
+
+# static linking stuff
 src/slloadcore.gen.c
 static/modwraps/*
+
+# 3DS build output
 sled.3dsx
 sled.map
 src/modules/out_ctru.shbin
 src/modules/out_ctru_shbin*
+
+# CLion
+.idea/
+/compile_commands.json
