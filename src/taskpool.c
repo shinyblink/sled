@@ -187,7 +187,7 @@ void taskpool_wait(taskpool* pool) {
 }
 
 void taskpool_destroy(taskpool* pool) {
-	if (pool != NULL)
+	if (pool == NULL)
 		return;
 	pool->shutdown = 1;
 	// This relies on the timeout for now in case wakeup only reaches one of the threads.
@@ -205,5 +205,4 @@ void taskpool_destroy(taskpool* pool) {
 	oscore_event_free(pool->progress);
 	oscore_event_free(pool->wakeup);
 	free(pool);
-	pool = NULL;
 }
