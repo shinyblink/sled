@@ -16,7 +16,7 @@
 #define GRAPHICS_INBOUNDS(X, Y, CW, CH) (((((X) >= 0) && ((X) < (CW))) && (((Y) >= 0) && ((Y) < (CH)))))
 
 int graphics_drawline_core(int x1, int y1, int x2, int y2, int (*set)(int, int, void*), void * ud) {
-	int ret, i;
+	int ret;
 	int dx, dy; // D: Result of subtracting source from target
 	int sdx, sdy; // Sign of D
 	int dxabs, dyabs; // Absolute of D
@@ -41,7 +41,7 @@ int graphics_drawline_core(int x1, int y1, int x2, int y2, int (*set)(int, int, 
 	}
 
 	if (dxabs >= dyabs) { /* the line is more horizontal than vertical */
-		for(i = 0; i < dxabs; ++i) {
+		for(int i = 0; i < dxabs; ++i) {
 			y += dyabs;
 			if (y >= dxabs) {
 				y -= dxabs;
@@ -54,7 +54,7 @@ int graphics_drawline_core(int x1, int y1, int x2, int y2, int (*set)(int, int, 
 			}
 		}
 	} else { /* the line is more vertical than horizontal */
-		for(i = 0; i < dyabs; ++i) {
+		for(int i = 0; i < dyabs; ++i) {
 			x += dxabs;
 			if (x >= dyabs) {
 				x -= dyabs;

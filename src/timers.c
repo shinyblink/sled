@@ -85,11 +85,10 @@ timer timer_get(void) {
 	}
 
 	// Find the soonest/smallest timer.
-	int i;
 	int smallest = 0;
 	ulong min = TIMERS[0].time;
 	if (timer_count > 1)
-		for (i = 1; i < timer_count; i++)
+		for (int i = 1; i < timer_count; i++)
 			if (min > TIMERS[i].time) {
 				smallest = i;
 				min = TIMERS[i].time;
@@ -100,8 +99,7 @@ timer timer_get(void) {
 
 	if (t.time == 0) {
 		// Clear all timers safely. Note that this timer's argc/argv is being used.
-		int i;
-		for (i = 0; i < timer_count; i++)
+		for (int i = 0; i < timer_count; i++)
 			if (i != smallest)
 				asl_free_argv(TIMERS[i].argc, TIMERS[i].argv);
 		timer_count = 0;

@@ -66,10 +66,10 @@ static int pick_next_random(int current_modno, ulong in) {
 		return res;
 	}
 	oscore_mutex_unlock(rmod_lock);
-	int mod, next_mod;
+	int next_mod;
 	int lastvalidmod = 0;
 	int usablemodcount = 0;
-	for (mod = 0; mod < modcount; mod++) {
+	for (int mod = 0; mod < modcount; mod++) {
 		if (strcmp(mod_get(mod)->type, "gfx") != 0)
 			continue;
 		usablemodcount++;
