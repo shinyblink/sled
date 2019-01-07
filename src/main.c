@@ -217,14 +217,14 @@ int sled_main(int argc, char** argv) {
 	while ((ch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
 		switch(ch) {
 		case 'm': {
-			int len = strlen(optarg);
+			size_t len = strlen(optarg);
 			char* str = calloc(len + 1, sizeof(char));
 			util_strlcpy(str, optarg, len + 1);
 			modpath = str;
 			break;
 		}
 		case 'o': {
-			int len = strlen(optarg);
+			size_t len = strlen(optarg);
 			char* tmp = malloc((len + 1) * sizeof(char));
 			util_strlcpy(tmp, optarg, len + 1);
 			char* arg = tmp;
@@ -244,12 +244,12 @@ int sled_main(int argc, char** argv) {
 			char* modname = strsep(&arg, ":");
 			char* fltarg = NULL;
 			if (arg != NULL) {
-				int len = strlen(arg); // optarg is now the string after the colon
+				size_t len = strlen(arg); // optarg is now the string after the colon
 				fltarg = malloc((len + 1) * sizeof(char)); // i know, its a habit. a good one.
 				util_strlcpy(fltarg, arg, len + 1);
 			} else
 				modname = optarg;
-			int len = strlen(modname);
+			size_t len = strlen(modname);
 			char* str = malloc((len + 1) * sizeof(char));
 			util_strlcpy(str, modname, len + 1);
 			filternames[filterno] = str;

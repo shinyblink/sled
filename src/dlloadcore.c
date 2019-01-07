@@ -25,7 +25,7 @@ char ** loadcore_init(int * argcno) {
 		return 0;
 	char ** list = 0;
 	while ((file = readdir(moduledir)) != NULL) {
-		int xlen = strlen(file->d_name);
+		size_t xlen = strlen(file->d_name);
 		if (xlen >= 3) {
 			// Check that it ends with .so
 			if (strcmp(file->d_name + xlen - 3, ".so"))

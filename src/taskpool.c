@@ -92,9 +92,9 @@ taskpool* taskpool_create(const char* pool_name, int workers, int queue_size) {
 	pool->queue_size = queue_size;
 	// jobs_reading/jobs_writing at correct positions on startup
 
-	pool->tasks = calloc(sizeof(oscore_task), workers);
+	pool->tasks = calloc(sizeof(oscore_task), (size_t) workers);
 
-	pool->jobs = calloc(sizeof(taskpool_job), queue_size);
+	pool->jobs = calloc(sizeof(taskpool_job), (size_t) queue_size);
 
 	pool->lock = oscore_mutex_new();
 	pool->wakeup = oscore_event_new();
