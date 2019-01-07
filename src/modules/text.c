@@ -16,9 +16,9 @@ byte text_point(text* rendered, int x, int y) {
 		return 0;
 	if (y > 7)
 		return 0;
-	if (x >= rendered->len)
+	if (rendered == NULL)
 		return 0;
-	if (!rendered)
+	if (x >= rendered->len)
 		return 0;
 	if (!rendered->buffer)
 		return 0;
