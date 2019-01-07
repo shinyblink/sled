@@ -25,7 +25,7 @@
 static size_t BUFFER_SIZE;
 static RGB* BUFFER;
 
-static int sdl_event_break;
+static unsigned int sdl_event_break;
 
 #define WIN_W (MATRIX_X * SDL_SCALE_FACTOR)
 #define WIN_H (MATRIX_Y * SDL_SCALE_FACTOR)
@@ -38,7 +38,7 @@ static SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 static int matx = MATRIX_X;
 static int maty = MATRIX_Y;
 
-int init(int modno, char *argstr) {
+int init(int modno __attribute__((unused)), char *argstr __attribute__((unused))) {
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
 
