@@ -178,13 +178,12 @@ int init(int modno, char *argstr) {
 			drivers[i].iface = IFACE_A;
 		}
 
-		drivers[i].context = OpenIndex(drivers[i].vid, drivers[i].pid, SPI0, ONE_MHZ, LSB, drivers[i].iface, NULL, NULL, drivers[i].index);
+		drivers[i].context = OpenIndex(drivers[i].vid, drivers[i].pid, SPI0, THIRTY_MHZ, MSB, drivers[i].iface, NULL, NULL, drivers[i].index);
 		if(!drivers[i].context->open)
 		{
 			fprintf(stderr, "error: Driver %i failed to open!\n", i);
 			init_error = true;
 		}
-		printf("%x\n", drivers[i].context->tris);
 	}
 	if(init_error) return -1;
 
@@ -220,11 +219,12 @@ int set(int x, int y, RGB color) {
 	// x,y to driver
 	for(int i = 0; i < num_drivers; i++)
 	{
-		if(x >= drivers[i].x && x > drivers[i].x + drivers[i].w &&
-		   y >= drivers[i].y && y > drivers[i].y + drivers[i].h)
+		if(x >= drivers[i].x && x < drivers[i].x + drivers[i].w &&
+		   y >= drivers[i].y && y < drivers[i].y + drivers[i].h)
 		{
-			size_t offset = (y - drivers[i].y) + (x - drivers[i].x) * drivers[i].w;
+			size_t offset = (x - drivers[i].x) + (y - drivers[i].y) * drivers[i].w;
 			drivers[i].buffer[offset] = color;
+			//printf("(%x,%x,%x) %z\n", color.red, color.green, color.blue, offset);
 			break;
 		}
 	}
@@ -241,7 +241,7 @@ int clear(void) {
 	int i = 0;
 	for(int i = 0; i < num_drivers; i++)
 	{
-		memset(drivers[i].buffer, 0, drivers[i].w * drivers[i].h);
+		memset(drivers[i].buffer, 0, drivers[i].w * drivers[i].h * sizeof(RGB));
 	}
 	return 0;
 }
@@ -249,25 +249,42 @@ int clear(void) {
 int render(void) {
 	for(int i = 0; i < num_drivers; i++)
 	{
-		for (int row = 0; row < drivers[i].h; row++) {
+		for (int row = 0; row < (drivers[i].h * 2); row++) {
+			// Convert framebuffer to RGB565
 			cmdbuffer[0] = 0x80;
-			RGB* rowbuf = cmdbuffer + row * drivers[i].y;
-			for (int x = 0; x < drivers[i].w; x++) {
+			RGB* rowbuf = drivers[i].buffer + row * (drivers[i].w / 2);
+			for (int x = 0; x < (drivers[i].w / 2); x++) {
 				uint16_t converted = RGB2RGB565(rowbuf[x]);
+				//				printf("%x\t%x\n", rowbuf[x], converted);
 				cmdbuffer[(x * 2) + 1] = converted & 0xFF;
 				cmdbuffer[(x * 2) + 2] = (converted >> 8) & 0xFF;
 			}
+			// Transfer line
 			Start(drivers[i].context);
-			Write(drivers[i].context, cmdbuffer, 1 + drivers[i].w * 2);
+			Write(drivers[i].context, cmdbuffer, 1 + drivers[i].w * 2 / 2);
 			Stop(drivers[i].context);
 
-			cmdbuffer[0] = 0x03;
+			// Commit line
+			cmdbuffer[0] = 0x08;
 			cmdbuffer[1] = row;
 			Start(drivers[i].context);
-			Write(drivers[i].context, cmdbuffer, 2);
+			Write(drivers[i].context, cmdbuffer, 2 + 256);
 			Stop(drivers[i].context);
+
+			/*
+			char* returned = NULL;
+			do {
+				cmdbuffer[0] = 0x00;
+				cmdbuffer[1] = 0x00;
+				Start(drivers[i].context);
+				free(returned);
+				returned = Transfer(drivers[i].context, cmdbuffer, 2);
+				Stop(drivers[i].context);
+			} while (returned && (((returned[0] | returned[1]) & 0x01) != 0x01));
+			free(returned);*/
 		}
 	}
+
 	for (int i = 0; i < num_drivers; i++) {
 		// Switch buffers.
 		cmdbuffer[0] = 0x04;
@@ -275,6 +292,22 @@ int render(void) {
 		Write(drivers[i].context, cmdbuffer, 2);
 		Stop(drivers[i].context);
 	}
+
+	// wait for vsync
+	for (int i = 0; i < num_drivers; i++) {
+		// Switch buffers.
+		char* returned = NULL;
+		do {
+			cmdbuffer[0] = 0x00;
+			cmdbuffer[1] = 0x00;
+			Start(drivers[i].context);
+			free(returned);
+			returned = Transfer(drivers[i].context, cmdbuffer, 2);
+			Stop(drivers[i].context);
+		} while (returned && (((returned[0] | returned[1]) & 0x02) != 0x02));
+		free(returned);
+	}
+
 
 	return 0;
 }
