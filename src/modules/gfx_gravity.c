@@ -67,9 +67,9 @@ int init(int moduleno, char* argstr) {
 	if ((mx * my) < 16)
 		return 1;
 
-	numballs = (mx*my)/100 ;
+	numballs = (mx+my) ;
     //numwells = numballs / 10;
-    numwells = 3;
+    numwells = 1;
     if (!numwells) numwells = 1;
 
     //numballs = 16;
@@ -86,12 +86,17 @@ static void randomize(void) {
 	for (int ball = 0; ball < numballs; ++ball) {
 		//balls[ball].color = RGB(randn(255), randn(255), randn(255));
         balls[ball].color = colorwheel(randn(512)+color_offset);
+        int x = randn(mx-1);
+        int y = randn(my-1);
+        int rx = +(y - my/2);
+        int ry = -(x - mx/2);
 
-		balls[ball].pos_x = (float)randn(mx - 1);
-		balls[ball].pos_y = (float)randn(my - 1);
 
-        balls[ball].vel_x = ((float)randn(8) - 4)/10;
-        balls[ball].vel_y = ((float)randn(8) - 4)/10;
+		balls[ball].pos_x = (float)x;
+		balls[ball].pos_y = (float)y;
+
+        balls[ball].vel_x = ((float)randn(8))/10 * rx/mx;
+        balls[ball].vel_y = ((float)randn(8))/10 * ry/my;
         //printf("%i %i + %i %i\n",balls[ball].pos_x,balls[ball].pos_y,balls[ball].vel_x,balls[ball].vel_y);
 	}
     for (int well = 0; well < numwells; ++well){
