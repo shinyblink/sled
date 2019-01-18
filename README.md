@@ -220,6 +220,8 @@ They are the following:
 
 * `gfx_sort1D`: Sorting algorithm visualizer. by @cyriax0
 
+* `gfx_ursuppe`: Wierd particle simulation based on bttrblls. by @cyriax0
+
 ---
 
 If you want to only build a specific set of modules, pass a `MODULES="myfavouritemodule bestmodule"` to the `make` line.
