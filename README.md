@@ -222,6 +222,8 @@ They are the following:
 
 * `gfx_ursuppe`: Wierd particle simulation based on bttrblls. by @cyriax0
 
+* `gfx_afterglow`: CRT Tube like glow effect that uses the last image of the previous effec. by @cyriax0
+
 ---
 
 If you want to only build a specific set of modules, pass a `MODULES="myfavouritemodule bestmodule"` to the `make` line.
