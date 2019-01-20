@@ -8,7 +8,7 @@
 
 #define STEPS 4 // fair to assume most matrices can be divided by 4.
 #define FRAMETIME (T_SECOND / STEPS)
-#define FRAMES (RANDOM_TIME * STEPS)
+#define FRAMES (TIME_SHORT * STEPS)
 #define STEP_X (matrix_getx() / STEPS / 2)
 #define STEP_Y (matrix_gety() / STEPS / 2)
 

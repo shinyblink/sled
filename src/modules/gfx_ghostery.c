@@ -10,7 +10,7 @@
 #include <mathey.h>
 
 #define FRAMES 255
-#define FRAMETIME ((RANDOM_TIME * T_SECOND) / 255)
+#define FRAMETIME ((TIME_LONG * T_SECOND) / 255)
 
 static int modno;
 static int pos;

@@ -14,7 +14,7 @@
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS)
+#define FRAMES (TIME_LONG * FPS)
 
 /*** management variables ***/
 

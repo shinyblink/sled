@@ -11,7 +11,7 @@
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS) * 2
+#define FRAMES (TIME_LONG * FPS)
 
 static int modno;
 static ulong frame;

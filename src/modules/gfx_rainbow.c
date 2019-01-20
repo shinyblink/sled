@@ -8,7 +8,7 @@
 #include <stddef.h>
 
 #define FRAMES 255
-#define FRAMETIME ((RANDOM_TIME * T_SECOND) / 255)
+#define FRAMETIME ((TIME_SHORT * T_SECOND) / 255)
 
 static int modno;
 static int pos;

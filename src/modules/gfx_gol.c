@@ -11,7 +11,7 @@
 #include <assert.h>
 
 #define FRAMETIME (T_SECOND / 4) // 4fps, sounds goodish.
-#define FRAMES (RANDOM_TIME * 4)
+#define FRAMES (TIME_MEDIUM * 4)
 
 #define ALIVE 1
 #define DEAD 0

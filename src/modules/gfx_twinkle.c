@@ -12,8 +12,8 @@
 #include <assert.h>
 
 #define TWINKLE_LEVELS 16
-#define TWINKLE_FRAMETIME 50 * T_MILLISECOND
-#define TWINKLE_FRAMES RANDOM_TIME * 20
+#define TWINKLE_FRAMETIME (50 * T_MILLISECOND)
+#define TWINKLE_FRAMES (TIME_LONG * 20)
 
 #define TWINKLE_COL(v) RGB(((v) * 3) / 4, ((v) * 3) / 4, (v))
 static const RGB twinkle_level_tab[TWINKLE_LEVELS] = {

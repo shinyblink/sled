@@ -24,7 +24,7 @@
 // we're looping every millisecond here to accomodate the fader
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS)
+#define FRAMES (TIME_MEDIUM * FPS)
 
 #define GOL_ROUNDTIME_MS 768
 #define GOL_MAX_REPETITIONS 5

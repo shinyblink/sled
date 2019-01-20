@@ -12,7 +12,7 @@
 #include <random.h>
 
 #define FRAMETIME (T_SECOND / 60)
-#define FRAMES (RANDOM_TIME * 60)
+#define FRAMES (TIME_MEDIUM * 60)
 
 #define SCALE 64 // it's a magic number, yeah.
 

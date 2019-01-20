@@ -350,7 +350,7 @@ int sled_main(int argc, char** argv) {
 		timer tnext = timer_get();
 		if (tnext.moduleno == -1) {
 			// Queue random.
-			pick_next(lastmod, udate() + RANDOM_TIME * T_SECOND);
+			pick_next(lastmod, udate() + TIME_SHORT * T_SECOND);
 		} else {
 			if (tnext.time > wait_until(tnext.time)) {
 				// Early break. Set this timer up for elimination by any 0-time timers that have come along

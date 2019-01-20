@@ -12,7 +12,7 @@
 
 
 #define FRAMETIME (T_SECOND / 30)
-#define FRAMES (RANDOM_TIME * 30)
+#define FRAMES (TIME_SHORT * 30)
 // Size of a full revolution
 #define XSCALE (matrix_getx())
 #define YSCALE (matrix_gety())

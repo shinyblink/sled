@@ -17,7 +17,7 @@
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS) * 10
+#define FRAMES (TIME_MEDIUM * FPS) * 10
 
 // calculate and print timing information
 #define SORT_TIMING

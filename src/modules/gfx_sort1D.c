@@ -29,8 +29,8 @@
     #define TARGET_FRAMES (GFX_SORT_1D_TIME * FPS)
     #define TARGET_TIME (GFX_SORT_1D_TIME * T_SECOND)
 #else
-    #define TARGET_FRAMES (RANDOM_TIME * FPS)
-    #define TARGET_TIME   (RANDOM_TIME * T_SECOND)
+    #define TARGET_FRAMES (TIME_MEDIUM * FPS)
+    #define TARGET_TIME   (TIME_MEDIUM * T_SECOND)
 #endif
 
 #define RANGIFY(dir, var)\

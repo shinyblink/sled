@@ -9,7 +9,7 @@
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS) * 10
+#define FRAMES (TIME_SHORT * FPS) * 10
 
 static int modno;
 static ulong nexttick;

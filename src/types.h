@@ -53,8 +53,15 @@ extern RGB RGBlerp(byte v, RGB rgbA, RGB rgbB);
 #define MAX_TIMERS 256
 #endif
 
-#ifndef RANDOM_TIME // time in seconds until the core queues a random module.
-#define RANDOM_TIME 5
+// Time durations for queued effects.
+#ifndef TIME_SHORT
+#define TIME_SHORT 5
+#endif
+#ifndef TIME_MEDIUM
+#define TIME_MEDIUM 10
+#endif
+#ifndef TIME_LONG
+#define TIME_LONG 30
 #endif
 
 #endif

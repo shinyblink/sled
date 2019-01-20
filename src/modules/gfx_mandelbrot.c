@@ -15,7 +15,7 @@
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (RANDOM_TIME * FPS) * 3
+#define FRAMES (TIME_MEDIUM * FPS) * 3
 
 #define ITERATIONS 255
 #define MAXZOOM 10.0f
