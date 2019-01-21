@@ -239,7 +239,9 @@ int init(int moduleno, char* argstr) {
 	}
 
 	int tmp[2];
-	pipe(tmp);
+	if(pipe(tmp) < 0) {
+		perror("bgm_fish: init tmp pipe error");
+	}
 
 	fish_shutdown_mt = tmp[1];
 	fish_shutdown_ot = tmp[0];
@@ -274,7 +276,9 @@ void reset(void) {
 
 int deinit() {
 	char ch = 0;
-	write(fish_shutdown_mt, &ch, 1);
+	if(write(fish_shutdown_mt, &ch, 1) < 0) {
+		perror("bgm_fish: fish_shutdown_mt write error");
+	}
 	oscore_task_join(fish_task);
 	close(fish_fifo);
 	close(fish_shutdown_mt);

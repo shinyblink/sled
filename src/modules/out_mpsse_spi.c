@@ -29,7 +29,7 @@ int max_x, max_y;
 
 #define MAX_DRIVERS 16
 
-static byte* cmdbuffer;
+static char* cmdbuffer;
 
 int init(int modno, char *argstr) {
 	fprintf(stderr, "modno = %i\n", modno);
@@ -64,7 +64,6 @@ int init(int modno, char *argstr) {
 		drivers[i].h = -1;
 
 		char *str = driver_strs[i];
-		int state = 0;
 		char *arg;
 		while(str && (arg = strsep(&str, ",")))
 		{
@@ -260,7 +259,6 @@ RGB get(int x, int y) {
 }
 
 int clear(void) {
-	int i = 0;
 	for(int i = 0; i < num_drivers; i++)
 	{
 		memset(drivers[i].buffer, 0, drivers[i].w * drivers[i].h * sizeof(RGB));
