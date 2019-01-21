@@ -4,11 +4,13 @@
 #include <mod.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 static module* nextm;
 static mod_flt* next;
 static int mx, my;
 static int folds, pane_x;
+static bool pane_order = 0;
 
 int init(int nextno, char* argstr) {
 	// get next ptr.
@@ -28,6 +30,16 @@ int init(int nextno, char* argstr) {
 	}
 	free(argstr);
 
+	if (folds == 0) {
+		eprintf("flt_smapper: A 0 fold number is invalid!"); 
+	}
+
+	/* When the fold number is negative, we reverse the pane order. */
+	if (folds < 0) {
+		folds = -folds;
+		pane_order = 1;
+	}
+
 	pane_x = (mx / folds);
 
 	return 0;
@@ -44,7 +56,7 @@ int gety(void) {
 int set(int x, int y, RGB color) {
 	int nx = x;
 	int ny = y;
-	int paneno = y / my;
+	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
 	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
 	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
 	return next->set(nx, ny, color);
@@ -53,7 +65,7 @@ int set(int x, int y, RGB color) {
 RGB get(int x, int y) {
 	int nx = x;
 	int ny = y;
-	int paneno = y / my;
+	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
 	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
 	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
 	return next->get(nx, ny);
