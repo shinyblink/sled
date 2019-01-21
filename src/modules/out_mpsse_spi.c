@@ -15,6 +15,7 @@
 typedef struct matrix {
 	short vid, pid;
 	int index, iface;
+	int linediv, linepad;
 
 	int x, y, w, h;
 	struct mpsse_context *context;
@@ -55,6 +56,8 @@ int init(int modno, char *argstr) {
 	{
 		drivers[i].vid = 0xffff;
 		drivers[i].pid = 0xffff;
+		drivers[i].linediv = 1;
+		drivers[i].linepad = 0;
 		drivers[i].x = -1;
 		drivers[i].y = -1;
 		drivers[i].w = -1;
@@ -72,7 +75,15 @@ int init(int modno, char *argstr) {
 			value = arg;
 			if(!key || !value) break;
 
-			if(strcmp(key, "x") == 0)
+			if(strcmp(key, "linediv") == 0)
+			{
+				drivers[i].linediv = atoi(value);
+			}
+			else if(strcmp(key, "linepad") == 0)
+			{
+				drivers[i].linepad = atoi(value);
+			}
+			else if(strcmp(key, "x") == 0)
 			{
 				drivers[i].x = atoi(value);
 			}
@@ -122,6 +133,17 @@ int init(int modno, char *argstr) {
 			{
 				fprintf(stderr, "error: Unknown option %s!\n", key);
 			}
+		}
+
+		if(drivers[i].linediv < 1)
+		{
+			fprintf(stderr, "error: Driver %i can't divide lines by %i!", i, drivers[i].linediv);
+			init_error = true;
+		}
+		if(drivers[i].linepad < 0)
+		{
+			fprintf(stderr, "error: Driver %i can't pad lines by %i!", i, drivers[i].linepad);
+			init_error = true;
 		}
 
 		if(drivers[i].x == -1)
@@ -249,26 +271,26 @@ int clear(void) {
 int render(void) {
 	for(int i = 0; i < num_drivers; i++)
 	{
-		for (int row = 0; row < (drivers[i].h * 2); row++) {
+		for (int row = 0; row < (drivers[i].h * drivers[i].linediv); row++) {
 			// Convert framebuffer to RGB565
 			cmdbuffer[0] = 0x80;
-			RGB* rowbuf = drivers[i].buffer + row * (drivers[i].w / 2);
-			for (int x = 0; x < (drivers[i].w / 2); x++) {
+			RGB* rowbuf = drivers[i].buffer + row * (drivers[i].w / drivers[i].linediv);
+			for (int x = 0; x < (drivers[i].w / drivers[i].linediv); x++) {
 				uint16_t converted = RGB2RGB565(rowbuf[x]);
-				//				printf("%x\t%x\n", rowbuf[x], converted);
+				//printf("%x\t%x\n", rowbuf[x], converted);
 				cmdbuffer[(x * 2) + 1] = converted & 0xFF;
 				cmdbuffer[(x * 2) + 2] = (converted >> 8) & 0xFF;
 			}
 			// Transfer line
 			Start(drivers[i].context);
-			Write(drivers[i].context, cmdbuffer, 1 + drivers[i].w * 2 / 2);
+			Write(drivers[i].context, cmdbuffer, 1 + drivers[i].w * 2 / drivers[i].linediv);
 			Stop(drivers[i].context);
 
 			// Commit line
 			cmdbuffer[0] = 0x08;
 			cmdbuffer[1] = row;
 			Start(drivers[i].context);
-			Write(drivers[i].context, cmdbuffer, 2 + 256);
+			Write(drivers[i].context, cmdbuffer, 2 + drivers[i].linepad);
 			Stop(drivers[i].context);
 
 			/*
@@ -307,7 +329,6 @@ int render(void) {
 		} while (returned && (((returned[0] | returned[1]) & 0x02) != 0x02));
 		free(returned);
 	}
-
 
 	return 0;
 }
