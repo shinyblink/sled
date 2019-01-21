@@ -45,7 +45,11 @@ int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
 	FD_SET(oei->recv, &set);
 	if (select(FD_SETSIZE, &set, NULL, NULL, &timeout)) {
 		char buf[512];
-		read(oei->recv, buf, 512);
+		ssize_t ret = read(oei->recv, buf, 512);
+		if(ret < 0) {
+			perror("oscor_event_wait_until read error");
+			exit(1);
+		}
 		return 1; // we got an interrupt
 	}
 	return 0; // timeout
@@ -54,14 +58,22 @@ int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
 void oscore_event_signal(oscore_event ev) {
 	oscore_event_i * oei = (oscore_event_i *) ev;
 	char discard = 0;
-	write(oei->send, &discard, 1);
+	ssize_t ret = write(oei->send, &discard, 1);
+	if(ret < 0) {
+		perror("oscor_event_signal write error");
+		exit(1);
+	}
 }
 
 oscore_event oscore_event_new(void) {
 	oscore_event_i * oei = malloc(sizeof(oscore_event_i));
 	int fd[2];
 	assert(oei);
-	pipe(fd);
+	int ret = pipe(fd);
+	if(ret < 0) {
+		perror("oscor_event_new pipe error");
+		exit(1);
+	}
 	oei->recv = fd[0];
 	oei->send = fd[1];
 	return oei;
