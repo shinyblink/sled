@@ -49,9 +49,13 @@ MODULES := out_$(DEFAULT_OUTMOD)
 #MODULES += gfx_clock
 #MODULES += gfx_twinkle
 
-## Build all modules (from GNUmakefile)
+## Build all background and filter modules
+MODULES += $(BGMMODS_DEFAULT)
+MODULES += $(FLTMODS_DEFAULT)
+
+## Build all gfx modules (from GNUmakefile)
 ## Comment this out if you want to build only single modules
-MODULES += $(MODULES_DEFAULT)
+MODULES += $(GFXMODS_DEFAULT)
 
 
 

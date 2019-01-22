@@ -2,33 +2,37 @@
 
 # The following lists are for reference.
 
-MODULES_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
-MODULES_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma gfx_checkerboard
-MODULES_AVAILABLE += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
-MODULES_AVAILABLE += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield gfx_affinematrix
-MODULES_AVAILABLE += gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
-MODULES_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2
-MODULES_AVAILABLE += gfx_disturbedcandy gfx_ghostery gfx_ursuppe gfx_afterglow
-MODULES_AVAILABLE += gfx_fire
+GFXMODS_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
+GFXMODS_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma
+GFXMODS_AVAILABLE += gfx_checkerboard gfx_balls gfx_clock gfx_sinematrix
+GFXMODS_AVAILABLE += gfx_error gfx_partirush gfx_matrix gfx_cube gfx_mandelbrot
+GFXMODS_AVAILABLE += gfx_golc gfx_sinefield gfx_affinematrix gfx_ip
+GFXMODS_AVAILABLE += gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
+GFXMODS_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D
+GFXMODS_AVAILABLE += gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
+GFXMODS_AVAILABLE += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 
-MODULES_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
-MODULES_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
-MODULES_AVAILABLE += flt_rot_90 flt_smapper
+BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
+
+FLTMODS_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
+FLTMODS_AVAILABLE += flt_rot_90 flt_smapper
 
 OUTMODS_AVAILABLE := out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
 OUTMODS_AVAILABLE += out_sf75_bi_spidev out_ansi
 
 # List of modules to compile.
-MODULES_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
-MODULES_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
-MODULES_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
-MODULES_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls gfx_sort2D
-MODULES_DEFAULT += gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D gfx_rgbmatrix
-MODULES_DEFAULT += gfx_mandelbrot2 gfx_disturbedcandy gfx_ghostery gfx_ursuppe gfx_afterglow
-MODULES_DEFAULT += gfx_fire
+GFXMODS_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
+GFXMODS_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
+GFXMODS_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
+GFXMODS_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls
+GFXMODS_DEFAULT += gfx_sort2D gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn
+GFXMODS_DEFAULT += gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
+GFXMODS_DEFAULT += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 
-MODULES_DEFAULT += bgm_fish bgm_pixelflut
-MODULES_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
+BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
+FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
+
+MODULES_DEFAULT += $(BGMMODS_DEFAULT) $(FLTMODS_DEFAULT) $(GFXMODS_DEFAULT)
 
 # Include local configuration.
 ifneq (,$(wildcard sledconf))
