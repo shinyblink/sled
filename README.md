@@ -232,6 +232,12 @@ If you want to build a specific module later on, you can do the same but with ju
 module you wanna build. It'll get added to the same directory where the others are.
 Or, if you are particularly lazy, just add the module name to the make invocation.
 
+# License
+Most non-trivial files contain an explicit statement regarding the license.
+
+Anything with no statement follows the ISC, with the copyright holder being
+Adrian "vifino" Pistol, as per the `COPYING` file in this project.
+
 # Support
 Support for sled is done on a if-i-can-find-the-time basis. Mostly, this project is for myself.
 I'll try to help everyone, but I might take some time.

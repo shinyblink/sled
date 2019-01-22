@@ -1,6 +1,14 @@
 // Pseudo random integer generation.
 // Not safe, but at least it avoids the modulo bias.
 // Definitly stolen from StackOverflow, because that's how programming works nowadays.
+//
+// Copyright 2017, Laurence Gonsalves
+// Copyright 2018, Adrian "vifino" Pistol <vifino@tty.sh>
+//
+// This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 
+// Unported License. To view a copy of this license, visit 
+// http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative 
+// Commons, PO Box 1866, Mountain View, CA 94042, USA.
 
 #include "types.h"
 #include <stdlib.h>

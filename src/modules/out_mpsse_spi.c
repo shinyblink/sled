@@ -1,6 +1,6 @@
-// First pass at something to send the matrix to sled-fpga-hub75,
-//  mostly according to Vifino's design (pixel layout changed)
-// "Here goes nothing", basically. - 20kdc
+// Use the MPSSE engine of FTDI chips to talk SPI.
+// Then uses SPI to throw RGB565 at some device.
+//
 
 #include <string.h>
 #include <stdio.h>
