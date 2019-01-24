@@ -1,6 +1,6 @@
 // Derived from bttrblls
 // Draws particles with peculiar behavior
-/
+//
 // Copyright (c) 2019, Jonathan Cyriax Brast
 // 
 // Permission to use, copy, modify, and/or distribute this software for any
