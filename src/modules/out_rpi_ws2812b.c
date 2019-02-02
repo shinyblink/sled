@@ -1,11 +1,11 @@
 // Raspberry Pi ws2812b output module.
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -115,6 +115,22 @@ int set(int x, int y, RGB color) {
 	leds.channel[0].leds[ppos(x, y)] = led;
 	return 0;
 }
+
+
+RGB get(int x, int y) {
+	// No OOB check, because performance.
+	ws2811_led_t led = leds.channel[0].leds[ppos(x, y)];
+#ifdef COLOR_ORDER_RGB
+	return RGB((led >> 16) & 0xFF, (led >> 8) & 0xFF, led & 0xFF);
+#elif defined(COLOR_ORDER_GBR)
+	return RGB(led & 0xFF, (led >> 16) & 0xFF, (led >> 8) & 0xFF);
+#elif defined(COLOR_ORDER_GRB)
+	return RGB((led >> 8) & 0xFF, (led >> 16) & 0xFF, led & 0xFF);
+#else
+#error Must define color order.
+#endif
+}
+
 
 // Zeroes the stuff.
 RGB black = RGB(0, 0, 0);
