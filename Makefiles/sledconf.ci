@@ -7,7 +7,7 @@ STATIC := 0
 PLATFORM := unix
 
 # modern clang/gcc is required for this
-CFLAGS = -march=native -fsanitize=address,undefined
+CFLAGS = -fsanitize=address,undefined
 
 DEFAULT_OUTMOD := dummy
 DEFAULT_MODULEDIR := "./modules"
