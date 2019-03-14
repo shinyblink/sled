@@ -16,7 +16,7 @@ GFXMODS_AVAILABLE += gfx_no13
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 
 FLTMODS_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
-FLTMODS_AVAILABLE += flt_rot_90 flt_smapper
+FLTMODS_AVAILABLE += flt_rot_90 flt_smapper flt_channel_reorder
 
 OUTMODS_AVAILABLE := out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
 OUTMODS_AVAILABLE += out_sf75_bi_spidev out_ansi
@@ -31,7 +31,8 @@ GFXMODS_DEFAULT += gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_DEFAULT += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 
 BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
-FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90 flt_smapper
+FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90
+FLTMODS_DEFAULT += flt_smapper flt_channel_reorder
 
 MODULES_DEFAULT += $(BGMMODS_DEFAULT) $(FLTMODS_DEFAULT) $(GFXMODS_DEFAULT)
 
