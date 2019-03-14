@@ -62,6 +62,8 @@ int init(int modno, char *argstr) {
 		drivers[i].y = -1;
 		drivers[i].w = -1;
 		drivers[i].h = -1;
+		drivers[i].index = -1;
+		drivers[i].iface = -1;
 
 		char *str = driver_strs[i];
 		char *arg;
