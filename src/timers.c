@@ -49,29 +49,30 @@ ulong udate(void) {
 }
 
 // The critical wait_until code
-ulong wait_until_core(ulong desired_usec) {
+ulong timers_wait_until_core(ulong desired_usec) {
 	if (oscore_event_wait_until(breakpipe, desired_usec))
 		return udate();
 	return desired_usec;
 }
 
-void wait_until_break_cleanup_core(void) {
+void timers_wait_until_break_cleanup_core(void) {
 	oscore_event_wait_until(breakpipe, 0);
 }
 
-void wait_until_break_core(void) {
+void timers_wait_until_break_core(void) {
 	oscore_event_signal(breakpipe);
 }
 
 // This code calls into the output module's wait_until impl.
 mod_out *out;
-ulong wait_until(ulong desired_usec) {
-	return out->wait_until(desired_usec);
+int outmodno;
+ulong timers_wait_until(ulong desired_usec) {
+	return out->wait_until(outmodno, desired_usec);
 }
 
 // This code calls into the output module's wait_until_break impl.
-void wait_until_break(void) {
-	return out->wait_until_break();
+void timers_wait_until_break(void) {
+	return out->wait_until_break(outmodno);
 }
 
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
@@ -127,7 +128,8 @@ timer timer_get(void) {
 	return t;
 }
 
-int timers_init(int outmodno) {
+int timers_init(int omno) {
+	outmodno = omno;
 	tlock = oscore_mutex_new();
 	breakpipe = oscore_event_new();
 	out = mod_get(outmodno)->mod;
@@ -136,7 +138,7 @@ int timers_init(int outmodno) {
 
 void timers_doquit(void) {
 	timers_quitting = 1;
-	wait_until_break();
+	timers_wait_until_break();
 }
 
 int timers_deinit(void) {

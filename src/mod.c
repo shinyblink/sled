@@ -118,6 +118,8 @@ int mod_remove(int moduleno) {
 
 	mod->meta = 0;
 
+	mod->user = NULL;
+
 	modules_loaded--;
 
 	return 0;

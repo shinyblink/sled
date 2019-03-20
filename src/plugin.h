@@ -26,7 +26,7 @@ int init(int moduleno, char* argstr);
 // This gets called before draw if this was not the last module drawn.
 // This is particularly useful because modules can be unexpectedly turned off,
 //  and various timers (among other things) need to be reset in this case.
-void reset(void);
+void reset(int moduleno);
 
 // FOR "gfx" TYPE PLUGINS:
 // Draw function, gets called as scheduled.
@@ -49,36 +49,36 @@ void reset(void);
 // Sometimes, plugins get called with arguments. It is up to the plugin to interpret them.
 // A generic automated call will not contain any arguments (argc = 0).
 // argv's substrings and argv itself are freed after the call.
-int draw(int argc, char* argv[]);
+int draw(int moduleno, int argc, char* argv[]);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Function that sets a pixel, buffered changes.
 // Only update the displayed info after calling render.
-int set(int x, int y, RGB color);
-RGB get(int x, int y);
+int set(int moduleno, int x, int y, RGB color);
+RGB get(int moduleno, int x, int y);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Clears the buffer.
-int clear(void);
+int clear(int moduleno);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Render the updates, starts displaying the buffer.
-int render(void);
+int render(int moduleno);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Get dimensions and other stuff.
-int getx(void);
-int gety(void);
+int getx(int moduleno);
+int gety(int moduleno);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Wait until the desired usec hit.
 // If you don't need to do anything special,
 // you can just `return wait_until_core(desired_usec);`.
-ulong wait_until(ulong desired_usec);
+ulong wait_until(int moduleno, ulong desired_usec);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Interrupts any ongoing wait_until. Use *after* the timer operation to ensure this works correctly.
-void wait_until_break(void);
+void wait_until_break(int moduleno);
 
 // FOR "mod" TYPE PLUGINS:
 // Fishbowl with "So long" written on it.
@@ -97,4 +97,4 @@ int loaddir(char** filtnames, int* filtno, int* filters);
 // It's quite sad, but it's alright, though.
 // Our time has come, we'd rather stay,
 // but we need to run, core said "Begone!".
-int deinit(void);
+int deinit(int moduleno);

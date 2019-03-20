@@ -13,6 +13,7 @@ typedef struct module {
 	int (*deinit)(int moduleno);
 
 	void* mod;
+	void* user;
 } module;
 
 int mod_init(void);
@@ -45,23 +46,25 @@ int modloader_count(void);
 
 typedef struct mod_gfx {
 	void* lib;
-	int (*draw)(int argc, char* argv[]);
-	void (*reset)(void);
+	int (*draw)(int moduleno, int argc, char* argv[]);
+	void (*reset)(int moduleno);
 } mod_gfx;
 
 typedef mod_gfx mod_bgm;
 
 typedef struct mod_out {
 	void* lib;
-	int (*set)(int x, int y, RGB color);
-	RGB (*get)(int x, int y);
-	int (*clear)(void);
-	int (*render)(void);
-	int (*getx)(void);
-	int (*gety)(void);
+	int (*set)(int moduleno, int x, int y, RGB color);
+	RGB (*get)(int moduleno, int x, int y);
+	int (*clear)(int moduleno);
+	int (*render)(int moduleno);
+	int (*getx)(int moduleno);
+	int (*gety)(int moduleno);
 
-	ulong (*wait_until)(ulong desired_usec);
-	void (*wait_until_break)();
+	ulong (*wait_until)(int moduleno, ulong desired_usec);
+	void (*wait_until_break)(int moduleno);
+
+	int next;
 } mod_out;
 
 typedef mod_out mod_flt;

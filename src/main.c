@@ -366,7 +366,7 @@ int sled_main(int argc, char** argv) {
 			// Queue random.
 			pick_next(lastmod, udate() + TIME_SHORT * T_SECOND);
 		} else {
-			if (tnext.time > wait_until(tnext.time)) {
+			if (tnext.time > timers_wait_until(tnext.time)) {
 				// Early break. Set this timer up for elimination by any 0-time timers that have come along
 				if (tnext.time == 0)
 					tnext.time = 1;
@@ -380,12 +380,12 @@ int sled_main(int argc, char** argv) {
 					printf("\n>> Now drawing %s", mod->name);
 					fflush(stdout);
 					if (gfx->reset)
-						gfx->reset();
+						gfx->reset(tnext.moduleno);
 				} else {
 					printf(".");
 					fflush(stdout);
 				};
-				ret = gfx->draw(tnext.argc, tnext.argv);
+				ret = gfx->draw(tnext.moduleno, tnext.argc, tnext.argv);
 				asl_free_argv(tnext.argc, tnext.argv);
 				lastmod = tnext.moduleno;
 				if (ret != 0) {

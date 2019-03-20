@@ -31,11 +31,13 @@ static int filter_amount = 0;
 
 // Not to be confused with outmod, this is the contents of filters[0] if it exists, otherwise the output module structure.
 static mod_out *out;
+static int mod_out_no;
 
 int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char** filtargs) {
 	filters = filter_list;
 	filter_amount = filtno;
 
+	((mod_out*) outmod->mod)->next = -1;
 	int ret = outmod->init(outmodno, outarg);
 	if (ret != 0) return ret;
 
@@ -43,29 +45,32 @@ int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char**
 		int i = filtno;
 		int last = outmodno;
 		for (i = (filtno - 1); i >= 0; --i) {
-			ret = mod_get(filters[i])->init(last, filtargs[i]);
+			module* mod = mod_get(filters[i]);
+			((mod_out*) mod->mod)->next = last;
+			ret = mod->init(filters[i], filtargs[i]);
 			if (ret != 0) return ret;
 			last = filters[i];
 		}
 		outmod = mod_get(filters[0]);
 	}
 	out = outmod->mod;
+	mod_out_no = outmodno;
 	return ret;
 }
 
 int matrix_getx(void) {
-	return out->getx();
+	return out->getx(mod_out_no);
 }
 int matrix_gety(void) {
-	return out->gety();
+	return out->gety(mod_out_no);
 }
 
 int matrix_set(int x, int y, RGB color) {
-	return out->set(x, y, color);
+	return out->set(mod_out_no, x, y, color);
 }
 
 RGB matrix_get(int x, int y) {
-	return out->get(x, y);
+	return out->get(mod_out_no, x, y);
 }
 
 // Fills part of the matrix with jo-- a single color.
@@ -87,11 +92,11 @@ int matrix_fill(int start_x, int start_y, int end_x, int end_y, RGB color) {
 
 // Zeroes the stuff.
 int matrix_clear(void) {
-	return out->clear();
+	return out->clear(mod_out_no);
 }
 
 int matrix_render(void) {
-	return out->render();
+	return out->render(mod_out_no);
 }
 
 int matrix_deinit(void) {
