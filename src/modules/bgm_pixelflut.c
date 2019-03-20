@@ -139,7 +139,7 @@ static inline void net_sendstr(px_buffer_t * client, const char * str) {
 
 static void poke_main_thread(void) {
 	timer_add(0, px_moduleno, 1, NULL);
-	wait_until_break();
+	timers_wait_until_break();
 }
 
 // Executes the line given.
@@ -545,7 +545,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-int draw(int argc, char ** argv) {
+int draw(int _modno, int argc, char ** argv) {
 	if (argc) {
 		if (argv)
 			free(argv);
@@ -579,12 +579,12 @@ int draw(int argc, char ** argv) {
 #endif
 }
 
-void reset(void) {
+void reset(int _modno) {
 	// If it's 0, then quite a mess will result...
 	px_bgminactive = 1;
 }
 
-int deinit() {
+int deinit(int _modno) {
 	char blah = 0;
 	if (write(px_shutdown_fd_mt, &blah, 1) != -1)
 		oscore_task_join(px_task);

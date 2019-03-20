@@ -35,14 +35,14 @@ static float dist(float x0, float y0, float x1, float y1) {
 	return sqrtf(((x0 - x1) * (x0 - x1)) + ((y0 - y1) * (y0 - y1)));
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	pos = randn(255);
 
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	float plasma = 1.0f / 3.6f;
 	float ccols = cosf(matrix_getx());
 	float srows = sinf(matrix_gety());
@@ -76,7 +76,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	free(colbuf);
 	return 0;
 }

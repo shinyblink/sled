@@ -24,11 +24,13 @@
 #include <assert.h>
 
 static int scale = 0;
+static int nextid;
 static module* nextm;
 static mod_flt* next;
 
-int init(int nextno, char* argstr) {
-	nextm = mod_get(nextno);
+int init(int moduleno, char* argstr) {
+	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
+	nextm = mod_get(nextid);
 	next = nextm->mod;
 
 	if (!argstr) {
@@ -50,14 +52,14 @@ int init(int nextno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
-	return next->getx() / scale;
+int getx(int _modno) {
+	return next->getx(nextid) / scale;
 }
-int gety(void) {
-	return next->gety() / scale;
+int gety(int _modno) {
+	return next->gety(nextid) / scale;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	int px = 0;
 	int py = 0;
 	int ret = 0;
@@ -65,35 +67,35 @@ int set(int x, int y, RGB color) {
 	y = y * scale;
 	for (py = 0; py < scale; py++)
 		for (px = 0; px < scale; px++) {
-			ret = next->set(x + px, y + py, color);
+			ret = next->set(nextid, x + px, y + py, color);
 			if (ret != 0) return ret;
 		};
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	// Since we set all the pixels,
 	// we know the scaled block will have the same colors.
-	return next->get(x * scale, y * scale);
+	return next->get(nextid, x * scale, y * scale);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	return next->clear(nextid);
 }
 
 int render(void) {
-	return next->render();
+	return next->render(nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	return next->wait_until(nextid, desired_usec);
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	if (next->wait_until_break)
-		return next->wait_until_break();
+		return next->wait_until_break(nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+int deinit(int _modno) {
+	return nextm->deinit(nextid);
 }

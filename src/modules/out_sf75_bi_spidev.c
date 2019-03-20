@@ -63,14 +63,14 @@ int init(void) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	return WORLD_X;
 }
-int gety(void) {
+int gety(int _modno) {
 	return WORLD_Y;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	if (x < 0 || y < 0)
 		return 1;
 	if (x >= WORLD_X || y >= WORLD_Y)
@@ -100,7 +100,7 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
-int clear(void) {
+int clear(int _modno) {
 	int i = 0;
 	while (matrices[i].filename) {
 		memset(matrices[i].buf, 0, matrices[i].w * matrices[i].h);
@@ -119,16 +119,16 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
-	return wait_until_core(desired_usec);
+	return timers_wait_until_core(desired_usec);
 }
 
-void wait_until_break(void) {
-	wait_until_break_core();
+void wait_until_break(int _modno) {
+	timers_wait_until_break_core();
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	int i = 0;
 	while (matrices[i].filename) {
 		free(matrices[i].buf);

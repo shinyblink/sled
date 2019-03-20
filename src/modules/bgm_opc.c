@@ -104,7 +104,7 @@ static int opc_client_update(opc_client_t * client) {
 					*argv = strdup("--start");
 					if (*argv) {
 						timer_add(0, opc_moduleno, 1, argv);
-						wait_until_break();
+						timers_wait_until_break();
 					} else {
 						free(argv);
 					}
@@ -226,7 +226,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-int draw(int argc, char ** argv) {
+int draw(int _modno, int argc, char ** argv) {
 	if (argc) {
 		opc_mtcountdown = OPC_MTCOUNTDOWN_MAX;
 		opc_mtlastframe = udate();
@@ -261,11 +261,11 @@ int draw(int argc, char ** argv) {
 	return 1;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit() {
+int deinit(int _modno) {
 	char blah = 0;
 	if (write(opc_shutdown_fd_mt, &blah, 1) != -1)
 		oscore_task_join(opc_task);

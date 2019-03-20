@@ -22,14 +22,16 @@
 #include <assert.h>
 #include <stdlib.h>
 
+static int nextid;
 static module* nextm;
 static mod_flt* next;
 
-int init(int nextno, char* argstr) {
+int init(int moduleno, char* argstr) {
 	printf("flt_dummy loading. next mod is %i\n", nextno);
 	fflush(stdin);
 	// get next ptr.
-	nextm = mod_get(nextno);
+	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
+	nextm = mod_get(nextid);
 	next = nextm->mod;
 	printf("next is %p", next);
 
@@ -40,63 +42,63 @@ int init(int nextno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	printf("getx\n");
 	fflush(stdout);
 	assert(next != NULL);
-	return next->getx();
+	return next->getx(nextid);
 }
-int gety(void) {
+int gety(int _modno) {
 	printf("gety\n");
 	fflush(stdout);
 	assert(next != NULL);
-	return next->gety();
+	return next->gety(nextid);
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	printf("Setting (%i,%i).\n", x, y);
 	assert(next != NULL);
-	return next->set(x, y, color);
+	return next->set(nextid, x, y, color);
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	printf("Getting color at (%i,%i).\n", x, y);
 	assert(next != NULL);
-	return next->get(x, y);
+	return next->get(nextid, x, y);
 }
 
-int clear(void) {
+int clear(int _modno) {
 	printf("clear\n");
 	fflush(stdout);
 	assert(next != NULL);
-	return next->clear();
+	return next->clear(nextid);
 }
 
 int render(void) {
 	printf("render\n");
 	fflush(stdout);
 	assert(next != NULL);
-	return next->render();
+	return next->render(nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	printf("wait_until\n");
 	fflush(stdout);
 	assert(next != NULL);
-	return next->wait_until(desired_usec);
+	return next->wait_until(nextid, desired_usec);
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	printf("wait_until_break\n");
 	fflush(stdout);
 	assert(next != NULL);
 	if (next->wait_until_break)
-		return next->wait_until_break();
+		return next->wait_until_break(nextid);
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	printf("deinit\n");
 	fflush(stdin);
 	assert(next != NULL);
-	return nextm->deinit(mod_getid(nextm));
+	return nextm->deinit(nextid);
 }

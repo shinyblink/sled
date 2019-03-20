@@ -40,14 +40,14 @@ int init(int moduleno, char* argstr) {
 }
 
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
 
 /*** main drawing loop ***/
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	float step = (float)(((udate()) >> 16) & 0x00007FFF);
 	//printf("[%8.1f]", step);
 	byte hue = 0;
@@ -80,6 +80,6 @@ int draw(int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-int deinit() {
+int deinit(int _modno) {
 	return 0;
 }

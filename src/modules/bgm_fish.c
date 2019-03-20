@@ -194,7 +194,7 @@ static void fish_execute(char * module, int argc, char ** argv) {
 				main_force_random(i, argc, argv);
 			} else {
 				timer_add(0, i, argc, argv);
-				wait_until_break();
+				timers_wait_until_break();
 			}
 			free(module);
 			return;
@@ -266,7 +266,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-int draw(int argc, char ** argv) {
+int draw(int _modno, int argc, char ** argv) {
 	if (argc == 1) {
 		// Utilities that shouldn't be part of rotation:
 		if (!strcmp(argv[0], "/blank")) {
@@ -285,11 +285,11 @@ int draw(int argc, char ** argv) {
 	return 1;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit() {
+int deinit(int _modno) {
 	char ch = 0;
 	if(write(fish_shutdown_mt, &ch, 1) < 0) {
 		perror("bgm_fish: fish_shutdown_mt write error");

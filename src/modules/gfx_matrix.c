@@ -106,14 +106,14 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	matrix_clear();
 
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int line;
 	// clear out old points of lines
 	for (line = 0; line < numlines; ++line) {
@@ -145,7 +145,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	free(lines);
 	return 0;
 }

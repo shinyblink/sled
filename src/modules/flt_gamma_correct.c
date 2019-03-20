@@ -20,6 +20,7 @@
 #include <mod.h>
 #include <math.h>
 
+static int nextid;
 static module* nextm;
 static mod_flt* next;
 
@@ -33,9 +34,10 @@ static byte LUT_B[MAX_VAL + 1];
 
 #define CORRECTION ((powf((float)i / MAX_VAL, GAMMA) * MAX_VAL) + 0.5f)
 
-int init(int nextno, char* argstr) {
+int init(int moduleno, char* argstr) {
 	// get next ptr.
-	nextm = mod_get(nextno);
+	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
+	nextm = mod_get(nextid);
 	next = nextm->mod;
 	float whitepoint[3] = WHITEPOINT;
 
@@ -49,43 +51,43 @@ int init(int nextno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
-	return next->getx();
+int getx(int _modno) {
+	return next->getx(nextid);
 }
-int gety(void) {
-	return next->gety();
+int gety(int _modno) {
+	return next->gety(nextid);
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	RGB corrected = RGB(LUT_R[color.red], LUT_G[color.green], LUT_B[color.blue]);
-	return next->set(x, y, corrected);
+	return next->set(nextid, x, y, corrected);
 }
 
 // TODO: reverse LUT to get back semi-original values
 // if we pass the corrected values to the set function,
 // it doesn't have the same color it had before.
 // every time that happens, it'll get visibly darker.
-RGB get(int x, int y) {
-	return next->get(x, y);
+RGB get(int _modno, int x, int y) {
+	return next->get(nextid, x, y);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	return next->clear(nextid);
 }
 
 int render(void) {
-	return next->render();
+	return next->render(nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	return next->wait_until(nextid, desired_usec);
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	if (next && next->wait_until_break)
-		return next->wait_until_break();
+		return next->wait_until_break(nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+int deinit(int _modno) {
+	return nextm->deinit(nextid);
 }

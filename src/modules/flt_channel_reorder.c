@@ -24,13 +24,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+static int nextid;
 static module* nextm;
 static mod_flt* next;
 
 static char chan[3];
 
-int init(int nextno, char* argstr) {
-	nextm = mod_get(nextno);
+int init(int moduleno, char* argstr) {
+	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
+	nextm = mod_get(nextid); next = nextm->mod;
 	next = nextm->mod;
 
 	if (argstr && strlen(argstr) >= 3)
@@ -49,25 +51,25 @@ int init(int nextno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
-	return next->getx();
+int getx(int _modno) {
+	return next->getx(nextid);
 }
-int gety(void) {
-	return next->gety();
-}
-
-int set(int x, int y, RGB cin) {
-  RGB cout;
-  cout.red   = chan[0] == 'g' ? cin.green : (chan[0] == 'b' ? cin.blue : cin.red);
-  cout.green = chan[1] == 'g' ? cin.green : (chan[1] == 'b' ? cin.blue : cin.red);
-  cout.blue  = chan[2] == 'g' ? cin.green : (chan[2] == 'b' ? cin.blue : cin.red);
-  cout.alpha = cin.alpha;
-	return next->set(x, y, cout);
+int gety(int _modno) {
+	return next->gety(nextid);
 }
 
-RGB get(int x, int y) {
+int set(int _modno, int x, int y, RGB cin) {
+	RGB cout;
+	cout.red   = chan[0] == 'g' ? cin.green : (chan[0] == 'b' ? cin.blue : cin.red);
+	cout.green = chan[1] == 'g' ? cin.green : (chan[1] == 'b' ? cin.blue : cin.red);
+	cout.blue  = chan[2] == 'g' ? cin.green : (chan[2] == 'b' ? cin.blue : cin.red);
+	cout.alpha = cin.alpha;
+	return next->set(nextid, x, y, cout);
+}
+
+RGB get(int _modno, int x, int y) {
   RGB cin, cout;
-	cout = next->get(x, y);
+	cout = next->get(nextid, x, y);
 	cin.red   = chan[1] == 'r' ? cout.green : (chan[2] == 'r' ? cout.blue  : cout.red);
 	cin.green = chan[0] == 'g' ? cout.red   : (chan[2] == 'g' ? cout.blue  : cout.green);
 	cin.blue  = chan[0] == 'b' ? cout.red   : (chan[1] == 'b' ? cout.green : cout.blue);
@@ -75,23 +77,23 @@ RGB get(int x, int y) {
 	return cin;
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	return next->clear(nextid);
 }
 
 int render(void) {
-	return next->render();
+	return next->render(nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	return next->wait_until(nextid, desired_usec);
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	if (next->wait_until_break)
-		return next->wait_until_break();
+		return next->wait_until_break(nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+int deinit(int _modno) {
+	return nextm->deinit(nextid);
 }

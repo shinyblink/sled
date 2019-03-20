@@ -102,7 +102,7 @@ void rerandomize_star(star_t * star) {
 
 }
 
-void reset(void) {
+void reset(int _modno) {
     for (star_t * star=stars; star < stars + no_of_stars; star++) {
         randomize_star(star);
     }
@@ -151,7 +151,7 @@ static void prepare_transformation() {
 static void prepare_transformation() {}
 #endif
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
     matrix_clear();
 
     for (star_t * star=stars; star < stars + no_of_stars; star++) {
@@ -207,7 +207,7 @@ int draw(int argc, char* argv[]) {
     return 0;
 }
 
-int deinit() {
+int deinit(int _modno) {
     free(stars);
     return 0;
 }

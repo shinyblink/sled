@@ -116,7 +116,7 @@ void draw_error(int x, int y, text* errtext) {
 	}
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	// Pick random error message.
 	text* errtext = rendered[(int) randn((unsigned int) (NUMTEXT - 1))];
 	width = (errtext->len + 4); // text size + pixel spacing and border
@@ -127,11 +127,11 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	// This acts conditionally on rendered being non-NULL.
 	int i;
 	for (i = 0; i < NUMTEXT; i++) {

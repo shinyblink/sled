@@ -144,14 +144,14 @@ void update_balls(void) {
     }*/
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	matrix_clear();
 	randomize_balls();
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int ball;
 	// clear out old balls
 	for (ball = 0; ball < numballs; ++ball)
@@ -174,7 +174,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(int _modno) {
 	free(balls);
 	return 0;
 }

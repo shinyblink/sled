@@ -19,13 +19,15 @@
 #include <mod.h>
 #include <stdlib.h>
 
+static int nextid;
 static module* nextm;
 static mod_flt* next;
 static int rot;
 
-int init(int nextno, char* argstr) {
+int init(int moduleno, char* argstr) {
 	// get next ptr.
-	nextm = mod_get(nextno);
+	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
+	nextm = mod_get(nextid);
 	next = nextm->mod;
 	rot = 1;
 	if (argstr)
@@ -33,48 +35,48 @@ int init(int nextno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
-	return next->getx();
+int getx(int _modno) {
+	return next->getx(nextid);
 }
-int gety(void) {
-	return next->gety();
+int gety(int _modno) {
+	return next->gety(nextid);
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	for (int i = 0; i < rot; i++) {
-		int nx = getx() - 1 - x;
+		int nx = getx(0) - 1 - x;
 		x = y;
 		y = nx;
 	}
-	return next->set(x, y, color);
+	return next->set(nextid, x, y, color);
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	for (int i = 0; i < rot; i++) {
-		int nx = getx() - 1 - x;
+		int nx = getx(0) - 1 - x;
 		x = y;
 		y = nx;
 	}
-	return next->get(x, y);
+	return next->get(nextid, x, y);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	return next->clear(nextid);
 }
 
 int render(void) {
-	return next->render();
+	return next->render(nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	return next->wait_until(nextid, desired_usec);
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	if (next->wait_until_break)
-		return next->wait_until_break();
+		return next->wait_until_break(nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+int deinit(int _modno) {
+	return nextm->deinit(nextid);
 }

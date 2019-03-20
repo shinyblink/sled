@@ -268,13 +268,13 @@ static void own_reset(){
 }
 
 
-void reset(void) {
+void reset(int _modno) {
 	own_reset();
 	nexttick = udate();
 	matrix_clear();
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int mx = matrix_getx();
 	int my = matrix_gety();
 
@@ -323,7 +323,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(int _modno) {
 	free(data);
     free(data_bitmask);
 	return 0;

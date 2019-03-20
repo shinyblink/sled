@@ -2,11 +2,11 @@
 // for more Y size.
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -22,18 +22,19 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+static int nextid;
 static module* nextm;
 static mod_flt* next;
 static int mx, my;
 static int folds, pane_x;
 static bool pane_order = 0;
 
-int init(int nextno, char* argstr) {
+int init (int moduleno, char* argstr) {
 	// get next ptr.
-	nextm = mod_get(nextno);
-	next = nextm->mod;
-	mx = next->getx();
-	my = next->gety();
+	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
+	nextm = mod_get(nextid); next = nextm->mod;
+	mx = next->getx(nextid);
+	my = next->gety(nextid);
 
 	if (!argstr) {
 		eprintf("flt_smapper: No folding factor given.\n");
@@ -47,7 +48,7 @@ int init(int nextno, char* argstr) {
 	free(argstr);
 
 	if (folds == 0) {
-		eprintf("flt_smapper: A 0 fold number is invalid!"); 
+		eprintf("flt_smapper: A 0 fold number is invalid!");
 	}
 
 	/* When the fold number is negative, we reverse the pane order. */
@@ -61,49 +62,49 @@ int init(int nextno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	return mx / folds;
 }
 
-int gety(void) {
+int gety(int _modno) {
 	return my * folds;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	int nx = x;
 	int ny = y;
 	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
 	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
 	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
-	return next->set(nx, ny, color);
+	return next->set(nextid, nx, ny, color);
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	int nx = x;
 	int ny = y;
 	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
 	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
 	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
-	return next->get(nx, ny);
+	return next->get(nextid, nx, ny);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	return next->clear(nextid);
 }
 
 int render(void) {
-	return next->render();
+	return next->render(nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	return next->wait_until(nextid, desired_usec);
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	if (next->wait_until_break)
-		return next->wait_until_break();
+		return next->wait_until_break(nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+int deinit(int _modno) {
+	return nextm->deinit(nextid);
 }

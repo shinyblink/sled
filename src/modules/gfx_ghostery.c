@@ -101,12 +101,12 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	nexttick = udate() + (1000000/30);
 	int x;
 	int y;
@@ -131,7 +131,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	free(fire_buffer[0]);
 	free(fire_buffer[1]);
 	return 0;

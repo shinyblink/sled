@@ -82,10 +82,10 @@ int init(void) {
 }
 
 
-int getx(void) {
+int getx(int _modno) {
 	return MATRIX_X; // for now.
 }
-int gety(void) {
+int gety(int _modno) {
 	return MATRIX_Y; // for now.
 }
 
@@ -101,7 +101,7 @@ int ppos(int x, int y) {
 #endif
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	// No OOB check, because performance.
 #ifdef COLOR_ORDER_RGB
 	ws2811_led_t led = (color.red << 16) | (color.green << 8) | color.blue;
@@ -117,7 +117,7 @@ int set(int x, int y, RGB color) {
 }
 
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	// No OOB check, because performance.
 	ws2811_led_t led = leds.channel[0].leds[ppos(x, y)];
 #ifdef COLOR_ORDER_RGB
@@ -134,7 +134,7 @@ RGB get(int x, int y) {
 
 // Zeroes the stuff.
 RGB black = RGB(0, 0, 0);
-int clear(void) {
+int clear(int _modno) {
 	matrix_fill(0, 0, MATRIX_X - 1, MATRIX_Y - 1, black);
 	return 0;
 }
@@ -147,15 +147,15 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
-	return wait_until_core(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	return timers_wait_until_core(desired_usec);
 }
 
-void wait_until_break(void) {
-	return wait_until_break_core();
+void wait_until_break(int _modno) {
+	return timers_wait_until_break_core();
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	ws2811_fini(&leds);
 	return 0;
 }

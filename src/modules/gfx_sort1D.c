@@ -206,12 +206,12 @@ static void draw_select(){
 }
 
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 
     ulong thistick = udate();
 
     if (__rval==2){
-        randomize_and_reset();
+        randomize_and_reset(0);
         __rval=0;
         return 1;
     }
@@ -249,8 +249,8 @@ int draw(int argc, char* argv[]) {
     return 0;
 }
 
-void reset(void) {
-    randomize_and_reset();
+void reset(int _modno) {
+    randomize_and_reset(0);
     nexttick = udate();
 }
 
@@ -265,7 +265,7 @@ int init(int moduleno, char* argstr) {
     return 0;
 }
 
-int deinit() {
+int deinit(int _modno) {
     free(data);
     free(data2);
     return 0;

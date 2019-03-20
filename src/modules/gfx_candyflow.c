@@ -91,7 +91,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
@@ -126,7 +126,7 @@ static inline int _min(int x, int y) {
 
 /* central drawing function
  */
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	nexttick = udate() + FRAMETIME;
 	perf_start(modno);
 	// compose transformation matrix out of 9 input matrices 
@@ -201,6 +201,6 @@ int draw(int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-int deinit() {
+int deinit(int _modno) {
 	return 0;
 }

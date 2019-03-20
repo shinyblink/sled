@@ -99,7 +99,7 @@ static inline float LOG_FADE(float start, float end,int part,int total){
 	return start * exp(log(end/start)*part/total);
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	matrix_clear();
 	frame = 0;
@@ -220,7 +220,7 @@ void drawrow(void* row) {
 	}
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int py;
 
 	taskpool_forloop(TP_GLOBAL, &drawrow, 0, my);
@@ -237,7 +237,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	free(iters);
 	oscore_mutex_free(lock);
 	return 0;

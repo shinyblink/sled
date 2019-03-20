@@ -31,8 +31,8 @@ int max_x, max_y;
 
 static char* cmdbuffer;
 
-int init(int modno, char *argstr) {
-	fprintf(stderr, "modno = %i\n", modno);
+int init (int moduleno, char *argstr) {
+	fprintf(stderr, "modno = %i\n", moduleno);
 	printf("memes! %s\n", argstr);
 
 	if(!argstr)
@@ -226,14 +226,14 @@ int init(int modno, char *argstr) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	return max_x;
 }
-int gety(void) {
+int gety(int _modno) {
 	return max_y;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	// x,y to driver
 	for(int i = 0; i < num_drivers; i++)
 	{
@@ -250,7 +250,7 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	for(int i = 0; i < num_drivers; i++)
 	{
 		if(x >= drivers[i].x && x < drivers[i].x + drivers[i].w &&
@@ -264,7 +264,7 @@ RGB get(int x, int y) {
 	return RGB(0, 0, 0); // meh
 }
 
-int clear(void) {
+int clear(int _modno) {
 	for(int i = 0; i < num_drivers; i++)
 	{
 		memset(drivers[i].buffer, 0, drivers[i].w * drivers[i].h * sizeof(RGB));
@@ -337,17 +337,17 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
-	return wait_until_core(desired_usec);
+	return timers_wait_until_core(desired_usec);
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	printf("Wait until break\n");
-	wait_until_break_core();
+	timers_wait_until_break_core();
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	for(int i = 0; i < num_drivers; i++)
 	{
 		Close(drivers[i].context);

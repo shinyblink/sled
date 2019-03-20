@@ -34,7 +34,7 @@ static int height;
 static RGB *buffer;
 #define PPOS(x, y) (x + (y * width))
 
-int init(int modno, char* argstr) {
+int init (int moduleno, char* argstr) {
 	struct RGBLedMatrixOptions options;
 	memset(&options, 0, sizeof(options));
 
@@ -90,24 +90,24 @@ int init(int modno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	return width;
 }
-int gety(void) {
+int gety(int _modno) {
 	return height;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	// No OOB check, because performance!
 	buffer[PPOS(x, y)] = color;
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	return buffer[PPOS(x, y)];
 }
 
-int clear(void) {
+int clear(int _modno) {
 	// clear this canvas, make sure we clean it on the double buffer too.
 	// problem with this is that it needs a render call.
 	// so, instead, we simply don't, we just maintain our own buffer and copy our state over.
@@ -130,16 +130,16 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
-	return wait_until_core(desired_usec);
+	return timers_wait_until_core(desired_usec);
 }
 
-void wait_until_break(void) {
-	return wait_until_break_core();
+void wait_until_break(int _modno) {
+	return timers_wait_until_break_core();
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	free(buffer);
 	led_matrix_delete(matrix);
 	return 0;

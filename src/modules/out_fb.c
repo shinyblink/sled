@@ -134,7 +134,7 @@ int bpp = 24; //vinfo.bpp;
 	return 0;
 }
 
-int init(int modno, char* argstr) {
+int init (int moduleno, char* argstr) {
 	char* device;
 	if (argstr) {
 		device = strdup(argstr);
@@ -165,14 +165,14 @@ int init(int modno, char* argstr) {
 //  the program should at least be able to support some fairly common but varied configurations.
 //  - 20kdc
 
-int getx(void) {
+int getx(int _modno) {
 	return fbdev_w;
 }
-int gety(void) {
+int gety(int _modno) {
 	return fbdev_h;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < fbdev_w);
@@ -197,7 +197,7 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
-int clear(void) {
+int clear(int _modno) {
 	int i;
 	if (fbdev_flags & SLEDFB_P4AI) {
 		if (!(fbdev_flags & SLEDFB_PLANAR)) {
@@ -226,15 +226,15 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
-	return wait_until_core(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	return timers_wait_until_core(desired_usec);
 }
 
-void wait_until_break(void) {
-	wait_until_break_core();
+void wait_until_break(int _modno) {
+	timers_wait_until_break_core();
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	close(fbdev_fd);
 	return 0;
 }

@@ -111,7 +111,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	matrix_clear();
 
@@ -122,7 +122,7 @@ void reset(void) {
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int particle;
 	// clear out old particles
 	for (particle = 0; particle < numparticles; ++particle)
@@ -147,7 +147,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+int deinit(int _modno) {
 	free(particles);
 	return 0;
 }

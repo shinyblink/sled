@@ -41,7 +41,7 @@ int init(int moduleno, char* argstr) {
 	fire_palette_init();
 	fire = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	assert(fire);
-	reset();
+	reset(0);
 	fire_moduleno = moduleno;
 	return 0;
 }
@@ -87,13 +87,13 @@ void fire_palette_init(void)
 	}
 }
 
-void reset(void) {
+void reset(int _modno) {
 	fire_nexttick = udate();
 	fire_framecount = 0;
 	memset(fire, 0, matrix_getx() * matrix_gety());
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int x;
 	int y;
 	int w = matrix_getx();
@@ -177,7 +177,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	free(fire);
 	return 0;
 }

@@ -92,7 +92,7 @@ int init(int moduleno, char* argstr)
    return 0;
 }
 
-void reset(void)
+void reset(int _modno)
 {
    nexttick = udate();
    memset(cstore, 0, sizeof(complex) * w * h);
@@ -103,7 +103,7 @@ void reset(void)
    pi = randn(sizeof(points) / sizeof(point) - 1);
 }
 
-int draw(int argc, char* argv[])
+int draw(int _modno, int argc, char* argv[])
 {
    for (int y = 0; y < h; ++y)
    {
@@ -147,7 +147,7 @@ int draw(int argc, char* argv[])
    return 0;
 }
 
-int deinit(void)
+int deinit(int _modno)
 {
    return 0;
 }

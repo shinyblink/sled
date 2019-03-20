@@ -50,7 +50,7 @@ int init(int moduleno, char* argstr) {
 static RGB signcol = RGB(255, 0, 0); // red X
 static RGB textcol = RGB(255, 255, 255); // white text
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	// Draw the 1.
 	int one_x = center_x - quarter;
 	int one_size = half;
@@ -77,10 +77,10 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit(void) {
+int deinit(int _modno) {
 	return 0;
 }
