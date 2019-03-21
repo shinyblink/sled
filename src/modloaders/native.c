@@ -1,11 +1,11 @@
 // Module stuff.
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -91,6 +91,12 @@ int native_loaddir(char** filtnames, int* filtno, int* filters) {
 	while (dargi < dargc) {
 		char * d_name = dargv[dargi++];
 		size_t len = strlen(d_name);
+		if ((len < 3) || strcmp(&d_name[len - 3], ".so")) {
+			dargi++;
+			continue;
+		}
+		d_name[len - 3] = 0;
+
 		printf("\t- %s...", d_name);
 		fflush(stdin);
 		if (len < 4) {
@@ -158,7 +164,7 @@ int native_loaddir(char** filtnames, int* filtno, int* filters) {
 	return 0;
 }
 
-mod_mod* loader;
+static mod_mod* loader;
 int nativemod_init(void) {
 	loader = calloc(1, sizeof(mod_mod));
 	loader->setdir = loadcore_setdir;

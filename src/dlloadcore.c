@@ -41,13 +41,8 @@ char ** loadcore_init(int * argcno) {
 	while ((file = readdir(moduledir)) != NULL) {
 		size_t xlen = strlen(file->d_name);
 		if (xlen >= 3) {
-			// Check that it ends with .so
-			if (strcmp(file->d_name + xlen - 3, ".so"))
-				continue;
 			char * p = strdup(file->d_name);
 			assert(p);
-			// Cut off the ".so"
-			p[xlen - 3] = 0;
 			list = asl_growav((*argcno)++, list, p);
 		}
 	}
