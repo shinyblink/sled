@@ -162,10 +162,8 @@ static int farbherdmod_loaddir(char** filtnames, int* filtno, int* filters) {
 	while (dargi < dargc) {
 		char * d_name = dargv[dargi++];
 		size_t len = strlen(d_name);
-		if ((len < 3) || strcmp(&d_name[len - 3], ".fh")) {
-			dargi++;
+		if ((len < 3) || strcmp(&d_name[len - 3], ".fh"))
 			continue;
-		}
 
 		int slot = mod_freeslot();
 		module* mod = mod_get(slot);
@@ -178,8 +176,6 @@ static int farbherdmod_loaddir(char** filtnames, int* filtno, int* filters) {
 		printf(" Done.\n");
 	}
 	asl_free_argv(dargc, dargv);
-
-	printf("Loaded %i farbherd files.\n", mod_count());
 	return 0;
 }
 
