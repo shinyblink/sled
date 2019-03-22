@@ -18,6 +18,7 @@
 #include "matrix.h"
 #include "mod.h"
 #include "modloaders/native.h"
+#include "modloaders/farbherd.h"
 #include "timers.h"
 #include "random.h"
 #include "util.h"
@@ -304,6 +305,10 @@ int sled_main(int argc, char** argv) {
 
 	// Register native module loader.
 	nativemod_init();
+#ifdef SLED_FARBHERD_MODLOADER
+	// Register farbherd module loader.
+	farbherdmod_init();
+#endif
 
 	// Load outmod
 	char outmodname[4 + ARRAY_SIZE(outmod_c)];

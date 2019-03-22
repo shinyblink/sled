@@ -89,6 +89,9 @@ else
 endif
 CPPFLAGS += -Wall
 
+# Need a place to put this for now, we're on a time budget here.
+CPPFLAGS += -DSLED_FARBHERD_MODLOADER
+
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
 LIBS ?= -lm
@@ -117,13 +120,13 @@ CFLAGS += -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\" -DDEFAULT_MODULEDIR=\"$(DEFAULT
 SOURCES := src/asl.c      src/main.c        src/mod.c     src/modloaders/native.c
 SOURCES += src/matrix.c   src/random.c      src/timers.c  src/util.c
 SOURCES += src/color.c    src/graphics.c    src/mathey.c
-SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c
+SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c         src/modloaders/farbherd.c
 
 HEADERS := src/graphics.h src/main.h        src/mod.h     src/modloaders/native.h
 HEADERS += src/matrix.h   src/plugin.h      src/timers.h  src/util.h
 HEADERS += src/asl.h      src/loadcore.h    src/mathey.h  src/modloader.h
 HEADERS += src/random.h   src/types.h       src/oscore.h  src/perf.h
-HEADERS += src/taskpool.h
+HEADERS += src/taskpool.h src/modloaders/farbherd.h
 
 # Module libraries.
 # If we're statically linking, we want these to be around at all times.
