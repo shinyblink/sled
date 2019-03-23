@@ -27,6 +27,11 @@
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (TIME_LONG * FPS)
 
+#ifndef NO_TRAILS
+// No trails is faster as only the last positions of each particle have to be cleared
+#define NO_TRAILS false
+#endif
+
 static int modno;
 static int frame;
 static ulong nexttick;
@@ -210,6 +215,7 @@ void reset(void) {
 int draw(int argc, char* argv[]) {
 	int ball;
 	// clear out old balls
+#if NO_TRAILS
 	for (ball = 0; ball < numballs; ++ball){
         int x = (int)balls[ball].pos_x;
         int y = (int)balls[ball].pos_y;
@@ -219,6 +225,18 @@ int draw(int argc, char* argv[]) {
         if (y > my) y = my -1;
 		matrix_set(x, y, black);
     }
+#else
+    for (int x = 0;x < matrix_getx();x++){
+        for (int y = 0;y < matrix_gety();y++){
+            RGB color;
+            color = matrix_get(x,y);
+            color.red = color.red * 230/256;
+            color.green = color.green * 230/256;
+            color.blue = color.blue * 230/256;
+            matrix_set(x,y,color);
+        }
+    }
+#endif
 
 	// update the balls and draw them
 	update_balls(); // todo, move back below matrix_render, to get a more consistant framerate
