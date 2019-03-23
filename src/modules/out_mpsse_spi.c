@@ -234,11 +234,6 @@ int gety(void) {
 }
 
 int set(int x, int y, RGB color) {
-	if (x < 0 || y < 0)
-		return 1;
-	if (x >= max_x || y >= max_y)
-		return 2;
-
 	// x,y to driver
 	for(int i = 0; i < num_drivers; i++)
 	{
@@ -256,8 +251,17 @@ int set(int x, int y, RGB color) {
 }
 
 RGB get(int x, int y) {
-	// meh
-	return RGB(0, 0, 0);
+	for(int i = 0; i < num_drivers; i++)
+	{
+		if(x >= drivers[i].x && x < drivers[i].x + drivers[i].w &&
+		   y >= drivers[i].y && y < drivers[i].y + drivers[i].h)
+		{
+			size_t offset = (x - drivers[i].x) + (y - drivers[i].y) * drivers[i].w;
+			return drivers[i].buffer[offset];
+		}
+	}
+
+	return RGB(0, 0, 0); // meh
 }
 
 int clear(void) {
