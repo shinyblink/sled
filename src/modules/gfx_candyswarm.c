@@ -107,7 +107,8 @@ int init(int moduleno, char* argstr) {
 		runvar[i] = addmod(runvar[i], runmod[i], ((d>>(i/2)) & 0x00FF) / (255/M_PI));
 	}
     
-    numballs = 16*(mx+my);
+    numballs = (mx/32)*(mx+my);
+    numballs = mx*my/5;
     balls = malloc(numballs*sizeof(ball));
 
 
@@ -183,14 +184,24 @@ int draw(int argc, char* argv[]) {
 	float pc10 = (mx2*sinf(runvar[10]));
 
 	perf_print(modno, "Composition");
+    for (int x = 0;x < matrix_getx();x++){
+        for (int y = 0;y < matrix_gety();y++){
+            RGB color;
+            color = matrix_get(x,y);
+            color.red = color.red * 250/256;
+            color.green = color.green * 250/256;
+            color.blue = color.blue * 250/256;
+            matrix_set(x,y,color);
+        }
+    }
 
 	// actual pixel loop
 	for(ball * b = balls;b < balls+numballs;b++) {
 
         int x = (int) b->pos_x;
         int y = (int) b->pos_y;
-        if (x >= 0 && x < matrix_getx() && y >= 0 && y < matrix_gety())
-            matrix_set(x,y, RGB(0,0,0));
+        //if (x >= 0 && x < matrix_getx() && y >= 0 && y < matrix_gety())
+        //    matrix_set(x,y, RGB(0,0,0));
 		vec2 kernel_x = multm3v2_partx(m, x-(mx2));
         vec2 v = multm3v2_partxy(m, kernel_x, y-(my2));
 
