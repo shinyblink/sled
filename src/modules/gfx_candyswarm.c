@@ -87,6 +87,7 @@ static bool USE_PERTURBATION;
 static bool USE_POTENTIAL;
 static bool USE_PULSATION;
 static bool USE_DAMPENING;
+static bool USE_ROTATION;
 static bool USE_PULSATION_DAMPENING;
 static bool USE_POTENTIAL_DAMPENING;
 static bool USE_TRAILS;
@@ -161,6 +162,7 @@ void reset(void) {
     USE_PERTURBATION = true;
     USE_PULSATION = false;
     USE_DAMPENING = false;
+    USE_ROTATION = false;
     USE_POTENTIAL_DAMPENING = false;
     USE_PULSATION_DAMPENING = false;
     USE_TRAILS = true;
@@ -169,40 +171,51 @@ void reset(void) {
     MONOCHROMATIC_COLOR = RGB(255,255,255);
     POTENTIAL_SIZE = 1;
     POTENTIAL_ECCENTRICITY = 0.8;
-    int r = randn(14);
+    int r = randn(15);
     int i = 1;
-    if (r == i++){
+    //r = 6;
+    if (r == i++){ // 1
         USE_TRAILS = false;
-    } else if (r == i++){
+    } else if (r == i++){ // 2
         USE_PERTURBATION = false;
-    } else if (r == i++){
+    } else if (r == i++){ // 3
         USE_ADDITIVE_COLOR = true;
-    } else if (r == i++){
+    } else if (r == i++){ // 4
         USE_PERTURBATION = false;
         USE_COLOR = false;
-    } else if (r == i++){
+    } else if (r == i++){ // 5
         USE_PERTURBATION = false;
         USE_COLOR = false;
         USE_TRAILS = false;
         USE_ADDITIVE_COLOR = true;
-    } else if (r == i++){
+    } else if (r == i++){ // 6
         USE_PULSATION = true;
         USE_PULSATION_DAMPENING = true;
-    } else if (r == i++){
+        POTENTIAL_SIZE = 0.8;
+        DAMPENING_CONSTANT = 0.99;
+    } else if (r == i++){ // 7
+        USE_ROTATION = true;
+        USE_PULSATION = true;
+        USE_PULSATION_DAMPENING = true;
+        DAMPENING_CONSTANT = 0.99;
+        POTENTIAL_SIZE = 0.6;
+    } else if (r == i++){ // 8
         USE_PULSATION = true;
         USE_POTENTIAL_DAMPENING = true;
-    } else if (r == i++){
+        POTENTIAL_SIZE = 0.5;
+    } else if (r == i++){ // 9
         USE_PULSATION = true;
         USE_POTENTIAL_DAMPENING = true;
         USE_ADDITIVE_COLOR = true;
-    } else if (r == i++){
+        POTENTIAL_SIZE = 0.5;
+    } else if (r == i++){ // 10
         USE_DAMPENING = true;
         POTENTIAL_SIZE = 3;
-    } else if (r == i++){
+    } else if (r == i++){ // 11
         USE_DAMPENING = true;
         POTENTIAL_SIZE = 3;
         USE_ADDITIVE_COLOR = true;
-    } else if (r == i++){
+    } else if (r == i++){ // 12
         POTENTIAL_ECCENTRICITY = 0.03;
         POTENTIAL_SIZE = 0.8;
         USE_POTENTIAL_DAMPENING = true;
@@ -210,7 +223,7 @@ void reset(void) {
         USE_COLOR = false;
         USE_ADDITIVE_COLOR = true;
         MONOCHROMATIC_COLOR = RGB(40,40,40);
-    } else if (r == i++){
+    } else if (r == i++){ // 13
         POTENTIAL_ECCENTRICITY = 0.03;
         POTENTIAL_SIZE = 0.8;
         USE_POTENTIAL_DAMPENING = true;
@@ -219,7 +232,7 @@ void reset(void) {
         USE_COLOR = false;
         USE_ADDITIVE_COLOR = true;
         MONOCHROMATIC_COLOR = RGB(40,40,40);
-    } else if (r == i++){
+    } else if (r == i++){ // 14
         POTENTIAL_ECCENTRICITY = 0.03;
         POTENTIAL_SIZE = 0.8;
         //USE_DAMPENING = true;
@@ -228,7 +241,7 @@ void reset(void) {
         USE_COLOR = false;
         USE_PULSATION = true;
         USE_ADDITIVE_COLOR = true;
-    } else if (r == i++){
+    } else if (r == i++){ // 15
         POTENTIAL_ECCENTRICITY = 0.03;
         POTENTIAL_SIZE = 0.8;
         USE_DAMPENING = true;
@@ -343,15 +356,20 @@ int draw(int argc, char* argv[]) {
         float yy = (y - my/2)/(1.0*my/2);
         float rr = hypotf(xx,yy);
 
-        if (USE_PULSATION){
-            rr /= 0.3+slow_phase;
-        }
-        
         rr /= POTENTIAL_SIZE;
+
+        if (USE_PULSATION){
+            rr /= 0.8+slow_phase;
+        }
 
         if (USE_POTENTIAL){
             b->vel_x += -rr*rr*rr*rr*xx/100;
             b->vel_y += -rr*rr*rr*rr*yy/(100*POTENTIAL_ECCENTRICITY);
+        }
+        
+        if (USE_ROTATION){
+            b->vel_x += yy/100;
+            b->vel_y += -xx/100;
         }
 
         if (USE_DAMPENING||USE_POTENTIAL_DAMPENING||USE_PULSATION_DAMPENING){
