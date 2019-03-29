@@ -381,8 +381,8 @@ int draw(int argc, char* argv[]) {
                 b->vel_x *= 1-(1-DAMPENING_CONSTANT)*slow_phase;
                 b->vel_y *= 1-(1-DAMPENING_CONSTANT)*slow_phase;
             } else {
-                b->vel_x *= 0.98;
-                b->vel_y *= 0.98;
+                b->vel_x *= DAMPENING_CONSTANT;
+                b->vel_y *= DAMPENING_CONSTANT;
             }
         }
 
