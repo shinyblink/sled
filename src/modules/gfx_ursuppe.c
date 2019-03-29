@@ -247,7 +247,13 @@ int draw(int argc, char* argv[]) {
         if (y < 0) y = 0;
         if (x >= mx) x = mx -1;
         if (y > my) y = my -1;
-		matrix_set(x,y, balls[ball].color);
+#define _min(a,b) a<b?a:b
+        RGB this_color = balls[ball].color;
+        RGB c = matrix_get(x,y);
+        c.red = _min(c.red +this_color.red/5,255);
+        c.green = _min(c.green + this_color.green/5,255);
+        c.blue = _min(c.blue + this_color.blue/5,255);
+        matrix_set(x,y,c);
     }
 
 	matrix_render();
