@@ -222,6 +222,10 @@ They are the following:
 
 * `gfx_ursuppe`: Wierd particle simulation based on bttrblls. by @cyriax0
 
+* `gfx_ursuppe2`: Slightly improved particle simulation. by @cyriax0
+
+* `gfx_candyswarm`: Based on `gfx_candyflow` with additional particle physics and graphical effects. by @cyriax
+
 * `gfx_afterglow`: CRT Tube like glow effect that uses the last image of the previous effec. by @cyriax0
 
 ---
