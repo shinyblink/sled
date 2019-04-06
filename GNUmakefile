@@ -52,7 +52,7 @@ PROJECT ?= sled
 # By default, debugging is NOT enabled.
 DEBUG ?= 0
 
-# By default, the kslink fake-dynamic-module system is NOT enabled.
+# By default, we don't use k2link for everything (but it's needed for bootstrap)
 STATIC ?= 0
 
 # By default, we are not building for CI
@@ -93,18 +93,12 @@ else
 endif
 CPPFLAGS += -Wall
 
-# Need a place to put this for now, we're on a time budget here.
-CPPFLAGS += -DSLED_FARBHERD_MODLOADER
-
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
 LIBS ?= -lm
 
 ifeq ($(STATIC),0)
  OS := $(shell uname)
- ifeq ($(OS),Linux)
-  LIBS += -ldl
- endif
  ifeq ($(OS),Darwin)
   CFLAGS += -undefined dynamic_lookup
  endif
@@ -128,7 +122,7 @@ SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c         src/modloader.c
 
 HEADERS := src/graphics.h src/main.h        src/mod.h
 HEADERS += src/matrix.h   src/plugin.h      src/timers.h  src/util.h
-HEADERS += src/asl.h      src/loadcore.h    src/mathey.h  src/modloader.h
+HEADERS += src/asl.h      src/mathey.h      src/modloader.h
 HEADERS += src/random.h   src/types.h       src/oscore.h  src/perf.h
 HEADERS += src/taskpool.h
 
@@ -174,6 +168,7 @@ all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF)
 
 clean: FORCE
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
+	rm -f src/modules/mod_dl.c.libs
 
 default_sledconf: FORCE
 	[ -e sledconf ] || cp Makefiles/sledconf.default sledconf
@@ -194,6 +189,16 @@ modules/%.so: src/modules/%.o $(ML_OBJECTS)
 # This isn't really dependent on the HEADERS & module contents, but we pretend it is so downstream gets regenerated.
 $(MODULES_STATIC_CW) $(MODULES_STATIC_CWL) src/slloadcore.gen.c: $(HEADERS) $(ML_HEADERS) $(MODULES_STATIC_C) static/k2link
 	./static/k2link $(MODULES_STATIC) > src/slloadcore.gen.c
+
+# --- Platform-specific module library rules begin here ---
+
+ifeq ($(OS),Linux)
+src/modules/mod_dl.c.libs:
+	echo -ldl > src/modules/mod_dl.c.libs
+else
+src/modules/mod_dl.c.libs:
+	echo "" > src/modules/mod_dl.c.libs
+endif
 
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
