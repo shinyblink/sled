@@ -1,11 +1,11 @@
 // Simple screen grabber that draws the upper left corner of the screen to the display
 //
 // Copyright (c) 2019, X41 <whyareyoureadingmycode@x41.me>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -19,6 +19,7 @@
 #include <timers.h>
 #include <random.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <X11/Xlib.h>
 #include <X11/X.h>
 
@@ -65,11 +66,11 @@ int init(int moduleno, char* argstr) {
 	red_mask   = image->red_mask;
 	green_mask = image->green_mask;
 	blue_mask  = image->blue_mask;
-    return 0;
+	return 0;
 }
 
 void reset(void) {
-		nexttick = udate();
+	nexttick = udate();
 }
 
 int draw(int argc, char* argv[]) {
@@ -89,10 +90,11 @@ int draw(int argc, char* argv[]) {
 		}
 	}
 	matrix_render();
+	XDestroyImage(image);
 
 	if (frame >= FRAMES) { frame = 0; return 1;} // end drawing
 	timer_add(nexttick, modno, 0, NULL);
-	
+
 	return 0;
 }
 
