@@ -94,8 +94,10 @@ static int modloader_load(const char * name, int chain_link) {
 		module * v = mod_get(loader);
 		if (!strcmp(v->type, "mod")) {
 			int v2 = mod_new(loader, name, chain_link);
-			if (v2 != -1)
+			if (v2 != -1) {
+				printf("%s -> %s\n", v->name, name);
 				return v2;
+			}
 		}
 	}
 	return -1;
@@ -124,10 +126,9 @@ int modloader_initout(asl_av_t* flt_names, asl_av_t* flt_args) {
 	int current_outmod = -1;
 	while (flt_names->argc > 0) {
 		char * nam = asl_pnabav(flt_names);
-		puts(nam);
 		int val = modloader_load_and_init(nam, asl_pnabav(flt_args), current_outmod);
 		if (val == -1) {
-			puts(" ... had a load error");
+			printf("%s had a load error...\n", nam);
 			mod_unload_to_count(backup_modcount, 1, 1);
 			free(nam);
 			return -1;
@@ -147,10 +148,9 @@ int modloader_initgfx(void) {
 	modloader_pregfx_mod_count = mod_count();
 	asl_iv_t loaded = {0, NULL};
 	for (int i = 0; i < all_gfxbgm.argc; i++) {
-		puts(all_gfxbgm.argv[i]);
 		int ld = modloader_load(all_gfxbgm.argv[i], -1);
 		if (ld == -1) {
-			puts("... did not load");
+			printf("%s had a load error...\n", all_gfxbgm.argv[i]);
 			mod_unload_to_count(modloader_pregfx_mod_count, 0, 1);
 			asl_cleariv(&loaded);
 			return 1;
