@@ -167,15 +167,12 @@ static void fish_execute(char * mid, asl_av_t * args) {
 		// "/blank" for example results in "fish /blank"
 		asl_pgrowav(args, mid);
 		mid = strdup("fish");
-		if (!mid) {
-			asl_clearav(args);
-			return;
-		}
+		assert(mid);
 	}
 
 	//printf("FISh: '%s', args:", mid);
-	//for (i = 0; i < argc; i++)
-	//	printf(" '%s'", argv[i]);
+	//for (int i = 0; i < args->argc; i++)
+	//	printf(" '%s'", args->argv[i]);
 	//printf("\n");
 
 	// It is because of this code that thread-safety has to be ensured with proper deinit/init barriers...

@@ -99,7 +99,7 @@ for M_x in "$@"; do
  write_static_module_proto "$M_x"
 done
 
-echo "int mod_k2link_load(int x, module* y, char modname[256]) {"
+echo "int mod_k2link_load(int x, module* y, const char * modname) {"
 
 for M_x in "$@"; do
  write_static_module_loader "$M_x"

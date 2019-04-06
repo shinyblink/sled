@@ -15,7 +15,7 @@ struct module {
 	// These two are initialized in mod_new
 	// "gfx\0"
 	char type[4];
-	// "gfx_example"
+	// "gfx_example\0"
 	char name[256];
 	// For flt, this is the next module in the output chain. This is set on load.
 	int chain_link;
@@ -72,7 +72,7 @@ struct module {
 // Actually, I'm moving the prototypes for *those* into modloader.c so you can't get at them.
 
 // --
-module* mod_find(char* name);
+module* mod_find(const char* name);
 int mod_getid(module* mod);
 
 int mod_count();

@@ -41,6 +41,12 @@ static module* mod_getfreemod(void) {
 }
 
 int mod_new(int loader, const char * name, int out_chain) {
+	// Do very basic verification on the name, just in case.
+	if (strlen(name) < 4)
+		return -1;
+	if (name[3] != '_')
+		return -1;
+	// Continue.
 	int slot = mod_freeslot();
 	if (slot == -1)
 		return -1;
@@ -50,7 +56,7 @@ int mod_new(int loader, const char * name, int out_chain) {
 		mod->chain_link = out_chain;
 		mod->responsible_modloader = loader;
 		util_strlcpy(mod->type, name, 4);
-		util_strlcpy(mod->name, name, 256);
+		util_strlcpy(mod->name, name + 4, 256);
 		if (modules[loader].load(loader, mod, name)) {
 			// Since this didn't load, make sure it isn't unloaded
 			mod->responsible_modloader = -1;
@@ -73,7 +79,7 @@ static void mod_k2link_unload(int x, void* y) {
 }
 static void mod_k2link_setdir(int x, const char * y) {
 }
-int mod_k2link_load(int, module*, char[256]);
+int mod_k2link_load(int, module*, const char *);
 void mod_k2link_findmods(int, asl_av_t*);
 
 int mod_new_k2link() {
@@ -82,7 +88,7 @@ int mod_new_k2link() {
 		memset(mod, 0, sizeof(module));
 		mod->responsible_modloader = -1;
 		strcpy(mod->type, "mod");
-		strcpy(mod->name, "mod_k2link");
+		strcpy(mod->name, "k2link");
 		mod->init = mod_k2link_init;
 		mod->deinit = mod_k2link_deinit;
 		mod->setdir = mod_k2link_setdir;
@@ -109,10 +115,10 @@ void mod_unload_to_count(int count, int deinit, int unload) {
 	}
 }
 
-module* mod_find(char* name) {
+module* mod_find(const char* name) {
 	int i;
 	for (i = 0; i < MAX_MODULES; i++)
-		if (strncmp(modules[i].name, name, 256) == 0)
+		if (!strcmp(modules[i].name, name))
 			return &modules[i];
 	return NULL;
 }
@@ -128,6 +134,8 @@ module* mod_get(int moduleno) {
 }
 
 int mod_getid(module* mod) {
-	return (mod - (&modules[0])) / sizeof(module);
+	// Yes, it actually works this way. I don't know why.
+	// Presumably something to do with the way modules + 1 == &modules[1].
+	return mod - modules;
 }
 

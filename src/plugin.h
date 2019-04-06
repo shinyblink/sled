@@ -98,7 +98,7 @@ void wait_until_break(int moduleno);
 void setdir(int moduleno, const char* dir);
 
 // FOR "mod" TYPE PLUGINS:
-// This loads a module by name into a module structure.
+// This loads a module by full name ("bgm_oopsie") into a module structure.
 // Returning non-zero means an error occurred.
 int load(int moduleno, module* mod, const char * name);
 
