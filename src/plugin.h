@@ -14,6 +14,9 @@
 #include "types.h"
 // Needed for module* and mod_get, also includes asl.h; including asl.h manually causes weirdness BTW
 #include "mod.h"
+// For PGCTX things
+#include <stdlib.h>
+#include <assert.h>
 
 // Function that initializes the plugin.
 // Things like buffers, file loading, etc..

@@ -21,7 +21,7 @@
 PGCTX_BEGIN_FILTER
 PGCTX_END
 
-int init(int moduleno, char* argstr) {
+int init(int _modno, char* argstr) {
 	PGCTX_INIT_FILTER
 	free(argstr);
 	return 0;
@@ -53,7 +53,7 @@ int clear(int _modno) {
 	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
+int render(int _modno) {
 	PGCTX_GET
 	return ctx->next->render(ctx->nextid);
 }

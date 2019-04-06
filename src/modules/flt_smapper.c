@@ -17,94 +17,107 @@
 
 #include <types.h>
 #include <timers.h>
-#include <mod.h>
+#include <plugin.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
-static int nextid;
-static module* nextm;
-static mod_flt* next;
-static int mx, my;
-static int folds, pane_x;
-static bool pane_order = 0;
+PGCTX_BEGIN_FILTER
+	int mx, my;
+	int folds, pane_x;
+	int pane_order;
+PGCTX_END
 
-int init (int moduleno, char* argstr) {
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
 	// get next ptr.
-	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
-	nextm = mod_get(nextid); next = nextm->mod;
-	mx = next->getx(nextid);
-	my = next->gety(nextid);
+	ctx->mx = ctx->next->getx(ctx->nextid);
+	ctx->my = ctx->next->gety(ctx->nextid);
+	ctx->pane_order = 0;
 
 	if (!argstr) {
 		eprintf("flt_smapper: No folding factor given.\n");
+		free(argstr);
+		free(ctx);
 		return 2;
 	}
 
-	if (sscanf(argstr, "%d", &folds) == EOF) {
+	if (sscanf(argstr, "%d", &ctx->folds) == EOF) {
 		eprintf("flt_smapper: Couldn't parse argument as number: Got '%s'", argstr);
+		free(argstr);
+		free(ctx);
 		return 2;
 	}
 	free(argstr);
 
-	if (folds == 0) {
+	if (ctx->folds == 0) {
 		eprintf("flt_smapper: A 0 fold number is invalid!");
+		free(ctx);
+		return 2;
 	}
 
 	/* When the fold number is negative, we reverse the pane order. */
-	if (folds < 0) {
-		folds = -folds;
-		pane_order = 1;
+	if (ctx->folds < 0) {
+		ctx->folds = -ctx->folds;
+		ctx->pane_order = 1;
 	}
 
-	pane_x = (mx / folds);
+	ctx->pane_x = (ctx->mx / ctx->folds);
 
 	return 0;
 }
 
 int getx(int _modno) {
-	return mx / folds;
+	PGCTX_GET
+	return ctx->mx / ctx->folds;
 }
 
 int gety(int _modno) {
-	return my * folds;
+	PGCTX_GET
+	return ctx->my * ctx->folds;
 }
 
 int set(int _modno, int x, int y, RGB color) {
+	PGCTX_GET
 	int nx = x;
 	int ny = y;
-	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
-	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
-	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
-	return next->set(nextid, nx, ny, color);
+	int paneno = ctx->pane_order ? (ctx->folds - (y / ctx->my) - 1) : (y / ctx->my);
+	nx = (paneno * ctx->pane_x) + (paneno % 2 == 1 ? ctx->pane_x - x - 1 : x);
+	ny = (paneno % 2 == 1 ? ctx->my - (y % ctx->my) - 1 : (y % ctx->my));
+	return ctx->next->set(ctx->nextid, nx, ny, color);
 }
 
 RGB get(int _modno, int x, int y) {
+	PGCTX_GET
 	int nx = x;
 	int ny = y;
-	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
-	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
-	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
-	return next->get(nextid, nx, ny);
+	int paneno = ctx->pane_order ? (ctx->folds - (y / ctx->my) - 1) : (y / ctx->my);
+	nx = (paneno * ctx->pane_x) + (paneno % 2 == 1 ? ctx->pane_x - x - 1 : x);
+	ny = (paneno % 2 == 1 ? ctx->my - (y % ctx->my) - 1 : (y % ctx->my));
+	return ctx->next->get(ctx->nextid, nx, ny);
 }
 
 int clear(int _modno) {
-	return next->clear(nextid);
+	PGCTX_GET
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
-	return next->render(nextid);
+int render(int _modno) {
+	PGCTX_GET
+	return ctx->next->render(ctx->nextid);
 }
 
 ulong wait_until(int _modno, ulong desired_usec) {
-	return next->wait_until(nextid, desired_usec);
+	PGCTX_GET
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
 void wait_until_break(int _modno) {
-	if (next->wait_until_break)
-		return next->wait_until_break(nextid);
+	PGCTX_GET
+	if (ctx->next->wait_until_break)
+		ctx->next->wait_until_break(ctx->nextid);
 }
 
 void deinit(int _modno) {
-	return nextm->deinit(nextid);
+	PGCTX_DEINIT
 }

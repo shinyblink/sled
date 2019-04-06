@@ -50,23 +50,23 @@ RGB get(int _modno, int x, int y) {
 
 int clear(int _modno) {
 	PGCTX_GET
-	return ctx->next->clear(nextid);
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
+int render(int _modno) {
 	PGCTX_GET
-	return ctx->next->render(nextid);
+	return ctx->next->render(ctx->nextid);
 }
 
 ulong wait_until(int _modno, ulong desired_usec) {
 	PGCTX_GET
-	return ctx->next->wait_until(nextid, desired_usec);
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
 void wait_until_break(int _modno) {
 	PGCTX_GET
 	if (ctx->next->wait_until_break)
-		return ctx->next->wait_until_break(nextid);
+		return ctx->next->wait_until_break(ctx->nextid);
 }
 
 void deinit(int _modno) {

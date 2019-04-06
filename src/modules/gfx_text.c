@@ -99,5 +99,4 @@ int draw(int _modno, int argc, char* argv[]) {
 void deinit(int _modno) {
 	// This acts conditionally on rendered being non-NULL.
 	text_free(rendered);
-	return 0;
 }
