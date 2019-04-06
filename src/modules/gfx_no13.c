@@ -81,6 +81,6 @@ void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	return 0;
 }

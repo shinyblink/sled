@@ -27,12 +27,12 @@
 #include <stdio.h>
 #include <oscore.h>
 #include <string.h>
+#include <assert.h>
 
 #include "timers.h"
 #include "matrix.h"
 #include "main.h"
-#include "mod.h"
-#include "asl.h"
+#include "plugin.h"
 
 static int fish_fifo;
 static oscore_task fish_task;
@@ -148,60 +148,51 @@ static char * fish_word(int * hitnl) {
 	}
 }
 
-// transfers 'ownership' of args to this.
-static void fish_execute(char * module, int argc, char ** argv) {
-	int i;
-	int mcount = mod_count();
+// transfers 'ownership' of args contents to this.
+static void fish_execute(char * mid, asl_av_t * args) {
 	int routing_rov = 0;
-	if (!strcmp(module, "/then")) {
+	if (!strcmp(mid, "/then")) {
 		// Oh, this'll be *hilarious...*
-		free(module);
-		if (argc != 0) {
-			module = argv[0];
-			argv = asl_pnabav(argc--, argv);
-			if (!argv) {
-				free(module);
-				return;
-			}
-			routing_rov = 1;
-		} else {
+		free(mid);
+		mid = asl_pnabav(args);
+		routing_rov = 1;
+		if (!mid) {
+			// argc == 0, so argv == null (unless a NULL got into the args array somehow)
+			assert(args->argv);
 			return;
 		}
 	}
 	// "/then /blank" is a useful tool
-	if (module[0] == '/') {
-		// "/blank" for example results in "fish.so /blank"
-		argv = asl_pgrowav(argc++, argv, module);
-		if (!argv) {
+	if (mid[0] == '/') {
+		// "/blank" for example results in "fish /blank"
+		asl_pgrowav(args, mid);
+		mid = strdup("fish");
+		if (!mid) {
+			asl_clearav(args);
 			return;
-		} else {
-			module = strdup("fish");
-			if (!module) {
-				asl_free_argv(argc, argv);
-				return;
-			}
 		}
 	}
 
-	//printf("FISh: '%s', args:", module);
+	//printf("FISh: '%s', args:", mid);
 	//for (i = 0; i < argc; i++)
 	//	printf(" '%s'", argv[i]);
 	//printf("\n");
 
-	for (i = 0; i < mcount; i++) {
-		if (!strcmp(module, mod_get(i)->name)) {
-			if (routing_rov) {
-				main_force_random(i, argc, argv);
-			} else {
-				timer_add(0, i, argc, argv);
-				timers_wait_until_break();
-			}
-			free(module);
-			return;
+	// It is because of this code that thread-safety has to be ensured with proper deinit/init barriers...
+	module * modref = mod_find(mid);
+	free(mid);
+	if (modref) {
+		int i = mod_getid(modref);
+		if (routing_rov) {
+			main_force_random(i, args->argc, args->argv);
+		} else {
+			timer_add(0, i, args->argc, args->argv);
+			timers_wait_until_break();
 		}
+		// args memory passed into main_force_random or timer_add, not our concern anymore
+		return;
 	}
-	free(module);
-	asl_free_argv(argc, argv);
+	asl_clearav(args);
 }
 
 static void * fish_thread_func(void * arg) {
@@ -223,19 +214,16 @@ static void * fish_thread_func(void * arg) {
 		char * module = fish_word(&hitnl);
 		if (!module)
 			continue;
-		int argc = 0;
-		char ** argv = NULL;
+		asl_av_t args = {0, NULL};
 		while (!hitnl) {
 			fish_skipws();
 			char * arg = fish_word(&hitnl);
 			if (!arg)
 				break;
-			argv = asl_growav(argc++, argv, arg);
+			asl_growav(&args, arg);
 		}
-		if (!argv)
-			argc = 0;
 		// Ready.
-		fish_execute(module, argc, argv);
+		fish_execute(module, &args);
 		oscore_task_yield();
 	}
 	return NULL;
@@ -274,7 +262,9 @@ int draw(int _modno, int argc, char ** argv) {
 			matrix_clear();
 			matrix_render();
 			char ** x = malloc(sizeof(char *));
+			assert(x);
 			*x = strdup("/blank");
+			assert(*x);
 			timer_add(udate() + T_SECOND, fish_moduleno, 1, x);
 			return 0;
 		} else if (!strcmp(argv[0], "/error42")) {
@@ -289,7 +279,7 @@ void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	char ch = 0;
 	if(write(fish_shutdown_mt, &ch, 1) < 0) {
 		perror("bgm_fish: fish_shutdown_mt write error");
@@ -299,5 +289,4 @@ int deinit(int _modno) {
 	close(fish_shutdown_mt);
 	close(fish_shutdown_ot);
 	unlink("sled.fish");
-	return 0;
 }

@@ -77,6 +77,6 @@ void wait_until_break(int _modno) {
 		return next->wait_until_break(nextid);
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	return nextm->deinit(nextid);
 }

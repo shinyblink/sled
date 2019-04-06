@@ -113,7 +113,7 @@ void wait_until_break(int _modno) {
 	timers_wait_until_break_core();
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	printf(ESC "2J" ESC "H" ESC SHOWCURSOR);
 	fflush(stdout);
 	return 0;

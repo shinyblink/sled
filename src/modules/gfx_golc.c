@@ -323,7 +323,7 @@ int draw(int _modno, int argc, char* argv[]) {
 }
 
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	free(gol_stat_buf);
 	return 0;
 }

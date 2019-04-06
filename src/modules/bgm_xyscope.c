@@ -327,7 +327,7 @@ int draw(int _modno, int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	doshutdown = 1;
 	oscore_task_join(scope_task);
 	return 0;

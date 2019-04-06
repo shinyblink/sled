@@ -19,43 +19,17 @@
 #include <string.h>
 #include <assert.h>
 #include "mod.h"
-#include "loadcore.h"
 #include "main.h"
 
-// Filters. Index 0 is the surface layer of the API, unless there are no filters, in which case that responsibility falls to the output module.
-// Everything in here, and the output module, is inited and deinited manually.
-// A filter is obligated to deinit the module below it in the chain (but not init it), so only the surface-layer module must be deinited from here.
-// The last index is directly above the true output module itself.
-static int* filters;
-static int filter_amount = 0;
-
-// Not to be confused with outmod, this is the contents of filters[0] if it exists, otherwise the output module structure.
-static mod_out *out;
+// This is where the matrix functions send output.
+// It is the root of the output chain.
 static int mod_out_no;
+static module* out;
 
-int matrix_init(int outmodno, int* filter_list, int filtno, char* outarg, char** filtargs) {
-	filters = filter_list;
-	filter_amount = filtno;
-
-	((mod_out*) outmod->mod)->next = -1;
-	int ret = outmod->init(outmodno, outarg);
-	if (ret != 0) return ret;
-
-	if (filtno > 0) {
-		int i = filtno;
-		int last = outmodno;
-		for (i = (filtno - 1); i >= 0; --i) {
-			module* mod = mod_get(filters[i]);
-			((mod_out*) mod->mod)->next = last;
-			ret = mod->init(filters[i], filtargs[i]);
-			if (ret != 0) return ret;
-			last = filters[i];
-		}
-		outmod = mod_get(filters[0]);
-	}
-	out = outmod->mod;
+int matrix_init(int outmodno) {
+	out = mod_get(outmodno);
 	mod_out_no = outmodno;
-	return ret;
+	return 0;
 }
 
 int matrix_getx(void) {
@@ -100,10 +74,5 @@ int matrix_render(void) {
 }
 
 int matrix_deinit(void) {
-	int ret = 0;
-	if (outmod != NULL) {
-		ret = outmod->deinit(mod_getid(outmod));
-		loadcore_close(out->lib);
-	}
-	return ret;
+	return 0;
 }

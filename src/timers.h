@@ -3,6 +3,8 @@
 #ifndef __INCLUDED_TIMERS__
 #define __INCLUDED_TIMERS__
 
+#include "asl.h"
+
 typedef struct timer {
 	// Special values for this:
 	// -1: No timer available
@@ -10,9 +12,8 @@ typedef struct timer {
 	int moduleno;
 	unsigned long time;
 
-	int argc;
 	// Malloc'd data containing strdup/malloc'd data, hence timers_deinit();
-	char* *argv;
+	asl_av_t args;
 } timer;
 
 extern int timers_quitting;

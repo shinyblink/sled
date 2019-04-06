@@ -200,6 +200,6 @@ int draw(int _modno, int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	return 0;
 }

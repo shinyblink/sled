@@ -16,54 +16,59 @@
 
 #include <types.h>
 #include <timers.h>
-#include <mod.h>
+#include <plugin.h>
 
-static int nextid;
-static module* nextm;
-static mod_flt* next;
+PGCTX_BEGIN_FILTER
+PGCTX_END
 
-int init(int moduleno, char* argstr) {
-	// get next ptr.
-	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
-	nextm = mod_get(nextid);
-	next = nextm->mod;
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
+	free(argstr);
 	return 0;
 }
 
 int getx(int _modno) {
-	return next->getx(nextid);
+	PGCTX_GET
+	return ctx->next->getx(ctx->nextid);
 }
 int gety(int _modno) {
-	return next->gety(nextid);
+	PGCTX_GET
+	return ctx->next->gety(ctx->nextid);
 }
 
 int set(int _modno, int x, int y, RGB color) {
+	PGCTX_GET
 	int ny = gety(0) - 1 - y;
-	return next->set(nextid, x, ny, color);
+	return ctx->next->set(ctx->nextid, x, ny, color);
 }
 
 RGB get(int _modno, int x, int y) {
+	PGCTX_GET
 	int ny = gety(0) - 1 - y;
-	return next->get(nextid, x, ny);
+	return ctx->next->get(ctx->nextid, x, ny);
 }
 
 int clear(int _modno) {
-	return next->clear(nextid);
+	PGCTX_GET
+	return ctx->next->clear(nextid);
 }
 
 int render(void) {
-	return next->render(nextid);
+	PGCTX_GET
+	return ctx->next->render(nextid);
 }
 
 ulong wait_until(int _modno, ulong desired_usec) {
-	return next->wait_until(nextid, desired_usec);
+	PGCTX_GET
+	return ctx->next->wait_until(nextid, desired_usec);
 }
 
 void wait_until_break(int _modno) {
-	if (next->wait_until_break)
-		return next->wait_until_break(nextid);
+	PGCTX_GET
+	if (ctx->next->wait_until_break)
+		return ctx->next->wait_until_break(nextid);
 }
 
-int deinit(int _modno) {
-	return nextm->deinit(nextid);
+void deinit(int _modno) {
+	PGCTX_DEINIT
 }

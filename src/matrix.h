@@ -6,7 +6,10 @@
 #include "types.h"
 #include "mod.h"
 
-extern int matrix_init(int outmodno, int* filter_list, int filterno, char* outarg, char** filtargs);
+// The matrix code is a wrapper for the top output module,
+//  though also contains the occasional utility function.
+// It does not init or deinit the top output module anymore.
+extern int matrix_init(int outmodno);
 extern int matrix_getx(void);
 extern int matrix_gety(void);
 extern int matrix_set(int x, int y, RGB color);

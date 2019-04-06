@@ -323,7 +323,7 @@ int draw(int _modno, int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	free(data);
     free(data_bitmask);
 	return 0;

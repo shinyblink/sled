@@ -166,12 +166,11 @@ void wait_until_break(int _modno) {
 	timers_wait_until_break_core();
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	// Destroy everything.
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	free(BUFFER);
-	return 0;
 }

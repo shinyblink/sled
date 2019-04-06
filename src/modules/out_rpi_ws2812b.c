@@ -155,7 +155,7 @@ void wait_until_break(int _modno) {
 	return timers_wait_until_break_core();
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	ws2811_fini(&leds);
 	return 0;
 }

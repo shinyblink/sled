@@ -17,23 +17,19 @@
 
 #include <types.h>
 #include <timers.h>
-#include <mod.h>
+#include <plugin.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 
-static int nextid;
-static module* nextm;
-static mod_flt* next;
+PGCTX_BEGIN_FILTER
+PGCTX_END
 
-int init(int moduleno, char* argstr) {
-	printf("flt_dummy loading. next mod is %i\n", nextno);
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
+	printf("flt_dummy loading. next mod is %i\n", ctx->nextid);
 	fflush(stdin);
-	// get next ptr.
-	nextid = ((mod_out*) mod_get(moduleno)->mod)->next;
-	nextm = mod_get(nextid);
-	next = nextm->mod;
-	printf("next is %p", next);
+	printf("next is %p", ctx->next);
 
 	if (argstr) {
 		printf("got argstr: %s", argstr);
@@ -43,62 +39,69 @@ int init(int moduleno, char* argstr) {
 }
 
 int getx(int _modno) {
+	PGCTX_GET
 	printf("getx\n");
 	fflush(stdout);
-	assert(next != NULL);
-	return next->getx(nextid);
+	assert(ctx->next != NULL);
+	return ctx->next->getx(ctx->nextid);
 }
 int gety(int _modno) {
+	PGCTX_GET
 	printf("gety\n");
 	fflush(stdout);
-	assert(next != NULL);
-	return next->gety(nextid);
+	assert(ctx->next != NULL);
+	return ctx->next->gety(ctx->nextid);
 }
 
 int set(int _modno, int x, int y, RGB color) {
+	PGCTX_GET
 	printf("Setting (%i,%i).\n", x, y);
-	assert(next != NULL);
-	return next->set(nextid, x, y, color);
+	assert(ctx->next != NULL);
+	return ctx->next->set(ctx->nextid, x, y, color);
 }
 
 RGB get(int _modno, int x, int y) {
+	PGCTX_GET
 	printf("Getting color at (%i,%i).\n", x, y);
-	assert(next != NULL);
-	return next->get(nextid, x, y);
+	assert(ctx->next != NULL);
+	return ctx->next->get(ctx->nextid, x, y);
 }
 
 int clear(int _modno) {
+	PGCTX_GET
 	printf("clear\n");
 	fflush(stdout);
-	assert(next != NULL);
-	return next->clear(nextid);
+	assert(ctx->next != NULL);
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
+int render(int _modno) {
+	PGCTX_GET
 	printf("render\n");
 	fflush(stdout);
-	assert(next != NULL);
-	return next->render(nextid);
+	assert(ctx->next != NULL);
+	return ctx->next->render(ctx->nextid);
 }
 
 ulong wait_until(int _modno, ulong desired_usec) {
+	PGCTX_GET
 	printf("wait_until\n");
 	fflush(stdout);
-	assert(next != NULL);
-	return next->wait_until(nextid, desired_usec);
+	assert(ctx->next != NULL);
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
 void wait_until_break(int _modno) {
+	PGCTX_GET
 	printf("wait_until_break\n");
 	fflush(stdout);
-	assert(next != NULL);
-	if (next->wait_until_break)
-		return next->wait_until_break(nextid);
+	assert(ctx->next != NULL);
+	if (ctx->next->wait_until_break)
+		ctx->next->wait_until_break(ctx->nextid);
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	printf("deinit\n");
 	fflush(stdin);
-	assert(next != NULL);
-	return nextm->deinit(nextid);
+	PGCTX_DEINIT
 }

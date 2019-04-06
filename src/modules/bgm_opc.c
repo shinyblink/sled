@@ -265,7 +265,7 @@ void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	char blah = 0;
 	if (write(opc_shutdown_fd_mt, &blah, 1) != -1)
 		oscore_task_join(opc_task);

@@ -85,8 +85,11 @@ static void * taskpool_function(void* ctx) {
 		while (1) {
 			// It's possible that the event we just got covered multiple tasks.
 			// Accept as many tasks as possible during our active time.
-			if (pool->shutdown)
+			if (pool->shutdown) {
+				// Should help speed up shutdown.
+				oscore_event_signal(pool->wakeup);
 				return NULL;
+			}
 
 			job = tp_getjob(pool);
 

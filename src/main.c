@@ -17,14 +17,13 @@
 #include "types.h"
 #include "matrix.h"
 #include "mod.h"
-#include "modloaders/native.h"
-#include "modloaders/farbherd.h"
 #include "timers.h"
 #include "random.h"
 #include "util.h"
 #include "asl.h"
 #include "oscore.h"
 #include "taskpool.h"
+#include "modloader.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,61 +33,66 @@
 #include <signal.h>
 
 
-static int modcount;
-module* outmod;
+static int outmodno = -1;
 
 static oscore_mutex rmod_lock;
 // Usually -1.
 static int main_rmod_override = -1;
-static int main_rmod_override_argc;
-static char* *main_rmod_override_argv;
+static asl_av_t main_rmod_override_args;
 
 const char default_moduledir[] = DEFAULT_MODULEDIR;
-static char* modpath = NULL;
 
 #ifdef CIMODE
 static int ci_iteration_count = 0;
 #endif
 
 static int deinit(void) {
-	printf("Cleaning up...\n");
+	printf("Cleaning up GFX/BGM modules..."); fflush(stdout);
 	int ret;
-	if ((ret = mod_deinit()) != 0)
-		return ret;
+	modloader_deinitgfx();
+	printf(" Done!\nCleaning up output module interface..."); fflush(stdout);
 	if ((ret = matrix_deinit()) != 0)
 		return ret;
 	if ((ret = timers_deinit()) != 0)
 		return ret;
+	printf(" Done!\nCleaning up output module and filters..."); fflush(stdout);
+	modloader_deinitend();
+	printf(" Done!\nCleaning up bits and pieces..."); fflush(stdout);
 	oscore_mutex_free(rmod_lock);
 	if (main_rmod_override != -1)
-		asl_free_argv(main_rmod_override_argc, main_rmod_override_argv);
+		asl_clearav(&main_rmod_override_args);
+	modloader_modpath = NULL;
+	free(modloader_modpath);
 
+	printf(" Done!\nCleaning up Taskpool..."); fflush(stdout);
 	taskpool_forloop_free();
 	taskpool_destroy(TP_GLOBAL);
 
-	free(modpath);
 
-	printf("Goodbye. :(\n");
+	printf(" Done.\nGoodbye. :(\n");
 	return 0;
 }
 
+/*
 static int pick_next_random(int current_modno, ulong in) {
 	oscore_mutex_lock(rmod_lock);
 	if (main_rmod_override != -1) {
-		int res = timer_add(in, main_rmod_override, main_rmod_override_argc, main_rmod_override_argv);
+		int res = timer_add(in, main_rmod_override, main_rmod_override_args.argc, main_rmod_override_args.argv);
 		main_rmod_override = -1;
 		oscore_mutex_unlock(rmod_lock);
 		return res;
 	}
 	oscore_mutex_unlock(rmod_lock);
 	int next_mod;
-	int lastvalidmod = 0;
+	
 	int usablemodcount = 0;
-	for (int mod = 0; mod < modcount; mod++) {
-		if (strcmp(mod_get(mod)->type, "gfx") != 0)
-			continue;
-		usablemodcount++;
-		lastvalidmod = mod;
+	mod_lock();
+	for (int mod = 0; mod < MAX_MODULES; mod++) {
+		if (mod_slot_has_mod(mod)) {
+			if (strcmp(mod_get(mod)->type, "gfx") != 0)
+				continue;
+			usablemodcount++;
+		}
 	}
 	if (usablemodcount > 1) {
 		next_mod = -1;
@@ -111,75 +115,77 @@ static int pick_next_random(int current_modno, ulong in) {
 		in += 5000000;
 		next_mod = -2;
 	}
+	mod_unlock();
 	return timer_add(in, next_mod, 0, NULL);
-}
+}*/
 
 static int pick_next_seq(int current_modno, ulong in) {
 	oscore_mutex_lock(rmod_lock);
 	if (main_rmod_override != -1) {
-		int res = timer_add(in, main_rmod_override, main_rmod_override_argc, main_rmod_override_argv);
+		int res = timer_add(in, main_rmod_override, main_rmod_override_args.argc, main_rmod_override_args.argv);
 		main_rmod_override = -1;
 		oscore_mutex_unlock(rmod_lock);
 		return res;
 	}
 	oscore_mutex_unlock(rmod_lock);
 
-	int mod, next_mod;
-	int lastvalidmod = 0;
-	int usablemodcount = 0;
-	for (mod = 0; mod < modcount; mod++) {
-		if (strcmp(mod_get(mod)->type, "gfx") != 0)
-			continue;
-		usablemodcount++;
-		lastvalidmod = mod;
-	}
+	int next_mod = 0;
 
-	if (usablemodcount > 1) {
-		next_mod = current_modno;
-		int done = 0;
-		while (!done) {
-			next_mod++;
-
-			//wrap around
-			if (next_mod > modcount) {
-				next_mod = 0;
-#ifdef CIMODE
-				ci_iteration_count++;
-				if (ci_iteration_count > 10) { // maybe make this configurable, but its ok for now
-					timers_quitting = 1;
-					return 0;
-				}
-#endif
-			}
-
-			//found a gfx mod, take it
-			if (strcmp(mod_get(next_mod)->type, "gfx") == 0) done = 1;
-		}
-	} else if (usablemodcount == 1) {
-		next_mod = lastvalidmod;
-	} else {
+	// No modules, uhoh
+	if (modloader_gfx_rotation.argc == 0) {
 		in += 5000000;
 		next_mod = -2;
+	} else {
+		next_mod = modloader_gfx_rotation.argv[0];
+		// Did we find the current module in the rotation?
+		int found_here = 0;
+#ifdef CIMODE
+		// Notably, this doesn't count if current_modno was invalid, so the CI iteration counter doesn't go off spuriously
+		int hit_end_of_loop = current_modno >= 0;
+#endif
+		for (int i = 0; i < modloader_gfx_rotation.argc; i++) {
+			if (found_here) {
+				// The previous iteration was the current module, so this iteration is?
+				next_mod = modloader_gfx_rotation.argv[i];
+#ifdef CIMODE
+				hit_end_of_loop = 0;
+#endif
+				break;
+			}
+			if (modloader_gfx_rotation.argv[i] == current_modno) {
+				// Great!
+				found_here = 1;
+			}
+		}
+#ifdef CIMODE
+		if (hit_end_of_loop) {
+			ci_iteration_count++;
+			if (ci_iteration_count > 10) { // maybe make this configurable, but its ok for now
+				timers_quitting = 1;
+				return 0;
+			}
+		}
+#endif
 	}
 	return timer_add(in, next_mod, 0, NULL);
 }
 
 // this could also be easily rewritten to be an actual feature
 static int pick_next(int current_modno, ulong in) {
-#ifdef CIMODE
+//#ifdef CIMODE
 	return pick_next_seq(current_modno, in);
-#else
-	return pick_next_random(current_modno, in);
-#endif
+//#else
+//	return pick_next_random(current_modno, in);
+//#endif
 }
 
 void main_force_random(int mnum, int argc, char ** argv) {
+	asl_av_t bundled = {argc, argv};
 	while (!timers_quitting) {
 		oscore_mutex_lock(rmod_lock);
 		if (main_rmod_override == -1) {
 			main_rmod_override = mnum;
-			main_rmod_override_argc = argc;
-			main_rmod_override_argv = argv;
+			main_rmod_override_args = bundled;
 			oscore_mutex_unlock(rmod_lock);
 			return;
 		}
@@ -187,7 +193,7 @@ void main_force_random(int mnum, int argc, char ** argv) {
 		usleep(5000);
 	}
 	// Quits out without doing anything to prevent deadlock.
-	asl_free_argv(argc, argv);
+	asl_clearav(&bundled);
 }
 
 int usage(char* name) {
@@ -223,32 +229,35 @@ static void interrupt_handler(int sig) {
 
 int sled_main(int argc, char** argv) {
 	int ch;
-	char outmod_c[256] = DEFAULT_OUTMOD;
 
-	char* filternames[MAX_MODULES];
-	char* filterargs[MAX_MODULES];
-	int filterno = 0;
+	char outmod_c[256] = DEFAULT_OUTMOD;
 	char* outarg = NULL;
+
+	asl_av_t filternames = {0, NULL};
+	asl_av_t filterargs = {0, NULL};
+
 	while ((ch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
 		switch(ch) {
 		case 'm': {
 			size_t len = strlen(optarg);
 			char* str = calloc(len + 1, sizeof(char));
 			util_strlcpy(str, optarg, len + 1);
-			modpath = str;
+			modloader_modpath = str;
 			break;
 		}
 		case 'o': {
 			size_t len = strlen(optarg);
 			char* tmp = malloc((len + 1) * sizeof(char));
+			assert(tmp);
 			util_strlcpy(tmp, optarg, len + 1);
 			char* arg = tmp;
 
 			char* modname = strsep(&arg, ":");
-			if (arg != NULL)
+			if (arg) {
+				free(outarg);
 				outarg = strdup(arg);
-			else
-				modname = optarg;
+				assert(outarg);
+			}
 			util_strlcpy(outmod_c, modname, 256);
 			free(tmp);
 			break;
@@ -259,17 +268,14 @@ int sled_main(int argc, char** argv) {
 			char* modname = strsep(&arg, ":");
 			char* fltarg = NULL;
 			if (arg != NULL) {
-				size_t len = strlen(arg); // optarg is now the string after the colon
-				fltarg = malloc((len + 1) * sizeof(char)); // i know, its a habit. a good one.
-				util_strlcpy(fltarg, arg, len + 1);
+				fltarg = strdup(arg);
+				assert(fltarg);
 			} else
 				modname = optarg;
-			size_t len = strlen(modname);
-			char* str = malloc((len + 1) * sizeof(char));
-			util_strlcpy(str, modname, len + 1);
-			filternames[filterno] = str;
-			filterargs[filterno] = fltarg;
-			filterno++;
+			char* str = strdup(modname);
+			assert(str);
+			asl_growav(&filternames, str);
+			asl_growav(&filterargs, fltarg);
 			break;
 		}
 		case '?':
@@ -281,50 +287,36 @@ int sled_main(int argc, char** argv) {
 	argv += optind;
 
 	int ret;
-	rmod_lock = oscore_mutex_new();
 
 	// Initialize pseudo RNG.
 	random_seed();
 
 	// Prepare for module loading
-	if (modpath == NULL)
-		modpath = strdup(default_moduledir);
-	int* filters = NULL;
-	if (filterno > 0) {
-		filters = malloc(filterno * sizeof(int));
-		if (filterno != 0 && !filters) {
-			eprintf("Failed to malloc filter list, oops?\n");
-			return 3;
-		}
-		int i;
-		for (i = 0; i < filterno; ++i)
-			filters[i] = -1;
+	if (modloader_modpath == NULL)
+		modloader_modpath = strdup(default_moduledir);
+
+	ret = modloader_initmod();
+	if (ret) {
+		eprintf("Failed to load the modloader tree. How'd this happen?\n");
+		free(modloader_modpath);
+		return ret;
 	}
-
-	modloader_setdir(modpath);
-
-	// Register native module loader.
-	nativemod_init();
-#ifdef SLED_FARBHERD_MODLOADER
-	// Register farbherd module loader.
-	farbherdmod_init();
-#endif
 
 	// Load outmod
 	char outmodname[4 + ARRAY_SIZE(outmod_c)];
 	snprintf(outmodname, 4 + ARRAY_SIZE(outmod_c), "out_%s", outmod_c);
-	int outmodno = mod_freeslot();
-	outmod = mod_get(outmodno);
-	modloader_load(outmod, outmodname);
-	if (outmod == NULL) {
-		eprintf("Didn't load an output module. This isn't good. \n");
-		deinit();
-		return 3;
-	};
-
-	// Load remaining modules.
-	if ((ret = modloader_loaddir(filternames, &filterno, filters)) != 0) {
-		deinit();
+	char * outmodbuf2 = strdup(outmodname);
+	assert(outmodbuf2);
+	asl_pgrowav(&filternames, outmodbuf2);
+	asl_pgrowav(&filterargs, outarg);
+	outmodno = modloader_initout(&filternames, &filterargs);
+	// No need for these anymore.
+	asl_clearav(&filternames);
+	asl_clearav(&filterargs);
+	if (outmodno == -1) {
+		eprintf("Failed to load the output/filter stack. This isn't good.\n");
+		free(modloader_modpath);
+		modloader_deinitend();
 		return ret;
 	}
 
@@ -332,32 +324,29 @@ int sled_main(int argc, char** argv) {
 	ret = timers_init(outmodno);
 	if (ret) {
 		printf("Timers failed to initialize.\n");
-		oscore_mutex_free(rmod_lock);
+		modloader_deinitend();
 		return ret;
 	}
 
 	// Initialize Matrix.
-	ret = matrix_init(outmodno, filters, filterno, outarg, filterargs);
+	ret = matrix_init(outmodno);
 	if (ret) {
 		// Fail.
-		printf("Matrix: Output plugin failed to initialize.\n");
+		printf("Matrix failed to initialize, which means someone's been making matrix_init more complicated. Uhoh.\n");
 		timers_deinit();
-		oscore_mutex_free(rmod_lock);
+		modloader_deinitend();
 		return ret;
 	}
+
+	rmod_lock = oscore_mutex_new();
+
+	ret = modloader_initgfx();
+	if (ret)
+		eprintf("Failed to load graphics modules (%i), continuing, what could possibly go wrong?\n", ret);
 
 	// Initialize global task pool.
 	int ncpus = oscore_ncpus();
 	TP_GLOBAL = taskpool_create("taskpool", ncpus, ncpus*8);
-
-	// Initialize modules (this can offset outmodno)
-	ret = mod_init();
-	if (ret) {
-		printf("Modules: Init failed.\n");
-		return ret;
-	}
-
-	modcount = mod_count();
 
 	signal(SIGINT, interrupt_handler);
 
@@ -375,23 +364,31 @@ int sled_main(int argc, char** argv) {
 				// Early break. Set this timer up for elimination by any 0-time timers that have come along
 				if (tnext.time == 0)
 					tnext.time = 1;
-				timer_add(tnext.time, tnext.moduleno, tnext.argc, tnext.argv);
+				timer_add(tnext.time, tnext.moduleno, tnext.args.argc, tnext.args.argv);
 				continue;
 			}
 			if (tnext.moduleno >= 0) {
+				assert(tnext.moduleno < mod_count());
 				module* mod = mod_get(tnext.moduleno);
-				mod_gfx *gfx = mod->mod;
+				if (!mod->is_valid_drawable) {
+					printf("\n>> Undrawable module in view: %s ; skipping...\n", mod->name);
+					asl_clearav(&tnext.args);
+					continue;
+				}
 				if (tnext.moduleno != lastmod) {
 					printf("\n>> Now drawing %s", mod->name);
 					fflush(stdout);
-					if (gfx->reset)
-						gfx->reset(tnext.moduleno);
+					if (mod->reset) {
+						mod->reset(tnext.moduleno);
+					} else {
+						printf("\n>> GFX module without reset shouldn't happen: %s\n", mod->name);
+					}
 				} else {
 					printf(".");
 					fflush(stdout);
 				};
-				ret = gfx->draw(tnext.moduleno, tnext.argc, tnext.argv);
-				asl_free_argv(tnext.argc, tnext.argv);
+				ret = mod->draw(tnext.moduleno, tnext.args.argc, tnext.args.argv);
+				asl_clearav(&tnext.args);
 				lastmod = tnext.moduleno;
 				if (ret != 0) {
 					if (ret == 1) {
@@ -409,10 +406,9 @@ int sled_main(int argc, char** argv) {
 			} else {
 				// Virtual null module
 				printf(">> using virtual null module\n");
-				asl_free_argv(tnext.argc, tnext.argv);
+				asl_clearav(&tnext.args);
 			}
 		}
 	}
-
 	return deinit();
 }

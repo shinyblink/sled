@@ -212,7 +212,7 @@ void wait_until_break(int _modno) {
 	return timers_timers_wait_until_break_core();
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	close(sock);
 	free(message);
 	return 0;

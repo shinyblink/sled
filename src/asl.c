@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "timers.h"
 #include "asl.h"
@@ -47,75 +48,125 @@ char * asl_growstr(char * str, char nxt) {
 	return nstr;
 }
 
-// Adds an argument to an argv, and disposes of the old one, unless it's NULL.
-// Element pointers are copied (no strdups).
-// Can return NULL itself on malloc failure (in which case everything is freed)
-char ** asl_growav(int argc, char ** argv, char * nxt) {
-	char ** nav;
-	if (argv) {
-		nav = malloc(sizeof(char*) * (argc + 1));
-	} else {
-		nav = malloc(sizeof(char*));
-	}
-	if (!nav) {
-		asl_free_argv(argc, argv);
-		free(nxt);
-		return NULL;
-	}
-	if (argv) {
-		memcpy(nav, argv, sizeof(char*) * argc);
-		free(argv);
-	}
-	nav[argc] = nxt;
-	return nav;
+void asl_growav(asl_av_t * self, char * nxt) {
+	self->argc++;
+	// Expands NULL -> target size if necessary
+	self->argv = realloc(self->argv, sizeof(char*) * self->argc);
+	assert(self->argv);
+	self->argv[self->argc - 1] = nxt;
 }
 
-// Like the previous, but prepending.
-char ** asl_pgrowav(int argc, char ** argv, char * nxt) {
-	char ** nav;
-	if (argv) {
-		nav = malloc(sizeof(char*) * (argc + 1));
-	} else {
-		nav = malloc(sizeof(char*));
-	}
-	if (!nav) {
-		asl_free_argv(argc, argv);
-		free(nxt);
-		return NULL;
-	}
-	if (argv) {
-		memcpy(nav + 1, argv, sizeof(char*) * argc);
-		free(argv);
-	}
-	nav[0] = nxt;
-	return nav;
+void asl_pgrowav(asl_av_t * self, char * nxt) {
+	self->argc++;
+	// Expands NULL -> target size if necessary
+	self->argv = realloc(self->argv, sizeof(char*) * self->argc);
+	assert(self->argv);
+	memmove(self->argv + 1, self->argv, sizeof(char*) * (self->argc - 1));
+	self->argv[0] = nxt;
 }
 
-// Like the previous, but removing the first, not adding to it.
-// It's assumed you've "collected" it elsewhere.
-char ** asl_pnabav(int argc, char ** argv) {
-	char ** nav;
-	if (argv) {
-		if (argc == 0)
-			return NULL;
-		nav = malloc(sizeof(char*) * (argc - 1));
+char * asl_pnabav(asl_av_t * self) {
+	if (!self->argv) {
+		return NULL;
 	} else {
-		return NULL;
+		char * res = self->argv[0];
+		self->argc--;
+		memmove(self->argv, self->argv + 1, sizeof(char*) * self->argc);
+		if (self->argc) {
+			self->argv = realloc(self->argv, sizeof(char*) * self->argc);
+			assert(self->argv);
+		} else {
+			free(self->argv);
+			self->argv = NULL;
+		}
+		return res;
 	}
-	if (!nav) {
-		asl_free_argv(argc - 1, argv + 1);
-		return NULL;
-	}
-	memcpy(nav, argv + 1, sizeof(char*) * (argc - 1));
-	free(argv);
-	return nav;
 }
 
-void asl_free_argv(int argc, char ** argv) {
-	if (argv) {
+void asl_clearav(asl_av_t * self) {
+	if (self->argv) {
 		int i;
-		for (i = 0; i < argc; i++)
-			free(argv[i]);
-		free(argv);
+		for (i = 0; i < self->argc; i++)
+			free(self->argv[i]);
+		free(self->argv);
+		self->argc = 0;
+		self->argv = NULL;
 	}
 }
+
+char * asl_getval(const char * key, asl_av_t * keys, asl_av_t * vals) {
+	int i;
+	for (i = 0; i < keys->argc; i++)
+		if (!strcmp(keys->argv[i], key))
+			return vals->argv[i];
+	return NULL;
+}
+
+int asl_hasval(const char * key, asl_av_t * keys) {
+	int i;
+	for (i = 0; i < keys->argc; i++)
+		if (!strcmp(keys->argv[i], key))
+			return 1;
+	return 0;
+}
+
+// -- IV --
+// This could really do with a bit of macro-based templating,
+//  since it's really a copy & paste of the AV code, but oh well
+
+void asl_growiv(asl_iv_t * self, int nxt) {
+	self->argc++;
+	// Expands NULL -> target size if necessary
+	self->argv = realloc(self->argv, sizeof(int) * self->argc);
+	assert(self->argv);
+	self->argv[self->argc - 1] = nxt;
+}
+
+void asl_pgrowiv(asl_iv_t * self, int nxt) {
+	self->argc++;
+	// Expands NULL -> target size if necessary
+	self->argv = realloc(self->argv, sizeof(int) * self->argc);
+	assert(self->argv);
+	memmove(self->argv + 1, self->argv, sizeof(int) * (self->argc - 1));
+	self->argv[0] = nxt;
+}
+
+int asl_pnabiv(asl_iv_t * self) {
+	if (!self->argv) {
+		return 0;
+	} else {
+		int res = self->argv[0];
+		self->argc--;
+		memmove(self->argv, self->argv + 1, sizeof(int) * self->argc);
+		if (self->argc) {
+			self->argv = realloc(self->argv, sizeof(int) * self->argc);
+			assert(self->argv);
+		} else {
+			free(self->argv);
+			self->argv = NULL;
+		}
+		return res;
+	}
+}
+
+void asl_cleariv(asl_iv_t * self) {
+	self->argc = 0;
+	free(self->argv);
+	self->argv = NULL;
+}
+
+void asl_test_av_validity(asl_av_t * self) {
+	FILE * nope = fopen("/dev/null", "wb");
+	assert(nope);
+	for (int i = 0; i < self->argc; i++)
+		fprintf(nope, "%p\n", self->argv[i]);
+	fclose(nope);
+}
+void asl_test_iv_validity(asl_iv_t * self) {
+	FILE * nope = fopen("/dev/null", "wb");
+	assert(nope);
+	for (int i = 0; i < self->argc; i++)
+		fprintf(nope, "%i\n", self->argv[i]);
+	fclose(nope);
+}
+

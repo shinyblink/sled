@@ -584,7 +584,7 @@ void reset(int _modno) {
 	px_bgminactive = 1;
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	char blah = 0;
 	if (write(px_shutdown_fd_mt, &blah, 1) != -1)
 		oscore_task_join(px_task);

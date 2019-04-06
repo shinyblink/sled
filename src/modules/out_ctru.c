@@ -213,7 +213,7 @@ void wait_until_break(int _modno) {
 	timers_wait_until_break_core();
 }
 
-int deinit(int _modno) {
+void deinit(int _modno) {
 	// Can we just.. chill for a moment, please?
 	shaderProgramFree(&program);
 	linearFree(screen_ind_buf);
