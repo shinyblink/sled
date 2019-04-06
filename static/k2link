@@ -20,17 +20,17 @@
 # For safety reasons, all local variables must be prefixed with the initials of the function name.
 # All global variables will be prefixed with 'G_'.
 
-$G_MTYPES="gfx bgm out flt mod"
+G_MTYPES="gfx bgm out flt mod"
 
 # Returns mtype funcs for a given $1 mtype in GMF_RETURN
 get_mtype_funcs() {
  # [FUNCTION_DECLARATION_WEBRING]
  # See: plugin.h, mod.h, k2link, mod_dl.c
- if [ "$1" == gfx ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
- if [ "$1" == bgm ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
- if [ "$1" == out ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
- if [ "$1" == flt ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
- if [ "$1" == mod ]; then GMF_RETURN="init setdir load unload findmods deinit" ; return ; fi
+ if [ "$1" = gfx ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
+ if [ "$1" = bgm ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
+ if [ "$1" = out ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
+ if [ "$1" = flt ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
+ if [ "$1" = mod ]; then GMF_RETURN="init setdir load unload findmods deinit" ; return ; fi
  echo "Unable to get functions for mtype $1" > /dev/stderr
 }
 
@@ -41,7 +41,7 @@ get_func_signature() {
 
 # Prepares the wrapper for the static module with ID $1.
 compile_static_module() {
- CSM_MTYPE=`echo "$1" | head -c 3`
+ CSM_MTYPE="$(echo "$1" | head -c 3)"
  get_mtype_funcs "$CSM_MTYPE"
  CSM_FUNCS="$GMF_RETURN"
 
@@ -60,20 +60,20 @@ compile_static_module() {
 
 # Given a module in $1, writes out the bootstrap prototype code
 write_static_module_proto() {
- WSMP_MTYPE=`echo "$1" | head -c 3`
+ WSMP_MTYPE=$(echo "$1" | head -c 3)
  get_mtype_funcs "$WSMP_MTYPE"
  WSMP_FUNCS="$GMF_RETURN"
  for WSMP_FUNC in $WSMP_FUNCS; do
   echo "#define $WSMP_FUNC k2link_module_$1_function_$WSMP_FUNC"
-  get_func_signature $WSMP_FUNC
-  echo -n $GFS_RETURN
+  get_func_signature "$WSMP_FUNC"
+  printf "%s" "$GFS_RETURN"
   echo "#undef $WSMP_FUNC"
  done
 }
 
 # Given a module in $1, writes out the bootstrap loader code
 write_static_module_loader() {
- WSML_MTYPE=`echo "$1" | head -c 3`
+ WSML_MTYPE=$(echo "$1" | head -c 3)
  get_mtype_funcs "$WSML_MTYPE"
  WSML_FUNCS="$GMF_RETURN"
  echo " if (!strcmp(modname, \"$1\")) {"
