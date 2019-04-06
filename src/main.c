@@ -292,8 +292,10 @@ int sled_main(int argc, char** argv) {
 	random_seed();
 
 	// Prepare for module loading
-	if (modloader_modpath == NULL)
+	if (modloader_modpath == NULL) {
 		modloader_modpath = strdup(default_moduledir);
+		assert(modloader_modpath);
+	}
 
 	ret = modloader_initmod();
 	if (ret) {

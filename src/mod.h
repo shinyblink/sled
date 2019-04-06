@@ -21,7 +21,9 @@ struct module {
 	int chain_link;
 	// This is the second list of function declarations.
 	// It must be in the order given in plugin.h,
-	//  and it must be kept in sync with k2link.
+	//  and it must be kept in sync with k2link, and mod_dl.c
+	// [FUNCTION_DECLARATION_WEBRING]
+	// See: plugin.h, mod.h, k2link, mod_dl.c
 	int (*init)(int moduleno, char* argstr);
 	void (*reset)(int moduleno);
 	int (*draw)(int moduleno, int argc, char* argv[]);
@@ -35,8 +37,8 @@ struct module {
 	void (*wait_until_break)(int moduleno);
 	void (*setdir)(int moduleno, const char* dir);
 	int (*load)(int moduleno, module* mod, const char * name);
-	void (*unload)(void* modloader_user);
-	int (*scandir)(int moduleno, asl_av_t* result);
+	void (*unload)(int moduleno, void* modloader_user);
+	void (*findmods)(int moduleno, asl_av_t* result);
 	void (*deinit)(int moduleno);
 
 	// Responsible modloader. (Note: The k2link bootstrap modloader uses an index of -1.)

@@ -38,16 +38,23 @@ int modloader_initmod() {
 	// Inject k2link.
 	mod_new_k2link();
 	// Now continue...
-	// In theory, increasing slot numbers would ensure all modloaders get caught in one pass, but don't rely on it.
-	int mc = mod_count();
+	// This whole thing WILL still need a rewrite if slots can contain gaps and gaps can be reused.
+	// Right now, the load is done in essentially a breadth-first order.
+	// Each pass finds all the mods loaded in the previous pass,
+	//  and if they're modloaders, sets their directory and loads in more modloaders.
+	// Since k2link is a mod, that's the output of the 'first pass'.
+	// 'beginning' increases, ensuring older passes aren't checked again.
+	// Furthermore, name uniqueness is ensured on modloaders via the 'done' list.
+	int beginning = 0;
 	while (1) {
 		int didsomething = 0;
-		for (int loader = 0; loader < mc; loader++) {
+		int mc = mod_count();
+		for (int loader = beginning; loader < mc; loader++) {
 			module * v = mod_get(loader);
 			if (!strcmp(v->type, "mod")) {
 				asl_av_t avl = {0, NULL};
 				v->setdir(loader, modloader_modpath);
-				v->scandir(loader, &avl);
+				v->findmods(loader, &avl);
 				for (int ac = 0; ac < avl.argc; ac++) {
 					if (!asl_hasval(avl.argv[ac], &done)) {
 						if (((avl.argv[ac][0] == 'g') && (avl.argv[ac][1] == 'f') && (avl.argv[ac][2] == 'x')) ||
@@ -83,6 +90,9 @@ int modloader_initmod() {
 		}
 		if (!didsomething)
 			break;
+		// Make sure that we begin at the first module loaded after the current set of loaders,
+		//  so loaders aren't repeated.
+		beginning = mc;
 	}
 	asl_clearav(&done);
 	return 0;

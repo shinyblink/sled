@@ -43,14 +43,14 @@ static module* mod_getfreemod(void) {
 int mod_new(int loader, const char * name, int out_chain) {
 	int slot = mod_freeslot();
 	if (slot == -1)
-		return NULL;
+		return -1;
 	module * mod = modules + slot;
 	if (mod) {
+		memset(mod, 0, sizeof(module));
 		mod->chain_link = out_chain;
 		mod->responsible_modloader = loader;
 		util_strlcpy(mod->type, name, 4);
 		util_strlcpy(mod->name, name, 256);
-		mod->is_valid_drawable = 0;
 		if (modules[loader].load(loader, mod, name)) {
 			// Since this didn't load, make sure it isn't unloaded
 			mod->responsible_modloader = -1;
@@ -69,12 +69,12 @@ static int mod_k2link_init(int x, char * y) {
 }
 static void mod_k2link_deinit(int x) {
 }
-static void mod_k2link_unload(void* x) {
+static void mod_k2link_unload(int x, void* y) {
 }
 static void mod_k2link_setdir(int x, const char * y) {
 }
 int mod_k2link_load(int, module*, char[256]);
-void mod_k2link_scandir(int, asl_av_t*);
+void mod_k2link_findmods(int, asl_av_t*);
 
 int mod_new_k2link() {
 	module * mod = mod_getfreemod();
@@ -88,7 +88,7 @@ int mod_new_k2link() {
 		mod->setdir = mod_k2link_setdir;
 		mod->load = mod_k2link_load;
 		mod->unload = mod_k2link_unload;
-		mod->scandir = mod_k2link_scandir;
+		mod->findmods = mod_k2link_findmods;
 		return 0;
 	}
 	return 1;
@@ -101,8 +101,9 @@ void mod_unload_to_count(int count, int deinit, int unload) {
 			if (modules[i].deinit)
 				modules[i].deinit(i);
 		if (unload) {
-			if (modules[i].responsible_modloader != -1)
-				modules[modules[i].responsible_modloader].unload(modules[i].modloader_user);
+			int ml = modules[i].responsible_modloader;
+			if (ml != -1)
+				modules[ml].unload(ml, modules[i].modloader_user);
 			module_count--;
 		}
 	}

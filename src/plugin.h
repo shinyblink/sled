@@ -1,14 +1,19 @@
+
+#ifndef __INCLUDED_MODPLUGIN__
+#define __INCLUDED_MODPLUGIN__
+
 // Header defining what plugins should implement.
 // This is the first list of function declarations.
 // It must be in the order given in mod.h,
-//  and it must be kept in sync with k2link.
+//  and it must be kept in sync with k2link, and mod_dl.c
 // Also note that this is automatically 'parsed' by k2link to get function signatures.
 
+// [FUNCTION_DECLARATION_WEBRING]
+// See: plugin.h, mod.h, k2link, mod_dl.c
+
 #include "types.h"
-// Needed for module*
+// Needed for module* and mod_get, also includes asl.h; including asl.h manually causes weirdness BTW
 #include "mod.h"
-// Needed for asl_av_t
-#include "asl.h"
 
 // Function that initializes the plugin.
 // Things like buffers, file loading, etc..
@@ -95,18 +100,16 @@ void setdir(int moduleno, const char* dir);
 // FOR "mod" TYPE PLUGINS:
 // This loads a module by name into a module structure.
 // Returning non-zero means an error occurred.
-// Called within mod_lock
 int load(int moduleno, module* mod, const char * name);
 
 // FOR "mod" TYPE PLUGINS:
 // Given the modloader_user field of a module, clean that up.
-// Called within mod_lock
-void unload(void* modloader_user);
+void unload(int moduleno, void* modloader_user);
 
 // FOR "mod" TYPE PLUGINS:
 // This scans the directory for modules this plugin will accept, as module names.
 // Error and no-modules are basically equivalent; do NOT assert that modules are present, though!
-void scandir(int moduleno, asl_av_t* result);
+void findmods(int moduleno, asl_av_t* result);
 
 // Deinit the plugin.
 // Free your shit, we need to go.
@@ -116,15 +119,13 @@ void scandir(int moduleno, asl_av_t* result);
 // Also also note: flt_ modules DO NOT deinit their targets anymore! chain_link is responsible for this.
 void deinit(int moduleno);
 
-// Imported for PGCTX
-module* mod_get(int moduleno);
-
 #define PGCTX_BEGIN typedef struct {
 #define PGCTX_END } pgctx_t;
 #define PGCTX_INIT pgctx_t * ctx = (pgctx_t *) (mod_get(_modno)->user = calloc(sizeof(pgctx_t), 1)); assert(ctx);
 #define PGCTX_GET pgctx_t * ctx = (pgctx_t *) mod_get(_modno)->user; assert(ctx);
-#define PGCTX_DEINIT PGCTX_GET free(ctx);
+#define PGCTX_DEINIT free(mod_get(_modno)->user);
 
 #define PGCTX_BEGIN_FILTER PGCTX_BEGIN int nextid; module* next;
 #define PGCTX_INIT_FILTER PGCTX_INIT ctx->nextid = mod_get(_modno)->chain_link; ctx->next = mod_get(ctx->nextid);
 
+#endif

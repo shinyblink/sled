@@ -20,15 +20,17 @@
 # For safety reasons, all local variables must be prefixed with the initials of the function name.
 # All global variables will be prefixed with 'G_'.
 
+$G_MTYPES="gfx bgm out flt mod"
+
 # Returns mtype funcs for a given $1 mtype in GMF_RETURN
 get_mtype_funcs() {
- # This is the third list of function declarations.
- # It must be kept in sync with mod.h and plugin.h.
+ # [FUNCTION_DECLARATION_WEBRING]
+ # See: plugin.h, mod.h, k2link, mod_dl.c
  if [ "$1" == gfx ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
  if [ "$1" == bgm ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
  if [ "$1" == out ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
  if [ "$1" == flt ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
- if [ "$1" == mod ]; then GMF_RETURN="init setdir load unload scandir deinit" ; return ; fi
+ if [ "$1" == mod ]; then GMF_RETURN="init setdir load unload findmods deinit" ; return ; fi
  echo "Unable to get functions for mtype $1" > /dev/stderr
 }
 
@@ -91,7 +93,6 @@ done
 # Write out bootstrap
 echo "#include <assert.h>"
 echo "#include <string.h>"
-echo "#include \"asl.h\""
 echo "#include \"mod.h\""
 
 for M_x in "$@"; do
@@ -107,7 +108,7 @@ done
 echo " return 1;"
 echo "}"
 
-echo "void mod_k2link_scandir(int x, asl_av_t* table) {"
+echo "void mod_k2link_findmods(int x, asl_av_t* table) {"
 echo " char * result;"
 for M_x in "$@"; do
  echo " result = strdup(\"$M_x\");"

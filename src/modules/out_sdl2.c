@@ -129,7 +129,7 @@ int clear(int _modno) {
 	return 0;
 }
 
-int render(void) {
+int render(int _modno) {
 	SDL_UpdateTexture(texture, NULL, BUFFER, matx * 4);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
