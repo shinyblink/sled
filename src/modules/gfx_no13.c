@@ -51,6 +51,7 @@ static RGB signcol = RGB(255, 0, 0); // red X
 static RGB textcol = RGB(255, 255, 255); // white text
 
 int draw(int argc, char* argv[]) {
+	matrix_clear();
 	// Draw the 1.
 	int one_x = center_x - quarter;
 	int one_size = half;
