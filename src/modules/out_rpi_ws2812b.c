@@ -157,5 +157,4 @@ void wait_until_break(int _modno) {
 
 void deinit(int _modno) {
 	ws2811_fini(&leds);
-	return 0;
 }

@@ -246,6 +246,4 @@ int draw(int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-void deinit() {
-	return 0;
-}
+void deinit() {}

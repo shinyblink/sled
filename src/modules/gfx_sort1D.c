@@ -268,5 +268,4 @@ int init(int moduleno, char* argstr) {
 void deinit(int _modno) {
     free(data);
     free(data2);
-    return 0;
 }

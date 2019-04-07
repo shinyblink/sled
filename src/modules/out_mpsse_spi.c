@@ -356,6 +356,4 @@ void deinit(int _modno) {
 	free(drivers);
 	num_drivers = 0;
 	drivers = NULL;
-
-	return 0;
 }

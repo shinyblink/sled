@@ -142,5 +142,4 @@ void wait_until_break(int _modno) {
 void deinit(int _modno) {
 	free(buffer);
 	led_matrix_delete(matrix);
-	return 0;
 }

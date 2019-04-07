@@ -223,5 +223,4 @@ void deinit(int _modno) {
 	C3D_RenderTargetDelete(screen_target);
 	C3D_Fini();
 	gfxExit();
-	return 0;
 }

@@ -215,5 +215,4 @@ void wait_until_break(int _modno) {
 void deinit(int _modno) {
 	close(sock);
 	free(message);
-	return 0;
 }

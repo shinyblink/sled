@@ -135,5 +135,4 @@ void deinit(int _modno) {
 		close(matrices[i].fd);
 		i++;
 	}
-	return 0;
 }

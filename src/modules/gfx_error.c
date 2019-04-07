@@ -137,5 +137,4 @@ void deinit(int _modno) {
 	for (i = 0; i < NUMTEXT; i++) {
 		text_free(rendered[i]);
 	}
-	return 0;
 }

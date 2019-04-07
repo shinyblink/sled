@@ -236,5 +236,4 @@ void wait_until_break(int _modno) {
 
 void deinit(int _modno) {
 	close(fbdev_fd);
-	return 0;
 }

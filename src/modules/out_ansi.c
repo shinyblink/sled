@@ -116,5 +116,4 @@ void wait_until_break(int _modno) {
 void deinit(int _modno) {
 	printf(ESC "2J" ESC "H" ESC SHOWCURSOR);
 	fflush(stdout);
-	return 0;
 }

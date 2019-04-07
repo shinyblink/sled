@@ -176,5 +176,4 @@ int draw(int _modno, int argc, char* argv[]) {
 
 void deinit(int _modno) {
 	free(balls);
-	return 0;
 }

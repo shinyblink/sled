@@ -330,5 +330,4 @@ int draw(int _modno, int argc, char* argv[]) {
 void deinit(int _modno) {
 	doshutdown = 1;
 	oscore_task_join(scope_task);
-	return 0;
 }

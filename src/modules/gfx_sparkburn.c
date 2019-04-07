@@ -117,5 +117,4 @@ int init(int moduleno, char* argstr) {
 
 void deinit(int _modno) {
     free(field);
-    return 0;
 }

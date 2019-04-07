@@ -37,6 +37,4 @@ void reset(int _modno) {
 	// Nothing?
 }
 
-void deinit(int _modno) {
-	return 0;
-}
+void deinit(int _modno) {}

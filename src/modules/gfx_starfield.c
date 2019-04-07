@@ -209,5 +209,4 @@ int draw(int _modno, int argc, char* argv[]) {
 
 void deinit(int _modno) {
     free(stars);
-    return 0;
 }

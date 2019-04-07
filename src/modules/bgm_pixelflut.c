@@ -591,5 +591,4 @@ void deinit(int _modno) {
 	close(px_shutdown_fd_mt);
 	close(px_shutdown_fd_ot);
 	free(px_array);
-	return 0;
 }

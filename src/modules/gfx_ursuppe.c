@@ -265,5 +265,4 @@ int draw(int _modno, int argc, char* argv[]) {
 void deinit(int _modno) {
 	free(balls);
     free(wells);
-	return 0;
 }

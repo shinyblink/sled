@@ -78,5 +78,4 @@ int draw(int _modno, int argc, char* argv[]) {
 
 void deinit(int _modno) {
 	free(colbuf);
-	return 0;
 }

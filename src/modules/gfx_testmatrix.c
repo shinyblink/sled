@@ -144,6 +144,4 @@ void reset(void) {
 	// Nothing?
 }
 
-void deinit(void) {
-	return 0;
-}
+void deinit(void) {}

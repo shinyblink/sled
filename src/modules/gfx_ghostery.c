@@ -134,5 +134,4 @@ int draw(int _modno, int argc, char* argv[]) {
 void deinit(int _modno) {
 	free(fire_buffer[0]);
 	free(fire_buffer[1]);
-	return 0;
 }

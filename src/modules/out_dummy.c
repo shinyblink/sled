@@ -82,5 +82,4 @@ void wait_until_break(int _modno) {
 
 void deinit(int _modno) {
 	// Can we just.. chill for a moment, please?
-	return 0;
 }

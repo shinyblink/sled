@@ -147,5 +147,4 @@ int draw(int _modno, int argc, char* argv[]) {
 
 void deinit(int _modno) {
 	free(lines);
-	return 0;
 }

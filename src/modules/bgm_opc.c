@@ -271,5 +271,4 @@ void deinit(int _modno) {
 		oscore_task_join(opc_task);
 	close(opc_shutdown_fd_mt);
 	close(opc_shutdown_fd_ot);
-	return 0;
 }
