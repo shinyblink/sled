@@ -73,62 +73,23 @@ static int deinit(void) {
 	return 0;
 }
 
-/*
 static int pick_next_random(int current_modno, ulong in) {
-	oscore_mutex_lock(rmod_lock);
-	if (main_rmod_override != -1) {
-		int res = timer_add(in, main_rmod_override, main_rmod_override_args.argc, main_rmod_override_args.argv);
-		main_rmod_override = -1;
-		oscore_mutex_unlock(rmod_lock);
-		return res;
-	}
-	oscore_mutex_unlock(rmod_lock);
 	int next_mod;
-	
-	int usablemodcount = 0;
-	mod_lock();
-	for (int mod = 0; mod < MAX_MODULES; mod++) {
-		if (mod_slot_has_mod(mod)) {
-			if (strcmp(mod_get(mod)->type, "gfx") != 0)
-				continue;
-			usablemodcount++;
-		}
-	}
-	if (usablemodcount > 1) {
-		next_mod = -1;
-		while (next_mod == -1) {
-			int random = randn(modcount);
-			next_mod = random;
 
-			// Checks after.
-			if (next_mod == current_modno) next_mod = -1;
-			module* mod = mod_get(next_mod);
-			if (!mod) {
-				next_mod = -1;
-			} else if (strcmp(mod->type, "gfx") != 0) {
-				next_mod = -1;
-			}
-		}
-	} else if (usablemodcount == 1) {
-		next_mod = lastvalidmod;
-	} else {
+	if (modloader_gfx_rotation.argc == 0) {
 		in += 5000000;
 		next_mod = -2;
+	} else {
+		for (int i = 0; i < 2; i++) {
+			next_mod = modloader_gfx_rotation.argv[rand() % modloader_gfx_rotation.argc];
+			if (next_mod != current_modno)
+				break;
+		}
 	}
-	mod_unlock();
 	return timer_add(in, next_mod, 0, NULL);
-}*/
+}
 
 static int pick_next_seq(int current_modno, ulong in) {
-	oscore_mutex_lock(rmod_lock);
-	if (main_rmod_override != -1) {
-		int res = timer_add(in, main_rmod_override, main_rmod_override_args.argc, main_rmod_override_args.argv);
-		main_rmod_override = -1;
-		oscore_mutex_unlock(rmod_lock);
-		return res;
-	}
-	oscore_mutex_unlock(rmod_lock);
-
 	int next_mod = 0;
 
 	// No modules, uhoh
@@ -172,11 +133,20 @@ static int pick_next_seq(int current_modno, ulong in) {
 
 // this could also be easily rewritten to be an actual feature
 static int pick_next(int current_modno, ulong in) {
-//#ifdef CIMODE
+	oscore_mutex_lock(rmod_lock);
+	if (main_rmod_override != -1) {
+		int res = timer_add(in, main_rmod_override, main_rmod_override_args.argc, main_rmod_override_args.argv);
+		main_rmod_override = -1;
+		oscore_mutex_unlock(rmod_lock);
+		return res;
+	}
+	oscore_mutex_unlock(rmod_lock);
+
+#ifdef CIMODE
 	return pick_next_seq(current_modno, in);
-//#else
-//	return pick_next_random(current_modno, in);
-//#endif
+#else
+	return pick_next_random(current_modno, in);
+#endif
 }
 
 void main_force_random(int mnum, int argc, char ** argv) {
