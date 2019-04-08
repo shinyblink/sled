@@ -38,13 +38,13 @@ int gety(int _modno) {
 
 int set(int _modno, int x, int y, RGB color) {
 	PGCTX_GET
-	int ny = gety(0) - 1 - y;
+	int ny = gety(_modno) - 1 - y;
 	return ctx->next->set(ctx->nextid, x, ny, color);
 }
 
 RGB get(int _modno, int x, int y) {
 	PGCTX_GET
-	int ny = gety(0) - 1 - y;
+	int ny = gety(_modno) - 1 - y;
 	return ctx->next->get(ctx->nextid, x, ny);
 }
 
