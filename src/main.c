@@ -211,45 +211,42 @@ int sled_main(int argc, char** argv) {
 	while ((ch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
 		switch(ch) {
 		case 'm': {
-			char* str = strdup(optarg);
-			assert(str);
-			free(modloader_modpath); // Could be NULL, doesn't matter
+			size_t len = strlen(optarg);
+			char* str = calloc(len + 1, sizeof(char));
+			util_strlcpy(str, optarg, len + 1);
 			modloader_modpath = str;
 			break;
 		}
 		case 'o': {
-			char* modname = strdup(optarg);
-			assert(modname);
+			size_t len = strlen(optarg);
+			char* tmp = malloc((len + 1) * sizeof(char));
+			assert(tmp);
+			util_strlcpy(tmp, optarg, len + 1);
+			char* arg = tmp;
 
-			char* arg = modname;
-			strsep(&arg, ":"); // Cuts modname
+			char* modname = strsep(&arg, ":");
 			if (arg) {
 				free(outarg);
-				// Still using modname's memory, copy it
 				outarg = strdup(arg);
 				assert(outarg);
 			}
 			util_strlcpy(outmod_c, modname, 256);
-			free(modname);
+			free(tmp);
 			break;
 		}
 		case 'f': {
-			// Prepend flt_ here. Be careful with this...
-			char* modname = malloc(strlen(optarg) + 5);
-			assert(modname);
-			strcpy(modname, "flt_");
-			strcpy(modname + 4, optarg);
+			char* arg = strdup(optarg);
 
-			char* fltarg = modname;
-			strsep(&fltarg, ":"); // Cuts modname
-			if (fltarg != NULL) {
-				// Still using modname's memory, copy it
-				fltarg = strdup(fltarg);
+			char* modname = strsep(&arg, ":");
+			char* fltarg = NULL;
+			if (arg != NULL) {
+				fltarg = strdup(arg);
 				assert(fltarg);
-			} else {
+			} else
 				modname = optarg;
-			}
-			asl_growav(&filternames, modname);
+			char* str = strdup(modname);
+			assert(str);
+			asl_growav(&filternames, str);
 			asl_growav(&filterargs, fltarg);
 			break;
 		}
@@ -287,13 +284,13 @@ int sled_main(int argc, char** argv) {
 	asl_pgrowav(&filternames, outmodbuf2);
 	asl_pgrowav(&filterargs, outarg);
 	outmodno = modloader_initout(&filternames, &filterargs);
-	// No need for these anymore. This also cleans up outmodbuf2 and outarg if needed.
+	// No need for these anymore.
 	asl_clearav(&filternames);
 	asl_clearav(&filterargs);
 	if (outmodno == -1) {
 		eprintf("Failed to load the output/filter stack. This isn't good.\n");
-		modloader_deinitend();
 		free(modloader_modpath);
+		modloader_deinitend();
 		return ret;
 	}
 
@@ -302,7 +299,6 @@ int sled_main(int argc, char** argv) {
 	if (ret) {
 		printf("Timers failed to initialize.\n");
 		modloader_deinitend();
-		free(modloader_modpath);
 		return ret;
 	}
 
@@ -313,7 +309,6 @@ int sled_main(int argc, char** argv) {
 		printf("Matrix failed to initialize, which means someone's been making matrix_init more complicated. Uhoh.\n");
 		timers_deinit();
 		modloader_deinitend();
-		free(modloader_modpath);
 		return ret;
 	}
 
