@@ -15,8 +15,7 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <types.h>
-#include <mod.h>
-#include <loadcore.h>
+#include <plugin.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -25,8 +24,9 @@
 #include <assert.h>
 #include <timers.h>
 #include <matrix.h>
+#include <dirent.h>
 
-#include "farbherd_lib.h"
+#include <ext/farbherd.h>
 
 typedef struct {
 	FILE * file;
@@ -37,7 +37,7 @@ typedef struct {
 	ulong basetick, frame;
 } fh_mod_private;
 
-#define SELFCALL module* self = mod_get(moduleno); fh_mod_private* priv = self->user;
+#define SELFCALL module* self = mod_get(moduleno); fh_mod_private* priv = self->modloader_user;
 
 // our fake module
 static void fh_reset(int moduleno);
@@ -87,31 +87,46 @@ static int fh_draw(int moduleno, int argc, char* argv[]) {
 	timer_add(priv->basetick + time_ofs, moduleno, 0, NULL);
 	return 0;
 }
-static int fh_deinit(int moduleno) {
+static void fh_deinit(int moduleno) {
+}
+
+// --------------------------------------------------
+
+PGCTX_BEGIN
+	char * dirbuf;
+PGCTX_END
+
+int init(int _modno, char* arg) {
+	PGCTX_INIT
 	return 0;
 }
 
-// If you see this string something weird happened.
-// For one, this is not exactly bidness done well. Sorry, vifino, I don't know if the time's available for me to learn the proper dynamic modloader stuff.
-static const char * dirprefix = "I know we both believe the same thing ; No matter how dirty the bidness, do it well.";
+void setdir(int _modno, const char* dir) {
+	PGCTX_GET
+	ctx->dirbuf = strdup(dir);
+	assert(ctx->dirbuf);
+}
 
-// Loading of fh files.
-static int farbherdmod_loadmod(module* mod, char name[256]) {
-	if (mod == NULL) {
-		eprintf("\nFailed to get a free module slot for %s", name);
-		return 4;
-	}
+int load(int _modno, module* mod, const char * name) {
+	PGCTX_GET
+
+	if (strlen(name) < 4)
+		return 1;
+	if (memcmp(name, "gfx_", 4))
+		return 1;
+	name += 4;
 
 	// -- Begin actual load --
-	fh_mod_private* priv = mod->user = calloc(1, sizeof(fh_mod_private));
+	fh_mod_private* priv = mod->modloader_user = calloc(1, sizeof(fh_mod_private));
 	assert(priv);
 
-	char * name2 = malloc(strlen(dirprefix) + 1 + strlen(name) + 1);
+	char * name2 = malloc(strlen(ctx->dirbuf) + 1 + strlen(name) + 3 + 1);
 	assert(name2);
 	*name2 = 0;
-	strcat(name2, dirprefix);
+	strcat(name2, ctx->dirbuf);
 	strcat(name2, "/");
 	strcat(name2, name);
+	strcat(name2, ".fh");
 	priv->file = fopen(name2, "rb");
 	free(name2);
 
@@ -140,63 +155,49 @@ static int farbherdmod_loadmod(module* mod, char name[256]) {
 	}
 	// -- End actual load --
 
-	util_strlcpy(mod->type, "gfx", 4);
-	util_strlcpy(mod->name, name, 256); // could malloc it, but whatever.
-
 	mod->init = fh_init;
 	mod->deinit = fh_deinit;
-
-	mod_gfx* smod = calloc(1, sizeof(mod_gfx));
-	mod->mod = smod;
-
-	smod->reset = fh_reset;
-	smod->draw = fh_draw;
+	mod->reset = fh_reset;
+	mod->draw = fh_draw;
 	return 0;
 }
 
-static int farbherdmod_loaddir(char** filtnames, int* filtno, int* filters) {
-	printf("Loading modules...\n");
-	int dargc = 0;
-	char ** dargv = loadcore_init(&dargc);
-	int dargi = 0;
-	while (dargi < dargc) {
-		char * d_name = dargv[dargi++];
-		size_t len = strlen(d_name);
-		if ((len < 3) || strcmp(&d_name[len - 3], ".fh"))
-			continue;
+void unload(int _modno, void* modloader_user) {
+	fh_mod_private* priv = modloader_user;
+	fclose(priv->file);
+	free(priv->hdr.fileExtData);
+	free(priv->frm.frameExtData);
+	free(priv->frm.deltas);
+	free(priv->buffer);
+	free(priv);
+}
 
-		int slot = mod_freeslot();
-		module* mod = mod_get(slot);
-		if (farbherdmod_loadmod(mod, d_name)) {
-			// Uhoh...
-			printf(" Failed.\n");
-			continue;
+void findmods(int _modno, asl_av_t* result) {
+	PGCTX_GET
+	struct dirent * file;
+	DIR * moduledir = opendir(ctx->dirbuf);
+	if (!moduledir)
+		return;
+	while ((file = readdir(moduledir)) != NULL) {
+		size_t xlen = strlen(file->d_name);
+		if (xlen >= 3) {
+			if (!strcmp(file->d_name + (xlen - 3), ".fh")) {
+				// Add room for the 'gfx_' and a zero byte.
+				char * p = malloc(strlen(file->d_name) + 5);
+				assert(p);
+				strcpy(p, "gfx_");
+				strcpy(p + 4, file->d_name);
+				// Cut off the '.fh'.
+				p[xlen + 4 - 3] = 0;
+				asl_growav(result, p);
+			}
 		}
-
-		printf(" Done.\n");
 	}
-	asl_free_argv(dargc, dargv);
-	return 0;
+	closedir(moduledir);
 }
 
-static void farbherdmod_setdir(const char * dir) {
-	loadcore_setdir(dir);
-	dirprefix = dir;
-}
-
-static mod_mod* loader;
-int farbherdmod_init(void) {
-	loader = calloc(1, sizeof(mod_mod));
-	loader->setdir = farbherdmod_setdir;
-	loader->load = farbherdmod_loadmod;
-	loader->loaddir = farbherdmod_loaddir;
-	module mod = { .type = "mod", .name = "farbherd", .mod = loader};
-
-	modloader_register(mod_new(mod));
-	return 0;
-}
-
-int farbherdmod_deinit(int modno) {
-	free(loader);
-	return 0;
+void deinit(int _modno) {
+	PGCTX_GET
+	free(ctx->dirbuf);
+	PGCTX_DEINIT
 }

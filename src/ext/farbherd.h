@@ -18,12 +18,13 @@
 // But painless fallback.
 #if defined(__linux__)
 #include <endian.h>
+// These are defined as __uint32_identity and the like on BIG_ENDIAN systems.
+// These in turn are defined as inline functions, so it's harmless.
 #define farbherd_be32toh be32toh
 #define farbherd_htobe32 htobe32
 #define farbherd_be16toh be16toh
 #define farbherd_htobe16 htobe16
 #else
-#define FARBHERD_UNDEF_ENDIAN
 #include <arpa/inet.h>
 #define farbherd_be32toh ntohl
 #define farbherd_htobe32 htonl

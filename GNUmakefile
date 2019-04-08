@@ -34,7 +34,7 @@ BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
 FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90
 FLTMODS_DEFAULT += flt_smapper flt_channel_reorder
 
-MODULES_DEFAULT += $(BGMMODS_DEFAULT) $(FLTMODS_DEFAULT) $(GFXMODS_DEFAULT)
+MODULES_DEFAULT += $(BGMMODS_DEFAULT) $(FLTMODS_DEFAULT) $(GFXMODS_DEFAULT) mod_farbherd
 
 # Include local configuration.
 ifneq (,$(wildcard sledconf))
@@ -124,7 +124,7 @@ HEADERS := src/graphics.h src/main.h        src/mod.h
 HEADERS += src/matrix.h   src/plugin.h      src/timers.h  src/util.h
 HEADERS += src/asl.h      src/mathey.h      src/modloader.h
 HEADERS += src/random.h   src/types.h       src/oscore.h  src/perf.h
-HEADERS += src/taskpool.h
+HEADERS += src/taskpool.h src/ext/farbherd.h
 
 # Module libraries.
 # If we're statically linking, we want these to be around at all times.
