@@ -1,11 +1,11 @@
 // Main loader for sled. The entry point.
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -61,8 +61,8 @@ static int deinit(void) {
 	oscore_mutex_free(rmod_lock);
 	if (main_rmod_override != -1)
 		asl_clearav(&main_rmod_override_args);
+	if (modloader_modpath != default_moduledir) free(modloader_modpath);
 	modloader_modpath = NULL;
-	free(modloader_modpath);
 
 	printf(" Done!\nCleaning up Taskpool..."); fflush(stdout);
 	taskpool_forloop_free();
@@ -89,6 +89,7 @@ static int pick_next_random(int current_modno, ulong in) {
 	return timer_add(in, next_mod, 0, NULL);
 }
 
+#ifdef CIMODE
 static int pick_next_seq(int current_modno, ulong in) {
 	int next_mod = 0;
 
@@ -130,6 +131,7 @@ static int pick_next_seq(int current_modno, ulong in) {
 	}
 	return timer_add(in, next_mod, 0, NULL);
 }
+#endif
 
 // this could also be easily rewritten to be an actual feature
 static int pick_next(int current_modno, ulong in) {
