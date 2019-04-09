@@ -83,7 +83,7 @@ inline static int farbherd_read_int(FILE * target, uint32_t * i) {
 	uint32_t tmp;
 	if (farbherd_read_buffer(target, &tmp, sizeof(uint32_t)))
 		return 1;
-	*i = be32toh(tmp);
+	*i = farbherd_be32toh(tmp);
 	return 0;
 }
 
@@ -288,4 +288,3 @@ inline static void farbherd_apply_delta(uint16_t * working, const uint16_t * sou
 }
 
 #define FARBHERD_TIMEDIV_TO_MS(time, div) (((time) * 1000) / (div))
-
