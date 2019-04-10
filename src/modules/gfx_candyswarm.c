@@ -14,6 +14,8 @@
 #include <mathey.h>
 #include <math.h>
 #include <perf.h>
+#include <stdlib.h>
+#include <random.h>
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
@@ -63,16 +65,37 @@ static float runvar[runvar_count] = {
 /////////// BALL STUFF ///////////
 typedef struct ball {
 	RGB color;
-    float a;
-    float b;
 	float pos_x;
 	float pos_y;
 	float vel_x;
 	float vel_y;
+    int xa;
+    int ya;
 } ball;
 
 static int numballs;
 static ball* balls;
+
+
+// mode flags and settings
+typedef char bool;
+static const bool true = 1;
+static const bool false = 0;
+static bool USE_COLOR;
+static bool USE_ADDITIVE_COLOR;
+static bool USE_PERTURBATION;
+static bool USE_POTENTIAL;
+static bool USE_PULSATION;
+static bool USE_DAMPENING;
+static bool USE_ROTATION;
+static bool USE_PULSATION_DAMPENING;
+static bool USE_POTENTIAL_DAMPENING;
+static bool USE_TRAILS;
+static int TRAIL_LENGTH;
+static RGB MONOCHROMATIC_COLOR;
+static float DAMPENING_CONSTANT;
+static float POTENTIAL_SIZE;
+static float POTENTIAL_ECCENTRICITY;
 
 
 
@@ -107,7 +130,8 @@ int init(int moduleno, char* argstr) {
 		runvar[i] = addmod(runvar[i], runmod[i], ((d>>(i/2)) & 0x00FF) / (255/M_PI));
 	}
     
-    numballs = 16*(mx+my);
+    numballs = (mx/32)*(mx+my);
+    numballs = mx*my/5;
     balls = malloc(numballs*sizeof(ball));
 
 
@@ -115,6 +139,7 @@ int init(int moduleno, char* argstr) {
 }
 
 static inline int _min(int,int);
+
 void reset(void) {
     matrix_clear();
 	nexttick = udate();
@@ -122,11 +147,113 @@ void reset(void) {
     for (ball * b = balls; b < balls + numballs; b++){
         b->pos_x = (float) randn(matrix_getx());
         b->pos_y = (float) randn(matrix_gety());
+        b->pos_x += (float) randn(numballs)*1.0/numballs;
+        b->pos_y += (float) randn(numballs)*1.0/numballs;
         b->vel_x = 0;
         b->vel_y = 0;
-        b->a = (int)b->pos_x;
-        b->b = (int)b->pos_y;
+        b->xa = (int) b->pos_x;
+        b->ya = (int) b->pos_y;
     }
+
+    // mode config
+    USE_COLOR = true;
+    USE_ADDITIVE_COLOR = false;
+    USE_POTENTIAL = true;
+    USE_PERTURBATION = true;
+    USE_PULSATION = false;
+    USE_DAMPENING = false;
+    USE_ROTATION = false;
+    USE_POTENTIAL_DAMPENING = false;
+    USE_PULSATION_DAMPENING = false;
+    USE_TRAILS = true;
+    TRAIL_LENGTH = 230;
+    DAMPENING_CONSTANT = 0.98;
+    MONOCHROMATIC_COLOR = RGB(255,255,255);
+    POTENTIAL_SIZE = 1;
+    POTENTIAL_ECCENTRICITY = 0.8;
+    int r = randn(15);
+    int i = 1;
+    //r = 6;
+    if (r == i++){ // 1
+        USE_TRAILS = false;
+    } else if (r == i++){ // 2
+        USE_PERTURBATION = false;
+    } else if (r == i++){ // 3
+        USE_ADDITIVE_COLOR = true;
+    } else if (r == i++){ // 4
+        USE_PERTURBATION = false;
+        USE_COLOR = false;
+    } else if (r == i++){ // 5
+        USE_PERTURBATION = false;
+        USE_COLOR = false;
+        USE_TRAILS = false;
+        USE_ADDITIVE_COLOR = true;
+    } else if (r == i++){ // 6
+        USE_PULSATION = true;
+        USE_PULSATION_DAMPENING = true;
+        POTENTIAL_SIZE = 0.8;
+        DAMPENING_CONSTANT = 0.99;
+    } else if (r == i++){ // 7
+        USE_ROTATION = true;
+        USE_PULSATION = true;
+        USE_PULSATION_DAMPENING = true;
+        DAMPENING_CONSTANT = 0.99;
+        POTENTIAL_SIZE = 0.6;
+    } else if (r == i++){ // 8
+        USE_PULSATION = true;
+        USE_POTENTIAL_DAMPENING = true;
+        POTENTIAL_SIZE = 0.5;
+    } else if (r == i++){ // 9
+        USE_PULSATION = true;
+        USE_POTENTIAL_DAMPENING = true;
+        USE_ADDITIVE_COLOR = true;
+        POTENTIAL_SIZE = 0.5;
+    } else if (r == i++){ // 10
+        USE_DAMPENING = true;
+        POTENTIAL_SIZE = 3;
+    } else if (r == i++){ // 11
+        USE_DAMPENING = true;
+        POTENTIAL_SIZE = 3;
+        USE_ADDITIVE_COLOR = true;
+    } else if (r == i++){ // 12
+        POTENTIAL_ECCENTRICITY = 0.03;
+        POTENTIAL_SIZE = 0.8;
+        USE_POTENTIAL_DAMPENING = true;
+        TRAIL_LENGTH = 240;
+        USE_COLOR = false;
+        USE_ADDITIVE_COLOR = true;
+        MONOCHROMATIC_COLOR = RGB(40,40,40);
+    } else if (r == i++){ // 13
+        POTENTIAL_ECCENTRICITY = 0.03;
+        POTENTIAL_SIZE = 0.8;
+        USE_POTENTIAL_DAMPENING = true;
+        USE_PERTURBATION = false;
+        TRAIL_LENGTH = 240;
+        USE_COLOR = false;
+        USE_ADDITIVE_COLOR = true;
+        MONOCHROMATIC_COLOR = RGB(40,40,40);
+    } else if (r == i++){ // 14
+        POTENTIAL_ECCENTRICITY = 0.03;
+        POTENTIAL_SIZE = 0.8;
+        //USE_DAMPENING = true;
+        USE_PERTURBATION = false;
+        //USE_TRAILS = false;
+        USE_COLOR = false;
+        USE_PULSATION = true;
+        USE_ADDITIVE_COLOR = true;
+    } else if (r == i++){ // 15
+        POTENTIAL_ECCENTRICITY = 0.03;
+        POTENTIAL_SIZE = 0.8;
+        USE_DAMPENING = true;
+        USE_POTENTIAL_DAMPENING = true;
+        USE_PERTURBATION = false;
+        USE_TRAILS = false;
+        USE_COLOR = true;
+        USE_PULSATION = true;
+        USE_ADDITIVE_COLOR = true;
+    }
+
+
 }
 
 
@@ -181,36 +308,90 @@ int draw(int argc, char* argv[]) {
 	float pc121 = 0.125+((pc1/4) * sinf(runvar[11]));
 	float pc01 = runvar[0] + pc1;
 	float pc10 = (mx2*sinf(runvar[10]));
+    float slow_phase = cosf(frame/100.0);
+    slow_phase *= slow_phase;
 
 	perf_print(modno, "Composition");
+    if (USE_TRAILS){
+        for (int x = 0;x < matrix_getx();x++){
+            for (int y = 0;y < matrix_gety();y++){
+                RGB color;
+                color = matrix_get(x,y);
+                color.red = color.red * TRAIL_LENGTH/256;
+                color.green = color.green * TRAIL_LENGTH/256;
+                color.blue = color.blue * TRAIL_LENGTH/256;
+                matrix_set(x,y,color);
+            }
+        }
+    } else {
+        for(ball * b = balls;b < balls+numballs;b++) {
+            int x = (int) b->pos_x;
+            int y = (int) b->pos_y;
+            if (x >= 0 && x < matrix_getx() && y >= 0 && y < matrix_gety())
+                matrix_set(x,y, RGB(0,0,0));
+        }
+    }
+
 
 	// actual pixel loop
 	for(ball * b = balls;b < balls+numballs;b++) {
-
         int x = (int) b->pos_x;
         int y = (int) b->pos_y;
-        if (x >= 0 && x < matrix_getx() && y >= 0 && y < matrix_gety())
-            matrix_set(x,y, RGB(0,0,0));
 		vec2 kernel_x = multm3v2_partx(m, x-(mx2));
         vec2 v = multm3v2_partxy(m, kernel_x, y-(my2));
+
 
         float scxp = sinestuff(v.x+1, v.y, pc10, runvar[11]);
         float scxn = sinestuff(v.x-1, v.y, pc10, runvar[11]);
         float scyp = sinestuff(v.x, v.y+1, pc10, runvar[11]);
         float scyn = sinestuff(v.x, v.y-1, pc10, runvar[11]);
-        b->vel_x += ((scxp - scxn)/2)/100;
-        b->vel_y += ((scyp - scyn)/2)/100;
+
+        if (USE_PERTURBATION) {
+            b->vel_x += ((scxp - scxn)/2)/100;
+            b->vel_y += ((scyp - scyn)/2)/100;
+        }
+
+
         float xx = (x - mx/2)/(1.0*mx/2);
         float yy = (y - my/2)/(1.0*my/2);
         float rr = hypotf(xx,yy);
 
-        b->vel_x += -rr*rr*rr*rr*xx/100;
-        b->vel_y += -rr*rr*rr*rr*yy/100;
+        rr /= POTENTIAL_SIZE;
+
+        if (USE_PULSATION){
+            rr /= 0.8+slow_phase;
+        }
+
+        if (USE_POTENTIAL){
+            b->vel_x += -rr*rr*rr*rr*xx/100;
+            b->vel_y += -rr*rr*rr*rr*yy/(100*POTENTIAL_ECCENTRICITY);
+        }
+        
+        if (USE_ROTATION){
+            b->vel_x += yy/100;
+            b->vel_y += -xx/100;
+        }
+
+        if (USE_DAMPENING||USE_POTENTIAL_DAMPENING||USE_PULSATION_DAMPENING){
+            if (USE_POTENTIAL_DAMPENING){
+                float factor = rr*rr*rr*rr/1000;
+                b->vel_x *= 1-(1-DAMPENING_CONSTANT)*factor;
+                b->vel_y *= 1-(1-DAMPENING_CONSTANT)*factor;
+            }else if (USE_PULSATION_DAMPENING) {
+                b->vel_x *= 1-(1-DAMPENING_CONSTANT)*slow_phase;
+                b->vel_y *= 1-(1-DAMPENING_CONSTANT)*slow_phase;
+            } else {
+                b->vel_x *= DAMPENING_CONSTANT;
+                b->vel_y *= DAMPENING_CONSTANT;
+            }
+        }
+
+
 
         b->pos_x += b->vel_x;
         b->pos_y += b->vel_y;
 	    
-        float hue = ((b->b-mx2 + b->b-my2)*5) +  pc01 + (scxp * pc121) + sinf((v.x+v.y)/2);
+        float hue = ((b->xa-mx2 + b->ya-my2)*5) +  pc01 + (scxp * pc121) + sinf((v.x+v.y)/2);
         int i_val = (int)(_abs(scxp+0.125)*240)+80;
         //int i_val = 255;
         byte b_val = _min(255, i_val);
@@ -220,9 +401,19 @@ int draw(int argc, char* argv[]) {
 
         x = (int) b->pos_x;
         y = (int) b->pos_y;
-        if (x >= 0 && x < matrix_getx() && y >= 0 && y < matrix_gety())
-            //matrix_set(x,y, RGB(255,255,255));
-            matrix_set(x,y,b->color);
+        if (x >= 0 && x < matrix_getx() && y >= 0 && y < matrix_gety()) {
+            RGB this_color = MONOCHROMATIC_COLOR;
+            if (USE_COLOR) this_color = b->color;
+            if (USE_ADDITIVE_COLOR){
+                RGB c = matrix_get(x,y);
+                c.red = _min(c.red +this_color.red/5,255);
+                c.green = _min(c.green + this_color.green/5,255);
+                c.blue = _min(c.blue + this_color.blue/5,255);
+                matrix_set(x,y,c);
+            } else {
+                matrix_set(x,y, this_color);
+            }
+        }
     }
 
 	perf_print(modno, "Drawing");
