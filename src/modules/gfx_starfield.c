@@ -45,6 +45,9 @@ static float y_speed = 0.0;
 static float roll_speed = 0.01;
 static float pitch_speed = 0.0;
 static float yaw_speed = 0.0;
+static float target_roll_speed = 0.01;
+static float target_pitch_speed = 0.0;
+static float target_yaw_speed = 0.0;
 static float cos_roll;
 static float sin_roll;
 static float cos_pitch;
@@ -167,6 +170,9 @@ int draw(int argc, char* argv[]) {
         int brightness = (star->brightness/star->fz)+64;
         matrix_set(px,py,RGB(brightness,brightness,brightness));
     }
+    roll_speed = 0.9 * roll_speed + 0.1 * target_roll_speed;
+    pitch_speed = 0.9 * pitch_speed + 0.1 * target_pitch_speed;
+    yaw_speed = 0.9 * yaw_speed + 0.1 * target_yaw_speed;
 
 
     matrix_render();
@@ -175,27 +181,28 @@ int draw(int argc, char* argv[]) {
     int r=rand();
     if (0 == (r & 0x1f)) {
         if (r&1)
-            roll_speed = 0.0;
+            target_roll_speed = 0.0;
         else
-            roll_speed = 0.002 * (((r>>15)&0xf)-8);
+            target_roll_speed = 0.002 * (((r>>15)&0xf)-8);
         //printf("roll: %f\n",roll_speed);
     }
     if (0 == (r & 0x3e0)) {
         if (r&1)
-            pitch_speed = 0.0;
+            target_pitch_speed = 0.0;
         else
-            pitch_speed = 0.002 * (((r>>15)&0xf)-8);
+            target_pitch_speed = 0.002 * (((r>>15)&0xf)-8);
         //printf("pitch: %f\n",pitch_speed);
     }
     if (0 == (r & 0x7c00)) {
         if (r&1)
-            yaw_speed = 0.0;
+            target_yaw_speed = 0.0;
         else
-            yaw_speed = 0.002 * (((r>>15)&0xf)-8);
+            target_yaw_speed = 0.002 * (((r>>15)&0xf)-8);
         //printf("yaw: %f\n",yaw_speed);
 
     }
 #endif
+
 
     if (frame >= FRAMES) {
         frame = 0;
