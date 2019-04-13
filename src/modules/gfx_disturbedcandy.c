@@ -93,7 +93,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
@@ -141,7 +141,7 @@ static inline int crossfadei(float amount, int v0, int v1) {
 
 /* central drawing function
  */
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	nexttick = udate() + FRAMETIME;
 	perf_start(modno);
 
@@ -231,6 +231,4 @@ int draw(int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-int deinit() {
-	return 0;
-}
+void deinit(int _modno) {}

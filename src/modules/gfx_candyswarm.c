@@ -437,6 +437,6 @@ int draw(int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-int deinit() {
-	return 0;
+void deinit() {
+    free(balls);
 }

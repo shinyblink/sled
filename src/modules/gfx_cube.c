@@ -95,11 +95,11 @@ int init(int _moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	framecount = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	// Prepare aspect/size variable stuff
 	float aspectx, aspecty, mw, mh;
 	aspectx = ((float) matrix_getx()) / matrix_gety();
@@ -139,6 +139,4 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
-	return 0;
-}
+void deinit(int _modno) {}

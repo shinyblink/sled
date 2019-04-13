@@ -52,7 +52,7 @@ static SDL_Rect dest = { .x = 0, .y = 0, .w = WIN_W, .h = WIN_H };
 static int matx = MATRIX_X;
 static int maty = MATRIX_Y;
 
-int init(int modno __attribute__((unused)), char *argstr __attribute__((unused))) {
+int init (int moduleno __attribute__((unused)), char *argstr __attribute__((unused))) {
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
 
@@ -89,10 +89,10 @@ int init(int modno __attribute__((unused)), char *argstr __attribute__((unused))
 }
 
 
-int getx(void) {
+int getx(int _modno) {
 	return matx;
 }
-int gety(void) {
+int gety(int _modno) {
 	return maty;
 }
 
@@ -100,7 +100,7 @@ static int matrix_ppos(int x, int y) {
 	return (x + (y * matx));
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	// Detect OOB access.
 	assert(x >= 0);
 	assert(y >= 0);
@@ -112,7 +112,7 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	// Detect OOB access.
 	assert(x >= 0);
 	assert(y >= 0);
@@ -124,19 +124,19 @@ RGB get(int x, int y) {
 }
 
 // Zeroes the stuff.
-int clear(void) {
+int clear(int _modno) {
 	memset(BUFFER, 0, BUFFER_SIZE);
 	return 0;
 }
 
-int render(void) {
+int render(int _modno) {
 	SDL_UpdateTexture(texture, NULL, BUFFER, matx * 4);
 	SDL_RenderCopy(renderer, texture, NULL, &dest);
 	SDL_RenderPresent(renderer);
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	SDL_Event ev;
 	while (1) {
 		ulong tnow = udate();
@@ -149,29 +149,28 @@ ulong wait_until(ulong desired_usec) {
 				timers_doquit();
 				return udate();
 			} else if (ev.type == sdl_event_break) {
-				wait_until_break_cleanup_core();
+				timers_wait_until_break_cleanup_core();
 				return udate();
 			}
 		} else {
-			return wait_until_core(desired_usec);
+			return timers_wait_until_core(desired_usec);
 		}
 	}
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 	SDL_Event myevent;
 	memset(&myevent, 0, sizeof(myevent));
 	myevent.type = sdl_event_break;
 	SDL_PushEvent(&myevent);
-	wait_until_break_core();
+	timers_wait_until_break_core();
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	// Destroy everything.
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 	free(BUFFER);
-	return 0;
 }

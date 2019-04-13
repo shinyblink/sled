@@ -42,18 +42,18 @@ static int twinkle_framecount = 0;
 int init(int moduleno, char* argstr) {
 	twinkle_levels = malloc(matrix_getx() * matrix_gety() * sizeof(int));
 	assert(twinkle_levels);
-	reset();
+	reset(0);
 	twinkle_moduleno = moduleno;
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	twinkle_nexttick = udate();
 	twinkle_framecount = 0;
 	memset(twinkle_levels, 0, matrix_getx() * matrix_gety() * sizeof(int));
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int x;
 	int y;
 	int i = 0;
@@ -90,7 +90,6 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	free(twinkle_levels);
-	return 0;
 }

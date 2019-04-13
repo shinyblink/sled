@@ -83,7 +83,7 @@ int init(int moduleno, char* argstr) {
 }
 
 
-void reset(void) {
+void reset(int _modno) {
     nexttick = udate();
     //matrix_clear();
     //bx = randn((mx-1)/4);
@@ -92,7 +92,7 @@ void reset(void) {
     frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
     //matrix_clear();
     int x_min = 0;
     int x_max = mx;
@@ -136,6 +136,4 @@ int draw(int argc, char* argv[]) {
     return 0;
 }
 
-int deinit() {
-    return 0;
-}
+void deinit(int _modno) {}

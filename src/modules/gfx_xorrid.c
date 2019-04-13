@@ -40,12 +40,12 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	for (int y = 0; y < my; y++)
 		for (int x = 0; x < mx; x++) {
 			int b = (x * y) ^ (x * y + frame);
@@ -64,6 +64,4 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
-	return 0;
-}
+void deinit(int _modno) {}

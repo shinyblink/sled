@@ -49,12 +49,12 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	text_free(rendered);
 	text_position = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	if (argc != 0) {
 		text_free(rendered);
 		// this always sets involved values to 0 or a valid value.
@@ -96,8 +96,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	// This acts conditionally on rendered being non-NULL.
 	text_free(rendered);
-	return 0;
 }

@@ -24,14 +24,7 @@
 #include "asl.h"
 #include "oscore.h"
 #include "main.h"
-
-typedef struct timer {
-	int moduleno;
-	ulong time; // time in microseconds.
-
-	int argc;
-	char* *argv;
-} timer;
+#include "timers.h"
 
 static struct timer TIMERS[MAX_TIMERS];
 static int timer_count = 0;
@@ -49,33 +42,34 @@ ulong udate(void) {
 }
 
 // The critical wait_until code
-ulong wait_until_core(ulong desired_usec) {
+ulong timers_wait_until_core(ulong desired_usec) {
 	if (oscore_event_wait_until(breakpipe, desired_usec))
 		return udate();
 	return desired_usec;
 }
 
-void wait_until_break_cleanup_core(void) {
+void timers_wait_until_break_cleanup_core(void) {
 	oscore_event_wait_until(breakpipe, 0);
 }
 
-void wait_until_break_core(void) {
+void timers_wait_until_break_core(void) {
 	oscore_event_signal(breakpipe);
 }
 
 // This code calls into the output module's wait_until impl.
-mod_out *out;
-ulong wait_until(ulong desired_usec) {
-	return out->wait_until(desired_usec);
+static module *out;
+static int outmodno;
+ulong timers_wait_until(ulong desired_usec) {
+	return out->wait_until(outmodno, desired_usec);
 }
 
 // This code calls into the output module's wait_until_break impl.
-void wait_until_break(void) {
-	return out->wait_until_break();
+void timers_wait_until_break(void) {
+	return out->wait_until_break(outmodno);
 }
 
 int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
-	struct timer t = { .moduleno = moduleno, .time = usec, .argc = argc, .argv = argv };
+	struct timer t = { .moduleno = moduleno, .time = usec, .args = {argc, argv}};
 
 	oscore_mutex_lock(tlock);
 	if (timer_count >= MAX_TIMERS) {
@@ -115,7 +109,7 @@ timer timer_get(void) {
 		// Clear all timers safely. Note that this timer's argc/argv is being used.
 		for (int i = 0; i < timer_count; i++)
 			if (i != smallest)
-				asl_free_argv(TIMERS[i].argc, TIMERS[i].argv);
+				asl_clearav(&TIMERS[i].args);
 		timer_count = 0;
 	} else {
 		// Move things back.
@@ -127,16 +121,17 @@ timer timer_get(void) {
 	return t;
 }
 
-int timers_init(int outmodno) {
+int timers_init(int omno) {
+	outmodno = omno;
 	tlock = oscore_mutex_new();
 	breakpipe = oscore_event_new();
-	out = mod_get(outmodno)->mod;
+	out = mod_get(outmodno);
 	return 0;
 }
 
 void timers_doquit(void) {
 	timers_quitting = 1;
-	wait_until_break();
+	timers_wait_until_break();
 }
 
 int timers_deinit(void) {
@@ -144,6 +139,6 @@ int timers_deinit(void) {
 	oscore_event_free(breakpipe);
 	int i;
 	for (i = 0; i < timer_count; i++)
-		asl_free_argv(TIMERS[i].argc, TIMERS[i].argv);
+		asl_clearav(&TIMERS[i].args);
 	return 0;
 }

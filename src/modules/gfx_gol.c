@@ -66,7 +66,7 @@ static void gol_shuffle_board(void) {
 			board[POS(x, y)] = ((randn(8) == 0) ? ALIVE : DEAD);
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	gol_shuffle_board();
 	frame = 0;
@@ -117,7 +117,7 @@ static void gol_cycle(void) {
 	memcpy(board, new, matrix_getx() * matrix_gety() * sizeof(int));
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int x;
 	int y;
 	for (x=0; x < matrix_getx(); ++x)
@@ -136,8 +136,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	free(board);
 	free(new);
-	return 0;
 }

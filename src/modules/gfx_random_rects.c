@@ -42,13 +42,13 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 	step = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	if (step == 0)
 		dir = 1;
 	if (step == 4)
@@ -78,6 +78,4 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
-	return 0;
-}
+void deinit(int _modno) {}

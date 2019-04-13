@@ -136,14 +136,14 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	return fb_h;
 }
-int gety(void) {
+int gety(int _modno) {
 	return fb_w;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	// Ideally we'd want this to be here, however, since we want decent performance even on the old 3DS,
 	// this check just isn't in the budget.
 	/*
@@ -158,14 +158,14 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	y = fb_w - y - 1;
 	x = fb_h - x - 1;
 	u32 v = fb[y + (x * tex_w)];
 	return RGB((v >> 24) & 0xFF, (v >> 16) & 0xFF, (v >> 8) & 0xFF);
 }
 
-int clear(void) {
+int clear(int _modno) {
 	memset(fb, 0, tex_w * tex_h * 4);
 	return 0;
 }
@@ -204,16 +204,16 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
-	return wait_until_core(desired_usec);
+	return timers_wait_until_core(desired_usec);
 }
 
-void wait_until_break(void) {
-	wait_until_break_core();
+void wait_until_break(int _modno) {
+	timers_wait_until_break_core();
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	// Can we just.. chill for a moment, please?
 	shaderProgramFree(&program);
 	linearFree(screen_ind_buf);
@@ -223,5 +223,4 @@ int deinit(void) {
 	C3D_RenderTargetDelete(screen_target);
 	C3D_Fini();
 	gfxExit();
-	return 0;
 }

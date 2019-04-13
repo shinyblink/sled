@@ -16,65 +16,75 @@
 
 #include <types.h>
 #include <timers.h>
-#include <mod.h>
+#include <plugin.h>
 #include <stdlib.h>
 
-static module* nextm;
-static mod_flt* next;
-static int rot;
+PGCTX_BEGIN_FILTER
+	int rot, mx, my;
+PGCTX_END
 
-int init(int nextno, char* argstr) {
-	// get next ptr.
-	nextm = mod_get(nextno);
-	next = nextm->mod;
-	rot = 1;
-	if (argstr)
-		rot = atoi(argstr) & 0x03;
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
+	ctx->rot = 1;
+	if (argstr) {
+		ctx->rot = atoi(argstr) & 0x03;
+		free(argstr);
+	}
+	ctx->mx = ctx->next->getx(ctx->nextid);
+	ctx->my = ctx->next->gety(ctx->nextid);
 	return 0;
 }
 
-int getx(void) {
-	return next->getx();
+int getx(int _modno) {
+	PGCTX_GET
+	return (ctx->rot & 1) ? ctx->my : ctx->mx;
 }
-int gety(void) {
-	return next->gety();
+int gety(int _modno) {
+	PGCTX_GET
+	return (ctx->rot & 1) ? ctx->mx : ctx->my;
 }
 
-int set(int x, int y, RGB color) {
-	for (int i = 0; i < rot; i++) {
-		int nx = getx() - 1 - x;
-		x = y;
-		y = nx;
+#define COORD_TRANSFORM \
+	for (int i = 0; i < ctx->rot; i++) { \
+		int inv = ((i & 1) ^ (ctx->rot & 1)) ? ctx->my : ctx->mx; \
+		int nx = (inv - 1) - x; \
+		x = y; \
+		y = nx; \
 	}
-	return next->set(x, y, color);
+
+int set(int _modno, int x, int y, RGB color) {
+	PGCTX_GET
+	COORD_TRANSFORM
+	return ctx->next->set(ctx->nextid, x, y, color);
 }
 
-RGB get(int x, int y) {
-	for (int i = 0; i < rot; i++) {
-		int nx = getx() - 1 - x;
-		x = y;
-		y = nx;
-	}
-	return next->get(x, y);
+RGB get(int _modno, int x, int y) {
+	PGCTX_GET
+	COORD_TRANSFORM
+	return ctx->next->get(ctx->nextid, x, y);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	PGCTX_GET
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
-	return next->render();
+int render(int _modno) {
+	PGCTX_GET
+	return ctx->next->render(ctx->nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	PGCTX_GET
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
-void wait_until_break(void) {
-	if (next->wait_until_break)
-		return next->wait_until_break();
+void wait_until_break(int _modno) {
+	PGCTX_GET
+	if (ctx->next->wait_until_break)
+		ctx->next->wait_until_break(ctx->nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+void deinit(int _modno) {
+	PGCTX_DEINIT
 }

@@ -35,7 +35,7 @@ BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
 FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90
 FLTMODS_DEFAULT += flt_smapper flt_channel_reorder
 
-MODULES_DEFAULT += $(BGMMODS_DEFAULT) $(FLTMODS_DEFAULT) $(GFXMODS_DEFAULT)
+MODULES_DEFAULT += $(BGMMODS_DEFAULT) $(FLTMODS_DEFAULT) $(GFXMODS_DEFAULT) mod_farbherd
 
 # Include local configuration.
 ifneq (,$(wildcard sledconf))
@@ -53,7 +53,7 @@ PROJECT ?= sled
 # By default, debugging is NOT enabled.
 DEBUG ?= 0
 
-# By default, the kslink fake-dynamic-module system is NOT enabled.
+# By default, we don't use k2link for everything (but it's needed for bootstrap)
 STATIC ?= 0
 
 # By default, we are not building for CI
@@ -70,6 +70,10 @@ DEFAULT_MODULEDIR ?= "./modules"
 # By default, all modules will be compiled, along with the currently selected default output module.
 
 MODULES ?= $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
+# Explicitly dynamic modules
+MODULES_DYNAMIC ?= 
+# Explicitly static modules
+MODULES_STATIC ?= 
 
 # Those backends that emulate a matrix should use a matrix of this size.
 
@@ -96,9 +100,6 @@ LIBS ?= -lm
 
 ifeq ($(STATIC),0)
  OS := $(shell uname)
- ifeq ($(OS),Linux)
-  LIBS += -ldl
- endif
  ifeq ($(OS),Darwin)
   CFLAGS += -undefined dynamic_lookup
  endif
@@ -115,54 +116,60 @@ LDSOFLAGS ?= -shared
 CFLAGS += -Isrc -DMATRIX_X=$(MATRIX_X) -DMATRIX_Y=$(MATRIX_Y) -DSDL_SCALE_FACTOR=$(SDL_SCALE_FACTOR)
 CFLAGS += -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\" -DDEFAULT_MODULEDIR=\"$(DEFAULT_MODULEDIR)\"
 
-SOURCES := src/asl.c      src/main.c        src/mod.c     src/modloaders/native.c
+SOURCES := src/asl.c      src/main.c        src/mod.c
 SOURCES += src/matrix.c   src/random.c      src/timers.c  src/util.c
 SOURCES += src/color.c    src/graphics.c    src/mathey.c
-SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c
+SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c         src/modloader.c
 
-HEADERS := src/graphics.h src/main.h        src/mod.h     src/modloaders/native.h
+HEADERS := src/graphics.h src/main.h        src/mod.h
 HEADERS += src/matrix.h   src/plugin.h      src/timers.h  src/util.h
-HEADERS += src/asl.h      src/loadcore.h    src/mathey.h  src/modloader.h
+HEADERS += src/asl.h      src/mathey.h      src/modloader.h
 HEADERS += src/random.h   src/types.h       src/oscore.h  src/perf.h
-HEADERS += src/taskpool.h
+HEADERS += src/taskpool.h src/ext/farbherd.h
 
 # Module libraries.
 # If we're statically linking, we want these to be around at all times.
+# NOTE FROM THE FUTURE: Or do we???
 # If we're dynamically linking, we want the modules to refer to them if needed.
 
 ML_SOURCES := src/modules/text.c
 ML_HEADERS := src/modules/text.h src/modules/font.h
 
 ifeq ($(STATIC),0)
- SOURCES += src/dlloadcore.c
+ # User's selected module set gets compiled dynamically (including outmod),
+ #  while static modules is just the minimum to bootstrap dynamic loading
+ MODULES_DYNAMIC += $(MODULES)
+ MODULES_STATIC += mod_dl
 else
- SOURCES += src/slloadcore.gen.c
+ # We'd like to be static, so send user's selected modules to the static linker.
+ MODULES_STATIC += $(MODULES)
 endif
 
-MODULES_SO := $(addprefix modules/, $(addsuffix .so, $(MODULES)))
-MODULES_C := $(addprefix src/modules/, $(addsuffix .c, $(MODULES)))
+MODULES_DYNAMIC_SO := $(addprefix modules/, $(addsuffix .so, $(MODULES_DYNAMIC)))
+MODULES_DYNAMIC_C := $(addprefix src/modules/, $(addsuffix .c, $(MODULES_DYNAMIC)))
+MODULES_DYNAMIC_LIBS := $(addprefix src/modules/, $(addsuffix .libs, $(MODULES_DYNAMIC)))
 
-MODULES_WC := $(addprefix static/modwraps/, $(addsuffix .c, $(MODULES)))
-MODULES_WCO := $(addprefix static/modwraps/, $(addsuffix .o, $(MODULES)))
-MODULES_LIBS := $(addprefix src/modules/, $(addsuffix .libs, $(MODULES)))
+MODULES_STATIC_O := $(addprefix static/modwraps/, $(addsuffix .o, $(MODULES_STATIC)))
+MODULES_STATIC_CW := $(addprefix static/modwraps/, $(addsuffix .c, $(MODULES_STATIC)))
+MODULES_STATIC_CWL := $(addprefix static/modwraps/, $(addsuffix .incs, $(MODULES_STATIC)))
+MODULES_STATIC_C := $(addprefix src/modules/, $(addsuffix .c, $(MODULES_STATIC)))
+MODULES_STATIC_LIBS := $(addprefix src/modules/, $(addsuffix .libs, $(MODULES_STATIC)))
 
 PLATFORM_LIBS := src/os/os_$(PLATFORM).libs
 
-OBJECTS := $(SOURCES:.c=.o)
+OBJECTS := $(SOURCES:.c=.o) src/slloadcore.gen.o $(MODULES_STATIC_O)
 ML_OBJECTS := $(ML_SOURCES:.c=.o)
 
 # --- Include other makefiles ---
 include Makefiles/3ds.GNUmakefile
 
 # --- All/Cleaning begins here ---
-ifeq ($(STATIC),0)
- all: $(PROJECT) $(MODULES_SO) $(COPY_SLEDCONF)
-else
- all: $(PROJECT) $(COPY_SLEDCONF)
-endif
+
+all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF)
 
 clean: FORCE
-	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
+	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o static/modwraps/*.incs src/slloadcore.gen.c
+	rm -f src/modules/mod_dl.c.libs
 
 default_sledconf: FORCE
 	[ -e sledconf ] || cp Makefiles/sledconf.default sledconf
@@ -174,22 +181,35 @@ FORCE:
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null || true` $^
 
 # --- Module compile info begins here ---
-ifeq ($(STATIC),0)
- # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
- modules/%.so: src/modules/%.o $(ML_OBJECTS)
+# To build modules/X.so, link src/modules/X.o with information in an optional .libs file
+modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null || true`
+
+# -- k2wrap/k2link
+src/slloadcore.gen.c: src/plugin.h static/k2link
+	./static/k2link $(MODULES_STATIC) > src/slloadcore.gen.c
+# The wrapper is made dependent on the module .c file not because it really has to be,
+#  but because it ensures that the compiled module depends indirectly on the module source.
+# A dependency on the %.incs file SHOULD exist but doesn't because it breaks things
+static/modwraps/%.c: src/modules/%.c
+	./static/k2wrap $*
+
+# --- Platform-specific module library rules begin here ---
+
+ifeq ($(OS),Linux)
+src/modules/mod_dl.c.libs:
+	echo -ldl > src/modules/mod_dl.c.libs
 else
- # To build all modwraps, run kslink
- $(MODULES_WC) src/slloadcore.gen.c: $(MODULES_C) static/kslink
-	cd static ; ./kslink $(addsuffix .c, $(addprefix ../src/modules/, $(MODULES))) > ../src/slloadcore.gen.c
+src/modules/mod_dl.c.libs:
+	echo "" > src/modules/mod_dl.c.libs
 endif
 
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
  sled: $(OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) 2>/dev/null || true` $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true` $(LIBS)
 else
- sled: $(OBJECTS) $(MODULES_WCO) $(ML_OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_LIBS) 2>/dev/null || true`
+ sled: $(OBJECTS) $(ML_OBJECTS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true`
 endif

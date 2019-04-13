@@ -4,8 +4,6 @@
 
 #include "mod.h"
 
-extern module* outmod;
-
 // Changes the outcome of the next random module selection.
 // If the outcome has already been changed, waits for that to occur, then tries to grab the random module selection again.
 // Note that this should only be called from another thread

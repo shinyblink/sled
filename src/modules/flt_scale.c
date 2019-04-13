@@ -18,82 +18,92 @@
 
 #include <types.h>
 #include <timers.h>
-#include <mod.h>
+#include <plugin.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 
-static int scale = 0;
-static module* nextm;
-static mod_flt* next;
+PGCTX_BEGIN_FILTER
+	int scale;
+PGCTX_END
 
-int init(int nextno, char* argstr) {
-	nextm = mod_get(nextno);
-	next = nextm->mod;
-
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
 	if (!argstr) {
 		eprintf("flt_scale: No scaling factor given.\n");
+		free(ctx);
 		return 2;
 	}
 
-	if (sscanf(argstr, "%d", &scale) == EOF) {
+	if (sscanf(argstr, "%d", &ctx->scale) == EOF) {
 		eprintf("flt_scale: Couldn't parse argument as number: Got '%s'", argstr);
+		free(ctx);
+		free(argstr);
 		return 2;
 	}
 	free(argstr);
 
-	if (scale < 1) {
+	if (ctx->scale < 1) {
 		eprintf("flt_scale: Scale factor must be greater equal 1.\n");
+		free(ctx);
 		return 1;
 	}
 
 	return 0;
 }
 
-int getx(void) {
-	return next->getx() / scale;
+int getx(int _modno) {
+	PGCTX_GET
+	return ctx->next->getx(ctx->nextid) / ctx->scale;
 }
-int gety(void) {
-	return next->gety() / scale;
+int gety(int _modno) {
+	PGCTX_GET
+	return ctx->next->gety(ctx->nextid) / ctx->scale;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
+	PGCTX_GET
 	int px = 0;
 	int py = 0;
 	int ret = 0;
-	x = x * scale;
-	y = y * scale;
-	for (py = 0; py < scale; py++)
-		for (px = 0; px < scale; px++) {
-			ret = next->set(x + px, y + py, color);
+	x = x * ctx->scale;
+	y = y * ctx->scale;
+	for (py = 0; py < ctx->scale; py++)
+		for (px = 0; px < ctx->scale; px++) {
+			ret = ctx->next->set(ctx->nextid, x + px, y + py, color);
 			if (ret != 0) return ret;
 		};
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
+	PGCTX_GET
 	// Since we set all the pixels,
 	// we know the scaled block will have the same colors.
-	return next->get(x * scale, y * scale);
+	return ctx->next->get(ctx->nextid, x * ctx->scale, y * ctx->scale);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	PGCTX_GET
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
-	return next->render();
+int render(int _modno) {
+	PGCTX_GET
+	return ctx->next->render(ctx->nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	PGCTX_GET
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
-void wait_until_break(void) {
-	if (next->wait_until_break)
-		return next->wait_until_break();
+void wait_until_break(int _modno) {
+	PGCTX_GET
+	if (ctx->next->wait_until_break)
+		return ctx->next->wait_until_break(ctx->nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+void deinit(int _modno) {
+	PGCTX_DEINIT
 }

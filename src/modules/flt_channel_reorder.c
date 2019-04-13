@@ -18,80 +18,83 @@
 
 #include <types.h>
 #include <timers.h>
-#include <mod.h>
+#include <plugin.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-static module* nextm;
-static mod_flt* next;
+PGCTX_BEGIN_FILTER
+	char chan[3];
+PGCTX_END
 
-static char chan[3];
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
 
-int init(int nextno, char* argstr) {
-	nextm = mod_get(nextno);
-	next = nextm->mod;
-
-	if (argstr && strlen(argstr) >= 3)
-	{
-	  chan[0] = argstr[0];
-	  chan[1] = argstr[1];
-	  chan[2] = argstr[2];
-		free(argstr);
+	if (argstr && strlen(argstr) >= 3) {
+		ctx->chan[0] = argstr[0];
+		ctx->chan[1] = argstr[1];
+		ctx->chan[2] = argstr[2];
+	} else {
+		ctx->chan[0] = 'r';
+		ctx->chan[1] = 'g';
+		ctx->chan[2] = 'b';
 	}
-	else
-	{
-	  chan[0] = 'r';
-	  chan[1] = 'g';
-	  chan[2] = 'b';
-	}
+	free(argstr);
 	return 0;
 }
 
-int getx(void) {
-	return next->getx();
+int getx(int _modno) {
+	PGCTX_GET
+	return ctx->next->getx(ctx->nextid);
 }
-int gety(void) {
-	return next->gety();
-}
-
-int set(int x, int y, RGB cin) {
-  RGB cout;
-  cout.red   = chan[0] == 'g' ? cin.green : (chan[0] == 'b' ? cin.blue : cin.red);
-  cout.green = chan[1] == 'g' ? cin.green : (chan[1] == 'b' ? cin.blue : cin.red);
-  cout.blue  = chan[2] == 'g' ? cin.green : (chan[2] == 'b' ? cin.blue : cin.red);
-  cout.alpha = cin.alpha;
-	return next->set(x, y, cout);
+int gety(int _modno) {
+	PGCTX_GET
+	return ctx->next->gety(ctx->nextid);
 }
 
-RGB get(int x, int y) {
-  RGB cin, cout;
-	cout = next->get(x, y);
-	cin.red   = chan[1] == 'r' ? cout.green : (chan[2] == 'r' ? cout.blue  : cout.red);
-	cin.green = chan[0] == 'g' ? cout.red   : (chan[2] == 'g' ? cout.blue  : cout.green);
-	cin.blue  = chan[0] == 'b' ? cout.red   : (chan[1] == 'b' ? cout.green : cout.blue);
+int set(int _modno, int x, int y, RGB cin) {
+	PGCTX_GET
+	RGB cout;
+	cout.red   = ctx->chan[0] == 'g' ? cin.green : (ctx->chan[0] == 'b' ? cin.blue : cin.red);
+	cout.green = ctx->chan[1] == 'g' ? cin.green : (ctx->chan[1] == 'b' ? cin.blue : cin.red);
+	cout.blue  = ctx->chan[2] == 'g' ? cin.green : (ctx->chan[2] == 'b' ? cin.blue : cin.red);
+	cout.alpha = cin.alpha;
+	return ctx->next->set(ctx->nextid, x, y, cout);
+}
+
+RGB get(int _modno, int x, int y) {
+	PGCTX_GET
+	RGB cin, cout;
+	cout = ctx->next->get(ctx->nextid, x, y);
+	cin.red   = ctx->chan[1] == 'r' ? cout.green : (ctx->chan[2] == 'r' ? cout.blue  : cout.red);
+	cin.green = ctx->chan[0] == 'g' ? cout.red   : (ctx->chan[2] == 'g' ? cout.blue  : cout.green);
+	cin.blue  = ctx->chan[0] == 'b' ? cout.red   : (ctx->chan[1] == 'b' ? cout.green : cout.blue);
 	cin.alpha = cout.alpha;
 	return cin;
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	PGCTX_GET
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
-	return next->render();
+int render(int _modno) {
+	PGCTX_GET
+	return ctx->next->render(ctx->nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	PGCTX_GET
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
-void wait_until_break(void) {
-	if (next->wait_until_break)
-		return next->wait_until_break();
+void wait_until_break(int _modno) {
+	PGCTX_GET
+	if (ctx->next->wait_until_break)
+		ctx->next->wait_until_break(ctx->nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+void deinit(int _modno) {
+	PGCTX_DEINIT
 }

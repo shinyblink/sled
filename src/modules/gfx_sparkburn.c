@@ -37,7 +37,7 @@ static int threshold;
 
 static char interesting = 0;
 
-void reset(void) {
+void reset(int _modno) {
     rmax = -1000;
     rmin = 1000;
     for (int * p=field; p<field+mx*my; p++) {
@@ -88,7 +88,7 @@ static void calc() {
 
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
     calc();
     for (int i=0; i<mx; i++) {
         for (int j=0; j<my; j++) {
@@ -115,7 +115,6 @@ int init(int moduleno, char* argstr) {
     return 0;
 }
 
-int deinit() {
+void deinit(int _modno) {
     free(field);
-    return 0;
 }

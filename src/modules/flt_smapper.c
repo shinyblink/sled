@@ -2,11 +2,11 @@
 // for more Y size.
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -17,93 +17,107 @@
 
 #include <types.h>
 #include <timers.h>
-#include <mod.h>
+#include <plugin.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
-static module* nextm;
-static mod_flt* next;
-static int mx, my;
-static int folds, pane_x;
-static bool pane_order = 0;
+PGCTX_BEGIN_FILTER
+	int mx, my;
+	int folds, pane_x;
+	int pane_order;
+PGCTX_END
 
-int init(int nextno, char* argstr) {
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
 	// get next ptr.
-	nextm = mod_get(nextno);
-	next = nextm->mod;
-	mx = next->getx();
-	my = next->gety();
+	ctx->mx = ctx->next->getx(ctx->nextid);
+	ctx->my = ctx->next->gety(ctx->nextid);
+	ctx->pane_order = 0;
 
 	if (!argstr) {
 		eprintf("flt_smapper: No folding factor given.\n");
+		free(argstr);
+		free(ctx);
 		return 2;
 	}
 
-	if (sscanf(argstr, "%d", &folds) == EOF) {
+	if (sscanf(argstr, "%d", &ctx->folds) == EOF) {
 		eprintf("flt_smapper: Couldn't parse argument as number: Got '%s'", argstr);
+		free(argstr);
+		free(ctx);
 		return 2;
 	}
 	free(argstr);
 
-	if (folds == 0) {
-		eprintf("flt_smapper: A 0 fold number is invalid!"); 
+	if (ctx->folds == 0) {
+		eprintf("flt_smapper: A 0 fold number is invalid!");
+		free(ctx);
+		return 2;
 	}
 
 	/* When the fold number is negative, we reverse the pane order. */
-	if (folds < 0) {
-		folds = -folds;
-		pane_order = 1;
+	if (ctx->folds < 0) {
+		ctx->folds = -ctx->folds;
+		ctx->pane_order = 1;
 	}
 
-	pane_x = (mx / folds);
+	ctx->pane_x = (ctx->mx / ctx->folds);
 
 	return 0;
 }
 
-int getx(void) {
-	return mx / folds;
+int getx(int _modno) {
+	PGCTX_GET
+	return ctx->mx / ctx->folds;
 }
 
-int gety(void) {
-	return my * folds;
+int gety(int _modno) {
+	PGCTX_GET
+	return ctx->my * ctx->folds;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
+	PGCTX_GET
 	int nx = x;
 	int ny = y;
-	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
-	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
-	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
-	return next->set(nx, ny, color);
+	int paneno = ctx->pane_order ? (ctx->folds - (y / ctx->my) - 1) : (y / ctx->my);
+	nx = (paneno * ctx->pane_x) + (paneno % 2 == 1 ? ctx->pane_x - x - 1 : x);
+	ny = (paneno % 2 == 1 ? ctx->my - (y % ctx->my) - 1 : (y % ctx->my));
+	return ctx->next->set(ctx->nextid, nx, ny, color);
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
+	PGCTX_GET
 	int nx = x;
 	int ny = y;
-	int paneno = pane_order ? (folds - (y / my) - 1) : (y / my);
-	nx = (paneno * pane_x) + (paneno % 2 == 1 ? pane_x - x - 1 : x);
-	ny = (paneno % 2 == 1 ? my - (y % my) - 1 : (y % my));
-	return next->get(nx, ny);
+	int paneno = ctx->pane_order ? (ctx->folds - (y / ctx->my) - 1) : (y / ctx->my);
+	nx = (paneno * ctx->pane_x) + (paneno % 2 == 1 ? ctx->pane_x - x - 1 : x);
+	ny = (paneno % 2 == 1 ? ctx->my - (y % ctx->my) - 1 : (y % ctx->my));
+	return ctx->next->get(ctx->nextid, nx, ny);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	PGCTX_GET
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
-	return next->render();
+int render(int _modno) {
+	PGCTX_GET
+	return ctx->next->render(ctx->nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	PGCTX_GET
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
-void wait_until_break(void) {
-	if (next->wait_until_break)
-		return next->wait_until_break();
+void wait_until_break(int _modno) {
+	PGCTX_GET
+	if (ctx->next->wait_until_break)
+		ctx->next->wait_until_break(ctx->nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+void deinit(int _modno) {
+	PGCTX_DEINIT
 }

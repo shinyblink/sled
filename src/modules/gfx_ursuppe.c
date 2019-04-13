@@ -205,14 +205,14 @@ static void update_balls(void) {
     }
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	matrix_clear();
 	randomize();
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int ball;
 	// clear out old balls
 #if NO_TRAILS
@@ -268,8 +268,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+void deinit(int _modno) {
 	free(balls);
     free(wells);
-	return 0;
 }

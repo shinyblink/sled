@@ -3,70 +3,79 @@
 #ifndef __INCLUDED_MOD__
 #define __INCLUDED_MOD__
 
+#include "asl.h"
 #include "types.h"
 
-typedef struct module {
-	char type[4];
-	char name[256];
-	uint meta;
-	int (*init)(int moduleno, char* argstr);
-	int (*deinit)(int moduleno);
-
-	void* mod;
-} module;
-
-int mod_init(void);
-int mod_freeslot(void);
-module* mod_getfreemod(void);
-module* mod_new(module newmod);
-int mod_remove(int moduleno);
-module* mod_find(char* name);
-module* mod_get(int moduleno);
-int mod_getid(module* mod);
-int mod_count(void);
-int mod_deinit(void);
-
-// The module loader mod loader.
-typedef struct mod_mod {
-	void (*setdir)(const char* dir);
-	int (*load)(module* mod, char name[256]);
-	int (*loaddir)(char** filtnames, int* filtno, int* filters);
-} mod_mod;
-
-int modloader_register(module* loader);
-void modloader_setdir(const char* dir);
-int modloader_load(module* mod, char name[256]);
-int modloader_loaddir(char** filtnames, int* filtno, int* filters);
-module* modloader_get(int modloader);
-int modloader_count(void);
-
-// Other module types
+// As of the refactor, 'module' is one struct.
+// This is because otherwise we end up with way too much module-type-specific-code
+//  in k2link and other module-related handlers.
 #undef RGB
+typedef struct module module;
+struct module {
+	// These two are initialized in mod_new
+	// "gfx\0"
+	char type[4];
+	// "gfx_example\0"
+	char name[256];
+	// For flt, this is the next module in the output chain. This is set on load.
+	int chain_link;
+	// This is the second list of function declarations.
+	// It must be in the order given in plugin.h,
+	//  and it must be kept in sync with k2link, and mod_dl.c
+	// [FUNCTION_DECLARATION_WEBRING]
+	// See: plugin.h, mod.h, k2link, mod_dl.c
+	int (*init)(int moduleno, char* argstr);
+	void (*reset)(int moduleno);
+	int (*draw)(int moduleno, int argc, char* argv[]);
+	int (*set)(int moduleno, int x, int y, RGB color);
+	RGB (*get)(int moduleno, int x, int y);
+	int (*clear)(int moduleno);
+	int (*render)(int moduleno);
+	int (*getx)(int moduleno);
+	int (*gety)(int moduleno);
+	ulong (*wait_until)(int moduleno, ulong desired_usec);
+	void (*wait_until_break)(int moduleno);
+	void (*setdir)(int moduleno, const char* dir);
+	int (*load)(int moduleno, module* mod, const char * name);
+	void (*unload)(int moduleno, void* modloader_user);
+	void (*findmods)(int moduleno, asl_av_t* result);
+	void (*deinit)(int moduleno);
 
-typedef struct mod_gfx {
-	void* lib;
-	int (*draw)(int argc, char* argv[]);
-	void (*reset)(void);
-} mod_gfx;
-
-typedef mod_gfx mod_bgm;
-
-typedef struct mod_out {
-	void* lib;
-	int (*set)(int x, int y, RGB color);
-	RGB (*get)(int x, int y);
-	int (*clear)(void);
-	int (*render)(void);
-	int (*getx)(void);
-	int (*gety)(void);
-
-	ulong (*wait_until)(ulong desired_usec);
-	void (*wait_until_break)();
-} mod_out;
-
-typedef mod_out mod_flt;
-
+	// Responsible modloader. (Note: The k2link bootstrap modloader uses an index of -1.)
+	int responsible_modloader;
+	// Userdata owned by the mod_ module that loaded this.
+	void* modloader_user;
+	// Userdata owned by the module.
+	void* user;
+	// Is this module a valid drawable? (GFX/BGM that is initialized)
+	// This is a boolean, and it's really just a safety in case someone abuses fish.
+	int is_valid_drawable;
+};
 #define RGB(r, g, b) RGB_C(r, g, b)
 
+// Here's a description of the current module system.
+// The lifecycle of SLED's module system is:
+//  Load & Init MOD (at the same time)
+//  Load & Init OUT/FLT
+//  Load GFX/BGM
+//  -- THREAD SAFETY STARTS HERE (modules are not loaded or unloaded in this block) --
+//  Init GFX/BGM
+//  (run...)
+//  Deinit GFX/BGM
+//  -- THREAD SAFETY ENDS HERE --
+//  Unload GFX/BGM
+//  Deinit & Unload OUT/FLT
+//  Deinit & Unload MOD
+
+// Module IDs are essentially a 'stack'; gaps are NOT ALLOWED.
+// DO NOT; REPEAT, DO NOT; CALL MODULE MANAGEMENT FUNCTIONS OUTSIDE OF MODLOADER.C!!!
+// Actually, I'm moving the prototypes for *those* into modloader.c so you can't get at them.
+
+// --
+module* mod_find(const char* name);
+int mod_getid(module* mod);
+
+int mod_count();
+module* mod_get(int moduleno);
 
 #endif

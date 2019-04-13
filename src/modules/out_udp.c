@@ -3,11 +3,11 @@
 // Quite a big mess. It works, however.
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -49,7 +49,7 @@ static char* envdup;
 // 0xAA <R,G,B bytes..> <2 bytes checksum, unsigned short, hi, low>
 static byte* message;
 
-int init(int modno, char* argstr) {
+int init (int moduleno, char* argstr) {
 	// Partially initialize the socket.
 	if ((sock=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
 		perror("out_udp: Failed to initialize socket");
@@ -132,10 +132,10 @@ int init(int modno, char* argstr) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	return X_SIZE;
 }
-int gety(void) {
+int gety(int _modno) {
 	return Y_SIZE;
 }
 
@@ -156,7 +156,7 @@ int ppos(int x, int y) {
 	return -1;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < X_SIZE);
@@ -169,7 +169,7 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < X_SIZE);
@@ -179,7 +179,7 @@ RGB get(int x, int y) {
 	return RGB(message[pos + 0], message[pos + 1], message[pos + 2]);
 }
 
-int clear(void) {
+int clear(int _modno) {
 	// message[1] to skip a byte (the 0xAA);
 	memset(&message[1], '\0', NUMPIX);
 	return 0;
@@ -203,17 +203,16 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
-	return wait_until_core(desired_usec);
+	return timers_timers_wait_until_core(desired_usec);
 }
 
-void wait_until_break(void) {
-	return wait_until_break_core();
+void wait_until_break(int _modno) {
+	return timers_timers_wait_until_break_core();
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	close(sock);
 	free(message);
-	return 0;
 }

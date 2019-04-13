@@ -303,12 +303,12 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	gol_loop();
 
 	matrix_render();
@@ -323,7 +323,6 @@ int draw(int argc, char* argv[]) {
 }
 
 
-int deinit() {
+void deinit(int _modno) {
 	free(gol_stat_buf);
-	return 0;
 }

@@ -155,7 +155,7 @@ static void * thread_func(void * ign) {
 			timeout -= frames;
 			dotimeout = timeout <= 0;
 			timer_add(0, moduleno, 0, NULL);
-			wait_until_break();
+			timers_wait_until_break();
 		}
 		oscore_task_yield();
 	}
@@ -307,12 +307,12 @@ static int get_cm(int ca) {
 	return 15 - (ca >> 4);
 }
 
-void reset(void) {
+void reset(int _modno) {
 	int camera_size = camera_width * camera_height;
 	memset(bufferC + (camera_size * 2), 255, camera_size);
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	int camera_size = camera_width * camera_height;
 	for (int i = 0; i < camera_size; i++) {
 		int cm = get_cm(bufferC[i]);
@@ -327,8 +327,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	doshutdown = 1;
 	oscore_task_join(scope_task);
-	return 0;
 }

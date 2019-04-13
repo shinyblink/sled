@@ -117,12 +117,12 @@ static inline float addmodpi(float x, float delta) {
 
 /*** main drawing loop ***/
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	nexttick = udate() + FRAMETIME;
 
 	pangle = addmodpi( pangle, 0.00133 + (angle/256) );
@@ -238,6 +238,4 @@ int draw(int argc, char* argv[]) {
 
 /*** module deconstructor ***/
 
-int deinit(void) {
-	return 0;
-}
+void deinit(int _modno) {}

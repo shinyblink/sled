@@ -35,7 +35,7 @@ static int usesmall;
 static char clockstr[CHARS_FULL + 1];
 static text* rendered = NULL;
 
-int init(int modno, char* argstr) {
+int init (int modno, char* argstr) {
 	moduleno = modno;
 
 	if (matrix_getx() < 15)
@@ -47,12 +47,12 @@ int init(int modno, char* argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	time_t rawtime;
 	struct tm * timeinfo;
 	const char * format = "%T";
@@ -98,8 +98,7 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit() {
+void deinit(int _modno) {
 	// This acts conditionally on rendered being non-NULL.
 	text_free(rendered);
-	return 0;
 }

@@ -45,7 +45,7 @@ static void reset_lines(void)
 	}
 }
 
-int init(int modno, char *argstr) {
+int init (int moduleno, char *argstr) {
 	if (matrix_gety() < 7)
 		return 1; // not enough Y to be usable
 
@@ -61,7 +61,7 @@ int init(int modno, char *argstr) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	char buff[INET6_ADDRSTRLEN];
 	char displaybuff[columncount];
 	buff[0] = 0;
@@ -106,7 +106,7 @@ void reset(void) {
 	}
 }
 
-int draw(int argc, char **argv) {
+int draw(int _modno, int argc, char **argv) {
 	if (check_block()) return 1;
 	RGB black = RGB(0, 0, 0);
 	for(int y = 0; y < matrix_gety(); y++) {
@@ -133,7 +133,7 @@ int draw(int argc, char **argv) {
 	return 0;
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	reset_lines();
-	return 0;
+	free(lines);
 }

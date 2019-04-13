@@ -24,7 +24,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	RGB color = RGB(randn(220), randn(220), randn(220));
 
 	matrix_fill(0, 0, matrix_getx() - 1, matrix_gety() - 1, color);
@@ -33,10 +33,8 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
 	// Nothing?
 }
 
-int deinit(void) {
-	return 0;
-}
+void deinit(int _modno) {}

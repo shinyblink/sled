@@ -17,75 +17,80 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <types.h>
-#include <mod.h>
+#include <plugin.h>
 #include <math.h>
-
-static module* nextm;
-static mod_flt* next;
 
 #define GAMMA 2.8f
 #define WHITEPOINT {0.98f, 1.0f, 1.0f} // R, G, B, respectively.
 
 #define MAX_VAL 255
-static byte LUT_R[MAX_VAL + 1];
-static byte LUT_G[MAX_VAL + 1];
-static byte LUT_B[MAX_VAL + 1];
+PGCTX_BEGIN_FILTER
+	byte LUT_R[MAX_VAL + 1];
+	byte LUT_G[MAX_VAL + 1];
+	byte LUT_B[MAX_VAL + 1];
+PGCTX_END
 
 #define CORRECTION ((powf((float)i / MAX_VAL, GAMMA) * MAX_VAL) + 0.5f)
 
-int init(int nextno, char* argstr) {
-	// get next ptr.
-	nextm = mod_get(nextno);
-	next = nextm->mod;
+int init(int _modno, char* argstr) {
+	PGCTX_INIT_FILTER
 	float whitepoint[3] = WHITEPOINT;
 
 	int i;
 	for (i = 0; i <= 255; ++i)
-		LUT_R[i] = whitepoint[0] * CORRECTION;
+		ctx->LUT_R[i] = whitepoint[0] * CORRECTION;
 	for (i = 0; i <= 255; ++i)
-		LUT_G[i] = whitepoint[1] * CORRECTION;
+		ctx->LUT_G[i] = whitepoint[1] * CORRECTION;
 	for (i = 0; i <= 255; ++i)
-		LUT_B[i] = whitepoint[2] * CORRECTION;
+		ctx->LUT_B[i] = whitepoint[2] * CORRECTION;
 	return 0;
 }
 
-int getx(void) {
-	return next->getx();
+int getx(int _modno) {
+	PGCTX_GET
+	return ctx->next->getx(ctx->nextid);
 }
-int gety(void) {
-	return next->gety();
+int gety(int _modno) {
+	PGCTX_GET
+	return ctx->next->gety(ctx->nextid);
 }
 
-int set(int x, int y, RGB color) {
-	RGB corrected = RGB(LUT_R[color.red], LUT_G[color.green], LUT_B[color.blue]);
-	return next->set(x, y, corrected);
+int set(int _modno, int x, int y, RGB color) {
+	PGCTX_GET
+	RGB corrected = RGB(ctx->LUT_R[color.red], ctx->LUT_G[color.green], ctx->LUT_B[color.blue]);
+	return ctx->next->set(ctx->nextid, x, y, corrected);
 }
 
 // TODO: reverse LUT to get back semi-original values
 // if we pass the corrected values to the set function,
 // it doesn't have the same color it had before.
 // every time that happens, it'll get visibly darker.
-RGB get(int x, int y) {
-	return next->get(x, y);
+RGB get(int _modno, int x, int y) {
+	PGCTX_GET
+	return ctx->next->get(ctx->nextid, x, y);
 }
 
-int clear(void) {
-	return next->clear();
+int clear(int _modno) {
+	PGCTX_GET
+	return ctx->next->clear(ctx->nextid);
 }
 
-int render(void) {
-	return next->render();
+int render(int _modno) {
+	PGCTX_GET
+	return ctx->next->render(ctx->nextid);
 }
 
-ulong wait_until(ulong desired_usec) {
-	return next->wait_until(desired_usec);
+ulong wait_until(int _modno, ulong desired_usec) {
+	PGCTX_GET
+	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }
 
-void wait_until_break(void) {
-	if (next && next->wait_until_break)
-		return next->wait_until_break();
+void wait_until_break(int _modno) {
+	PGCTX_GET
+	if (ctx->next && ctx->next->wait_until_break)
+		return ctx->next->wait_until_break(ctx->nextid);
 }
 
-int deinit(void) {
-	return nextm->deinit(mod_getid(nextm));
+void deinit(int _modno) {
+	PGCTX_DEINIT
 }

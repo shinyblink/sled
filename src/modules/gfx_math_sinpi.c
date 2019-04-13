@@ -51,13 +51,13 @@ int init(int moduleno, char* argstr) {
 
 RGB white = { .red = 255, .green = 255, .blue = 255 };
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 	pos = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	vec2 p, _p;
 	int dy;
 
@@ -98,6 +98,4 @@ int draw(int argc, char* argv[]) {
 	return 0;
 }
 
-int deinit(void) {
-	return 0;
-}
+void deinit(int _modno) {}

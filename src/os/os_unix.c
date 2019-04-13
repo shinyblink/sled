@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
 #include <pthread_np.h>
@@ -59,11 +60,8 @@ int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
 	FD_SET(oei->recv, &set);
 	if (select(FD_SETSIZE, &set, NULL, NULL, &timeout)) {
 		char buf[512];
-		ssize_t ret = read(oei->recv, buf, 512);
-		if(ret < 0) {
-			perror("oscor_event_wait_until read error");
-			exit(1);
-		}
+		// Non-blocking (see creation). It DOESN'T MATTER if this errors!!!
+		read(oei->recv, buf, 512);
 		return 1; // we got an interrupt
 	}
 	return 0; // timeout
@@ -89,6 +87,8 @@ oscore_event oscore_event_new(void) {
 		exit(1);
 	}
 	oei->recv = fd[0];
+	// Make the receiver non-blocking to avoid accidentally causing lockups in wait_until
+	fcntl(fd[0], F_SETFL, fcntl(fd[0], F_GETFL) | O_NONBLOCK);
 	oei->send = fd[1];
 	return oei;
 }

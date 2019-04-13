@@ -33,14 +33,14 @@ int init(void) {
 	return 0;
 }
 
-int getx(void) {
+int getx(int _modno) {
 	return MATRIX_X;
 }
-int gety(void) {
+int gety(int _modno) {
 	return MATRIX_Y;
 }
 
-int set(int x, int y, RGB color) {
+int set(int _modno, int x, int y, RGB color) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < MATRIX_X);
@@ -50,12 +50,12 @@ int set(int x, int y, RGB color) {
 	return 0;
 }
 
-RGB get(int x, int y) {
+RGB get(int _modno, int x, int y) {
 	// Nice. We're batman.
 	return RGB(0, 0, 0);
 }
 
-int clear(void) {
+int clear(int _modno) {
 	// We're already clean for a month!
 	return 0;
 };
@@ -65,22 +65,21 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(ulong desired_usec) {
+ulong wait_until(int _modno, ulong desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
 #ifdef CIMODE
 	return desired_usec;
 #else
-	return wait_until_core(desired_usec);
+	return timers_wait_until_core(desired_usec);
 #endif
 }
 
-void wait_until_break(void) {
+void wait_until_break(int _modno) {
 #ifndef CIMODE
-	wait_until_break_core();
+	timers_wait_until_break_core();
 #endif
 }
 
-int deinit(void) {
+void deinit(int _modno) {
 	// Can we just.. chill for a moment, please?
-	return 0;
 }

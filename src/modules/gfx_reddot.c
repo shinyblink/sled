@@ -66,7 +66,7 @@ int init(int moduleno, char* argstr) {
 }
 
 
-void reset(void) {
+void reset(int _modno) {
     nexttick = udate();
     matrix_clear();
     bx = randn(mx-1);
@@ -75,7 +75,7 @@ void reset(void) {
     frame_offset = randn(6*(int)1.0/intensity_cycle_speed);
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
     //matrix_clear();
     int x_min = (bx-draw_radius>0)?bx-draw_radius:0;
     int x_max = (bx+draw_radius<mx)?bx+draw_radius:mx;
@@ -119,6 +119,4 @@ int draw(int argc, char* argv[]) {
     return 0;
 }
 
-int deinit() {
-    return 0;
-}
+void deinit(int _modno) {}
