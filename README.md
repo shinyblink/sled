@@ -2,10 +2,10 @@
 
 Modular LED Matrix controller.
 
-# Manual
+## Manual
 Read the Satanic Bible by Anton Szandor LaVey.
 
-# Getting started (SDL2 Tutorial on debian)
+## Getting started (SDL2 Tutorial on debian)
 
 ```bash
 sudo apt-get install gcc make git libsdl2-dev
@@ -17,11 +17,11 @@ make
 
 You can overwrite the default build by using `sledconf` locally. Examples are given in the `Makefiles/` folder. You might just copy one e.g. `cp Makefiles/sledconf.sdl2 sledconf` to get a sensible initial configuration.
 
-# Getting started on developing modules
+## Getting started on developing modules
 
 This assumes you already got something to run (see Getting Started)
 
-## How to select modules
+### How to select modules
 Modules are compiled into `*.so` files into `modules/`. You can delete any module you don't want to run from the `modules/` folder.
 
 Additionally the `GNUmakefile` includes the `sledconf` file which selects which modules are build with the `MODULES` variable. It should contain at least one outputmodule and one additional module to run. Please copy a file from `Makefiles/` to `sledconf` for changing your build locally and don't change the `GNUmakefile`.
@@ -40,7 +40,7 @@ Only the listed modules will be build. This is good for testing. The third line 
 
 The old modules will still be in the `modules/` folder and thus will still be loaded by sled. You can remove them with `rm modules/gfx_*` or `make clean` before building with `make`.
 
-## Build a new module
+### Build a new module
 
 The sources for the modules are located in `src/modules/`. Looking inside a graphic effect module (e.g. `gfx_rainbow.c`) you see that gfx modules provide an interface via four functions.
 ```c
@@ -57,27 +57,32 @@ You can use `matrix_set(...)` and `matrix_render()` to output images platform in
 
 To get an idea of how `gfx_*` modules work just look (and copy/modify) some modules.
 
-## Testing
+### Testing
 
 If you wrote a module add it to `MODULES` in `sledconf` to test it locally or add it to `MODULES_DEFAULT` in the `GNUmakefile` if it's done.
 
 Also try it with different output sizes. `MATRIX_X` and `MATRIX_Y` can be used to control the output size for the sdl2 output.
 
-## Before you commit/merge into master
+### Before you commit/merge into master
 
 Check that:
+
 * [ ] It compiles after a `make clean`
+
 * [ ] It works with other modules and quits after a reasonable time
+
 * [ ] It works with different display sizes
-    * [ ] not 2^n
-    * [ ] Landscape
-    * [ ] Portrait
-    * [ ] small sizes (<=16x16)
-    * [ ] big sizes (>=256x256)
+  * [ ] not 2^n
+  * [ ] Landscape
+  * [ ] Portrait
+  * [ ] small sizes (<=16x16)
+  * [ ] big sizes (>=256x256)
+
 * [ ] It has a short description
+
 * [ ] It's well formatted (no mixed tabs/spaces) (have you considered `astyle`)
 
-# Hardware
+## Hardware
 
 Matrix consisting of ws2812b pixels.
 Minimum recommended size is 8x8, anything less and you won't see much of the effects.
@@ -88,7 +93,7 @@ Both start upper left, as that is (0, 0) for this code.
 
 Connected to the ports of the specific board you're using.
 
-* Raspberry Pi (Zero): See https://github.com/jgarff/rpi_ws281x
+* Raspberry Pi (Zero): See [rpi_ws281x](https://github.com/jgarff/rpi_ws281x).
 	- I can recommend using PCM, little chance it is used. It is used by default. Pin 40 on the Zero.
 	- You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
 
@@ -96,7 +101,7 @@ Connected to the ports of the specific board you're using.
 	- Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
 	- You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
 
-# Building Options
+## Building Options
 
 Common:
 * Some C99 compiler
@@ -110,77 +115,77 @@ Examples are given in the Makefiles directory, check `sledconf.*`.
 It can override various settings:
 
 * `PROJECT`
-	- The name of the final binary.
-	- Defaults to 'sled'.
+  - The name of the final binary.
+  - Defaults to 'sled'.
 
 * `PLATFORM`
-	- The platform being compiled for.
-	- Defaults to 'unix'.
-	- See src/os_unix.c and similar.
+  - The platform being compiled for.
+  - Defaults to 'unix'.
+  - See src/os_unix.c and similar.
 
 * `DEBUG`
-	- Set to 1 to add debug information to all files and disable -O2.
-	- Defaults to 0.
+  - Set to 1 to add debug information to all files and disable -O2.
+  - Defaults to 0.
 
 * `CFLAGS`
-	- Defaults to `-O2 -march=native` or `-march=native -Og -ggdb` dependent on `DEBUG`.
+  - Defaults to `-O2 -march=native` or `-march=native -Og -ggdb` dependent on `DEBUG`.
 
 * `STATIC`
-	- Set to 1 to use static linking.
-	- Set to 0 to use -ldl based linking.
-	- Defaults to 0.
+  - Set to 1 to use static linking.
+  - Set to 0 to use -ldl based linking.
+  - Defaults to 0.
 
 * `DEFAULT_OUTMOD`
-	- The default -o parameter.
-	- Defaults to "sdl2".
+  - The default -o parameter.
+  - Defaults to "sdl2".
 
 * `DEFAULT_MODULEDIR`
-	- The default -m parameter.
-	- Defaults to "./modules".
+  - The default -m parameter.
+  - Defaults to "./modules".
 
 * `MODULES`
-	- The modules being compiled.
-	- `MODULES_AVAILABLE` contains all available GFX modules.
-	- Default is this & DEFAULT_OUTMOD prefixed with `out_`.
+  - The modules being compiled.
+  - `MODULES_AVAILABLE` contains all available GFX modules.
+  - Default is this & DEFAULT_OUTMOD prefixed with `out_`.
 
 Compile with simply `make`.
 
-# Output modules
+## Output modules
 
 * `out_sdl2`
-	- SDL2-based virtual matrix for development.
+  - SDL2-based virtual matrix for development.
 
 * `out_rpi_ws2812b`
-	- Uses https://github.com/jgarff/rpi_ws281x to drive the strips.
-	- Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
+  - Uses [rpi_ws281x](https://github.com/jgarff/rpi_ws281x) to drive the strips.
+  - Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
 
 * `out_udp`
-	- UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
-	- An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
+  - UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
+  - An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
 
 * `out_rpi_hub75`
-	- A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
-	- Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
-	- Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
+  - A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
+  - Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
+  - Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
 
-# Modules
+## Modules
 
 By default, only modules with zero dependencies are built. Apart from the output modules, of course.
 They are the following:
 
-## Effects/Graphic Modules
+### Effects/Graphic Modules
 * `gfx_random_static`: Randomized static color.
 
 * `gfx_random_rects`: Random colored rectangle animation.
-	- Note, your matrix axies have to be dividable by 4.
+  - Note, your matrix axies have to be dividable by 4.
 
 * `gfx_twinkle`: Twinkle, twinkle, little star? Made by @20kdc.
 
 * `gfx_text`: Displays text using custom proportional font. Made by @20kdc.
-	- "Hack me" greeting by default, obviously. 8x8 or bigger required.
+  - "Hack me" greeting by default, obviously. 8x8 or bigger required.
 
 * `bgm_fish`: FIfo Shell. A small FIFO-based queue manipulator. Made by @20kdc.
-	- Shouldn't have background CPU usage as of the select abuse. Creates `sled.fish` FIFO in the sled tree.
+  - Shouldn't have background CPU usage as of the select abuse. Creates `sled.fish` FIFO in the sled tree.
 
 * `gfx_gol`: A simple black and white Conway's Game of Life clone.
 
@@ -230,19 +235,19 @@ They are the following:
 
 ---
 
-If you want to only build a specific set of modules, pass a `MODULES="myfavouritemodule bestmodule"` to the `make` line.
+If you want to only build a specific set of modules, change the "MODULES" array in your `sledconf` file.
 
 If you want to build a specific module later on, you can do the same but with just the
 module you wanna build. It'll get added to the same directory where the others are.
 Or, if you are particularly lazy, just add the module name to the make invocation.
 
-# License
+## License
 Most non-trivial files contain an explicit statement regarding the license.
 
 Anything with no statement follows the ISC, with the copyright holder being
 Adrian "vifino" Pistol, as per the `COPYING` file in this project.
 
-# Support
+## Support
 Support for sled is done on a if-i-can-find-the-time basis. Mostly, this project is for myself.
 I'll try to help everyone, but I might take some time.
 
