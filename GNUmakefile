@@ -191,8 +191,8 @@ src/slloadcore.gen.c: src/plugin.h static/k2link
 	./static/k2link $(MODULES_STATIC) > src/slloadcore.gen.c
 # The wrapper is made dependent on the module .c file not because it really has to be,
 #  but because it ensures that the compiled module depends indirectly on the module source.
-# It is, however, imperative that a dependency on the .incs file exists, because that gets copied in.
-static/modwraps/%.c: src/modules/%.c src/modules/%.incs
+# A dependency on the %.incs file SHOULD exist but doesn't because it breaks things
+static/modwraps/%.c: src/modules/%.c
 	./static/k2wrap $*
 
 # --- Platform-specific module library rules begin here ---
