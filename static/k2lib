@@ -1,0 +1,115 @@
+#!/bin/sh
+# k2link, like kslink but better structured
+# This is the main library containing functions used by it.
+#
+# Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+# Conventions for this!
+# This is a complicated shell script.
+# For safety reasons, all local variables must be prefixed with the initials of the function name.
+# All global variables will be prefixed with 'G_'.
+
+G_MTYPES="gfx bgm out flt mod"
+
+# Returns mtype funcs for a given $1 mtype in GMF_RETURN
+get_mtype_funcs() {
+ # [FUNCTION_DECLARATION_WEBRING]
+ # See: plugin.h, mod.h, k2link, mod_dl.c
+ if [ "$1" = gfx ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
+ if [ "$1" = bgm ]; then GMF_RETURN="init reset draw deinit" ; return ; fi
+ if [ "$1" = out ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
+ if [ "$1" = flt ]; then GMF_RETURN="init set get clear render getx gety wait_until wait_until_break deinit" ; return ; fi
+ if [ "$1" = mod ]; then GMF_RETURN="init setdir load unload findmods deinit" ; return ; fi
+ echo "Unable to get functions for mtype $1" > /dev/stderr
+}
+
+# Returns function signatures for a given $1 signature in GFS_RETURN
+get_func_signature() {
+ grep " $1(" src/plugin.h | grep -v "^//"
+}
+
+# Prepares the wrapper for the static module with ID $1.
+compile_static_module() {
+ CSM_MTYPE="$(echo "$1" | head -c 3)"
+ get_mtype_funcs "$CSM_MTYPE"
+ CSM_FUNCS="$GMF_RETURN"
+
+ CSM_FILE="static/modwraps/$1.c"
+ # libs are handled by the makefile, but incs need to be pulled in manually
+ rm "static/modwraps/$1.incs"
+ touch "static/modwraps/$1.incs"
+ cp "src/modules/$1.incs" "static/modwraps/$1.incs" 2>/dev/null
+
+ echo "// generated file for $1" > "$CSM_FILE"
+ for CSM_FUNC in $CSM_FUNCS; do
+  echo "#define $CSM_FUNC k2link_module_$1_function_$CSM_FUNC" >> "$CSM_FILE"
+ done
+ echo "#include \"../../src/modules/$1.c\"" >> "$CSM_FILE"
+}
+
+# Given a module in $1, writes out the bootstrap prototype code
+write_static_module_proto() {
+ WSMP_MTYPE=$(echo "$1" | head -c 3)
+ get_mtype_funcs "$WSMP_MTYPE"
+ WSMP_FUNCS="$GMF_RETURN"
+ for WSMP_FUNC in $WSMP_FUNCS; do
+  echo "#define $WSMP_FUNC k2link_module_$1_function_$WSMP_FUNC"
+  get_func_signature "$WSMP_FUNC"
+  printf "%s" "$GFS_RETURN"
+  echo "#undef $WSMP_FUNC"
+ done
+}
+
+# Given a module in $1, writes out the bootstrap loader code
+write_static_module_loader() {
+ WSML_MTYPE=$(echo "$1" | head -c 3)
+ get_mtype_funcs "$WSML_MTYPE"
+ WSML_FUNCS="$GMF_RETURN"
+ echo " if (!strcmp(modname, \"$1\")) {"
+ for WSML_FUNC in $WSML_FUNCS; do
+  echo "  y->$WSML_FUNC = k2link_module_$1_function_$WSML_FUNC;"
+ done
+ echo "  return 0;"
+ echo " }"
+}
+
+write_slloadcore() {
+ # Write out bootstrap
+ echo "#include <assert.h>"
+ echo "#include <string.h>"
+ echo "#include \"mod.h\""
+
+ for WS_x in "$@"; do
+  write_static_module_proto "$WS_x"
+ done
+
+ echo "int mod_k2link_load(int x, module* y, const char * modname) {"
+
+ for WS_x in "$@"; do
+  write_static_module_loader "$WS_x"
+ done
+
+ echo " return 1;"
+ echo "}"
+
+ echo "void mod_k2link_findmods(int x, asl_av_t* table) {"
+ echo " char * result;"
+ for WS_x in "$@"; do
+  echo " result = strdup(\"$WS_x\");"
+  echo " assert(result);"
+  echo " asl_growav(table, result);"
+ done
+ echo "}"
+}

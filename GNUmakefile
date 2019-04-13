@@ -168,7 +168,7 @@ include Makefiles/3ds.GNUmakefile
 all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF)
 
 clean: FORCE
-	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o src/slloadcore.gen.c
+	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o static/modwraps/*.incs src/slloadcore.gen.c
 	rm -f src/modules/mod_dl.c.libs
 
 default_sledconf: FORCE
@@ -186,10 +186,14 @@ modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null || true`
 
-# Prepare all statically linked modules.
-# This isn't really dependent on the HEADERS & module contents, but we pretend it is so downstream gets regenerated.
-$(MODULES_STATIC_CW) $(MODULES_STATIC_CWL) src/slloadcore.gen.c: $(HEADERS) $(ML_HEADERS) $(MODULES_STATIC_C) static/k2link
+# -- k2wrap/k2link
+src/slloadcore.gen.c: src/plugin.h static/k2link
 	./static/k2link $(MODULES_STATIC) > src/slloadcore.gen.c
+# The wrapper is made dependent on the module .c file not because it really has to be,
+#  but because it ensures that the compiled module depends indirectly on the module source.
+# It is, however, imperative that a dependency on the .incs file exists, because that gets copied in.
+static/modwraps/%.c: src/modules/%.c src/modules/%.incs
+	./static/k2wrap $*
 
 # --- Platform-specific module library rules begin here ---
 

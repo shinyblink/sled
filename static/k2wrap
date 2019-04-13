@@ -17,4 +17,4 @@
 
 . static/k2lib
 
-write_slloadcore "$@"
+compile_static_module "$@"
