@@ -94,12 +94,12 @@ Both start upper left, as that is (0, 0) for this code.
 Connected to the ports of the specific board you're using.
 
 * Raspberry Pi (Zero): See [rpi_ws281x](https://github.com/jgarff/rpi_ws281x).
-	- I can recommend using PCM, little chance it is used. It is used by default. Pin 40 on the Zero.
-	- You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
+  * I can recommend using PCM, little chance it is used. It is used by default. Pin 40 on the Zero.
+  * You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
 
 * ESP8266 DevBoard with UDP Sketch
-	- Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
-	- You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
+  * Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
+  * You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
 
 ## Building Options
 
@@ -115,58 +115,63 @@ Examples are given in the Makefiles directory, check `sledconf.*`.
 It can override various settings:
 
 * `PROJECT`
-  - The name of the final binary.
-  - Defaults to 'sled'.
+  * The name of the final binary.
+  * Defaults to 'sled'.
 
 * `PLATFORM`
-  - The platform being compiled for.
-  - Defaults to 'unix'.
-  - See src/os_unix.c and similar.
+  * The platform being compiled for.
+  * Defaults to 'unix'.
+  * See src/os_unix.c and similar.
 
 * `DEBUG`
-  - Set to 1 to add debug information to all files and disable -O2.
-  - Defaults to 0.
+  * Set to 1 to add debug information to all files and disable -O2.
+  * Defaults to 0.
 
 * `CFLAGS`
-  - Defaults to `-O2 -march=native` or `-march=native -Og -ggdb` dependent on `DEBUG`.
+  * Defaults to `-O2 -march=native` or `-march=native -Og -ggdb` dependent on `DEBUG`.
 
 * `STATIC`
-  - Set to 1 to use static linking.
-  - Set to 0 to use -ldl based linking.
-  - Defaults to 0.
+  * Set to 1 to use static linking.
+  * Set to 0 to use -ldl based linking.
+  * Defaults to 0.
 
 * `DEFAULT_OUTMOD`
-  - The default -o parameter.
-  - Defaults to "sdl2".
+  * The default -o parameter.
+  * Defaults to "sdl2".
 
 * `DEFAULT_MODULEDIR`
-  - The default -m parameter.
-  - Defaults to "./modules".
+  * The default -m parameter.
+  * Defaults to "./modules".
 
 * `MODULES`
-  - The modules being compiled.
-  - `MODULES_AVAILABLE` contains all available GFX modules.
-  - Default is this & DEFAULT_OUTMOD prefixed with `out_`.
+  * The modules being compiled.
+  * `MODULES_AVAILABLE` contains all available GFX modules.
+  * Default is this & DEFAULT_OUTMOD prefixed with `out_`.
 
 Compile with simply `make`.
 
 ## Output modules
 
 * `out_sdl2`
-  - SDL2-based virtual matrix for development.
+  * SDL2-based virtual matrix for development.
 
 * `out_rpi_ws2812b`
-  - Uses [rpi_ws281x](https://github.com/jgarff/rpi_ws281x) to drive the strips.
-  - Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
+  * Uses [rpi_ws281x](https://github.com/jgarff/rpi_ws281x) to drive the strips.
+  * Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
 
 * `out_udp`
-  - UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
-  - An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
+  * UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
+  * An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
 
 * `out_rpi_hub75`
-  - A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
-  - Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
-  - Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
+  * A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
+  * Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
+  * Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
+
+* `out_mpsse_spi`
+  * Uses [libmpsse](https://github.com/devttys0/libmpsse/) to speak SPI using USB FTDI chips utilizing the FTDI MPSSE engine.
+  * Use this to speak with [@smunaut's RGB matrix driver for iCEBreaker FPGA boards](https://github.com/smunaut/ice40-playground/tree/master/projects/rgb_panel).
+  * Also does not use `MATRIX_X`/`MATRIX_Y`.
 
 ## Modules
 
@@ -249,11 +254,11 @@ Adrian "vifino" Pistol, as per the `COPYING` file in this project.
 
 ## Support
 Support for sled is done on a if-i-can-find-the-time basis. Mostly, this project is for myself.
+
 I'll try to help everyone, but I might take some time.
 
-
-
 If you'd like to support my work or me in general, I have a [donation page](https://i0i0.me/donateme.html).
+
 Anything is highly appreciated. If you are donating via PayPal, please set a message so I can thank you!
 
 Most of the donations tracable to anything sled related will be spend buying different LED matrices and other hardware.
