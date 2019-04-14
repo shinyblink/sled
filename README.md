@@ -84,8 +84,8 @@ Check that:
 
 ## Hardware
 
-Matrix consisting of ws2812b pixels.
-Minimum recommended size is 8x8, anything less and you won't see much of the effects.
+Matrix consisting of ws2812b pixels, or HUB75/HUB75E LED matrix panels.
+Minimum recommended size of a matrix is 8x8, anything less and you won't see much of the effects.
 
 Can handle a ~~maximum 256x256~~ pretty ridiculous matrix (switched to ints) in either plain or snake tiling.
 Plain means every row starts with the left pixel, while snake means it changes starting position every tile.
@@ -96,10 +96,19 @@ Connected to the ports of the specific board you're using.
 * Raspberry Pi (Zero): See [rpi_ws281x](https://github.com/jgarff/rpi_ws281x).
   * I can recommend using PCM, little chance it is used. It is used by default. Pin 40 on the Zero.
   * You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
-
+  
 * ESP8266 DevBoard with UDP Sketch
   * Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
   * You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
+  
+* Raspberry Pi 3: Bitbanging HUB75 LED panels.
+  * High performance RaspberryPi is needed as bitbanging is quite resource intensive.
+  
+* iCEBreaker FPGA with LED Panel Driver Pmod
+  * You can use the MPSSE SPI sled output module in combination with @smunaut [rgb_led panel design](https://github.com/smunaut/ice40-playground/tree/master/projects/rgb_panel).
+  
+Note: When buying HUB75 LED panels be very careful what shift registers are used for the panel. When buying from Aliexpress you should explicitly ask for Panels with the ICN2037.
+Note: If you have HUB75 LED panels that use for example the FM6126A shift registers you will need a driver that can set up the panels on power up. For more information refer to the [lengthy discussion on hzeller's RPi LED Matrix repo](https://github.com/hzeller/rpi-rgb-led-matrix/issues/746).
 
 ## Building Options
 
