@@ -37,7 +37,7 @@ get_mtype_funcs() {
 
 # Returns function signatures for a given $1 signature in GFS_RETURN
 get_func_signature() {
- grep " $1(" src/plugin.h | grep -v "^//"
+ grep " $1(" include/sled/plugin.h | grep -v "^//"
 }
 
 # Prepares the wrapper for the static module with ID $1.
@@ -89,7 +89,7 @@ write_slloadcore() {
  # Write out bootstrap
  echo "#include <assert.h>"
  echo "#include <string.h>"
- echo "#include \"mod.h\""
+ echo "#include <sled/mod.h>"
 
  for WS_x in "$@"; do
   write_static_module_proto "$WS_x"

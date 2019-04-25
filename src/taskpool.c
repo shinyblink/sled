@@ -14,10 +14,10 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include "taskpool.h"
+#include <sled/taskpool.h>
 #include <stdlib.h>
-#include "types.h"
-#include "timers.h"
+#include <sled/types.h>
+#include <sled/timers.h>
 #include <stdlib.h>
 
 // So, the locking system needed a bit of a rethink...

@@ -22,13 +22,13 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <matrix.h>
-#include <timers.h>
-#include <random.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
+#include <sled/random.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <timers.h>
+#include <sled/timers.h>
 #include <stdio.h>
 
 #define FPS 60

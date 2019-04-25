@@ -1,13 +1,13 @@
 // A fire-like animation.
 
-#include <types.h>
-#include <matrix.h>
-#include <timers.h>
-#include <random.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
+#include <sled/random.h>
 #include <stdlib.h>
 #include <stddef.h>
 #include <math.h>
-#include <mathey.h>
+#include <sled/mathey.h>
 
 #define FRAMES 255
 #define FRAMETIME ((TIME_LONG * T_SECOND) / 255)

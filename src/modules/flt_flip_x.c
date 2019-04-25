@@ -14,9 +14,9 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <timers.h>
-#include <plugin.h>
+#include <sled/types.h>
+#include <sled/timers.h>
+#include <sled/plugin.h>
 
 PGCTX_BEGIN_FILTER
 PGCTX_END

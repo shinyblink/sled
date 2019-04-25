@@ -15,11 +15,11 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include "types.h"
+#include <sled/types.h>
 #include <string.h>
 #include <assert.h>
-#include "mod.h"
-#include "main.h"
+#include <sled/mod.h>
+#include <sled/main.h>
 
 // This is where the matrix functions send output.
 // It is the root of the output chain.

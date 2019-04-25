@@ -3,9 +3,9 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "asl.h"
-#include "mod.h"
-#include "modloader.h"
+#include <sled/asl.h>
+#include <sled/mod.h>
+#include <sled/modloader.h>
 
 // This memory is managed in main.c...
 char* modloader_modpath = NULL;

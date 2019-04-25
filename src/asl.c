@@ -20,8 +20,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "timers.h"
-#include "asl.h"
+#include <sled/timers.h>
+#include <sled/asl.h>
 
 // Adds a character to a string, and disposes of the old one, unless it's NULL (in which case this creates a new one-char string)
 // Can return NULL itself on malloc failure (in which case the original is still freed)

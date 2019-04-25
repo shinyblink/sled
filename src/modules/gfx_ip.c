@@ -14,8 +14,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <matrix.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +26,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include <block_for.h>
+#include <sled/block_for.h>
 
 #include "text.h"
 

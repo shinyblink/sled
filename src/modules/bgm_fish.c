@@ -25,14 +25,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <oscore.h>
+#include <sled/oscore.h>
 #include <string.h>
 #include <assert.h>
 
-#include "timers.h"
-#include "matrix.h"
-#include "main.h"
-#include "plugin.h"
+#include <sled/timers.h>
+#include <sled/matrix.h>
+#include <sled/main.h>
+#include <sled/plugin.h>
 
 static int fish_fifo;
 static oscore_task fish_task;

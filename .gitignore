@@ -5,8 +5,8 @@ sledconf
 *.o
 *.so
 /modules
-sled
-sled.fish
+/sled
+/sled.fish
 
 # crashy stuff
 *.core

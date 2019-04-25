@@ -20,8 +20,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/timers.h>
 #include <assert.h>
 
 #include <stdio.h>
@@ -29,7 +29,7 @@
 #include <sys/ioctl.h>
 #include <string.h>
 #include <stdlib.h>
-#include <taskpool.h>
+#include <sled/taskpool.h>
 
 // not sure which i like more..
 #define TERM_CHAR "●"

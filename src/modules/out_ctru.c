@@ -1,7 +1,7 @@
 // Actually now a libctru output
 
-#include <types.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/timers.h>
 #include <stdlib.h>
 #include <3ds.h>
 #include <string.h>

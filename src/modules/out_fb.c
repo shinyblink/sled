@@ -2,8 +2,8 @@
 // Only accepts specific framebuffer types for code simplicity.
 // In theory this helps w/ BSD support.
 
-#include <types.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/timers.h>
 #include <sys/param.h>
 #include <fcntl.h>
 #include <sys/types.h>

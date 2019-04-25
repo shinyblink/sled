@@ -30,17 +30,17 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <oscore.h>
+#include <sled/oscore.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
 
 
-#include "timers.h"
-#include "matrix.h"
-#include "main.h"
-#include "mod.h"
-#include "asl.h"
+#include <sled/timers.h>
+#include <sled/matrix.h>
+#include <sled/main.h>
+#include <sled/mod.h>
+#include <sled/asl.h>
 
 // It is *IMPOSSIBLE* for an OPC client to send a length that escapes this buffer.
 static byte opc_array[65536];

@@ -16,10 +16,10 @@
 
 // TODO: implement width of strokes, maybe fix the 13?
 
-#include <types.h>
-#include <plugin.h>
-#include <matrix.h>
-#include <graphics.h>
+#include <sled/types.h>
+#include <sled/plugin.h>
+#include <sled/matrix.h>
+#include <sled/graphics.h>
 #include <stdlib.h>
 
 static int minsize = 16;

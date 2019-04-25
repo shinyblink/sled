@@ -1,7 +1,7 @@
 // Small proportional text renderer.
 // Font is 8px tall at maximum.
 
-#include <types.h>
+#include <sled/types.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>

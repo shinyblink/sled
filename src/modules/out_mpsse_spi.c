@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <types.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/timers.h>
 #include <stdint.h>
-#include <colors.h>
+#include <sled/colors.h>
 #include <mpsse.h>
 
 typedef struct matrix {

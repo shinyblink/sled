@@ -1,5 +1,5 @@
 // Text stuff.
-#include <types.h>
+#include <sled/types.h>
 
 typedef struct text_column {
 	byte data[8];

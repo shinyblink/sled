@@ -16,8 +16,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <plugin.h>
+#include <sled/types.h>
+#include <sled/plugin.h>
 #include <math.h>
 
 #define GAMMA 2.8f

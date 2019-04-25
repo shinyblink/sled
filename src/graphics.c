@@ -14,10 +14,10 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include "types.h"
-#include "matrix.h"
+#include <sled/types.h>
+#include <sled/matrix.h>
 #include <math.h>
-#include "mathey.h"
+#include <sled/mathey.h>
 #include <stdlib.h>
 
 // PREV: replace this. 20kdc, looking at you.

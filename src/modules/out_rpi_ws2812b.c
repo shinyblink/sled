@@ -31,10 +31,10 @@
 #define COLOR_ORDER_GRB // for now, neopixel/ws2812b style
 #endif
 
-#include <types.h>
+#include <sled/types.h>
 #include <string.h>
-#include <timers.h>
-#include <matrix.h>
+#include <sled/timers.h>
+#include <sled/matrix.h>
 
 // Calculation for amount of bytes needed.
 

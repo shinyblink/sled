@@ -14,16 +14,16 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include "types.h"
-#include "matrix.h"
-#include "mod.h"
-#include "timers.h"
-#include "random.h"
-#include "util.h"
-#include "asl.h"
-#include "oscore.h"
-#include "taskpool.h"
-#include "modloader.h"
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/mod.h>
+#include <sled/timers.h>
+#include <sled/random.h>
+#include <sled/util.h>
+#include <sled/asl.h>
+#include <sled/oscore.h>
+#include <sled/taskpool.h>
+#include <sled/modloader.h>
 
 #include <stdio.h>
 #include <stdlib.h>

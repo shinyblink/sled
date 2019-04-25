@@ -2,14 +2,14 @@
 // Anyone who makes the "this is out of scope" joke... Uh, vifino, are we allowed to say what happens to them?
 // Apparently the answer is: "hahaha" "No. >:)" I assume by that they get nice happy hugs. -20kdc
 
-#include <types.h>
-#include <plugin.h>
-#include <matrix.h>
-#include <timers.h>
-#include <graphics.h>
-#include <oscore.h>
+#include <sled/types.h>
+#include <sled/plugin.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
+#include <sled/graphics.h>
+#include <sled/oscore.h>
 #include <stdio.h>
-#include <random.h>
+#include <sled/random.h>
 #include <alsa/asoundlib.h>
 #include <math.h>
 

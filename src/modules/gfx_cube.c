@@ -3,16 +3,16 @@
 
 // First we do our links dynamic,
 
-#include <types.h>
-#include <plugin.h>
-#include <matrix.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/plugin.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
 #include <stdio.h>
-#include <random.h>
+#include <sled/random.h>
 #include <math.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <graphics.h>
+#include <sled/graphics.h>
 
 // Then a bunch of defines,
 #define FPS 60

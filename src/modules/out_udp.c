@@ -16,8 +16,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/timers.h>
 #include <stdlib.h>
 
 #include <stdlib.h>
@@ -28,7 +28,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <util.h>
+#include <sled/util.h>
 #include <assert.h>
 
 #define BUFLEN 1024

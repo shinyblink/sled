@@ -15,16 +15,16 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  
-#include "types.h"
+#include <sled/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "mod.h"
-#include "asl.h"
-#include "oscore.h"
-#include "main.h"
-#include "timers.h"
+#include <sled/mod.h>
+#include <sled/asl.h>
+#include <sled/oscore.h>
+#include <sled/main.h>
+#include <sled/timers.h>
 
 static struct timer TIMERS[MAX_TIMERS];
 static int timer_count = 0;

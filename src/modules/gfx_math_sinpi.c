@@ -14,15 +14,15 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <matrix.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
 #include <math.h>
 #include <stddef.h>
-#include <graphics.h>
+#include <sled/graphics.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mathey.h>
+#include <sled/mathey.h>
 
 
 #define FRAMETIME (T_SECOND / 30)

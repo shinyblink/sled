@@ -19,12 +19,12 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include <types.h>
-#include <plugin.h>
-#include <matrix.h>
-#include <graphics.h>
+#include <sled/types.h>
+#include <sled/plugin.h>
+#include <sled/matrix.h>
+#include <sled/graphics.h>
 #include <stdlib.h>
-#include <random.h>
+#include <sled/random.h>
 
 #include "text.h"
 

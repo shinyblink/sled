@@ -20,10 +20,10 @@
 #include <assert.h>
 #include <dirent.h>
 #include <dlfcn.h>
-#include "types.h"
-#include "plugin.h"
-#include "util.h"
-#include "oscore.h"
+#include <sled/types.h>
+#include <sled/plugin.h>
+#include <sled/util.h>
+#include <sled/oscore.h>
 
 PGCTX_BEGIN
 	char * dirbuf;

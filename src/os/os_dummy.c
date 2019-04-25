@@ -15,10 +15,10 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include "../types.h"
-#include "../oscore.h"
-#include "../main.h"
-#include "../timers.h"
+#include <sled/types.h>
+#include <sled/oscore.h>
+#include <sled/main.h>
+#include <sled/timers.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <assert.h>

@@ -31,17 +31,17 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <oscore.h>
+#include <sled/oscore.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
 
-#include "timers.h"
-#include "matrix.h"
-#include "main.h"
-#include "mod.h"
-#include "asl.h"
-#include "taskpool.h"
+#include <sled/timers.h>
+#include <sled/matrix.h>
+#include <sled/main.h>
+#include <sled/mod.h>
+#include <sled/asl.h>
+#include <sled/taskpool.h>
 
 // 😥
 static RGB * px_array;

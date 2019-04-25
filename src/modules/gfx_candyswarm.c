@@ -7,15 +7,15 @@
  * moves, rotates and zooms seemingly randomly over that canvas, showing what that "camera" sees.
  */
 
-#include <types.h>
-#include <matrix.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
 #include <stddef.h>
-#include <mathey.h>
+#include <sled/mathey.h>
 #include <math.h>
-#include <perf.h>
+#include <sled/perf.h>
 #include <stdlib.h>
-#include <random.h>
+#include <sled/random.h>
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)

@@ -10,9 +10,9 @@
 // http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative 
 // Commons, PO Box 1866, Mountain View, CA 94042, USA.
 
-#include "types.h"
+#include <sled/types.h>
 #include <stdlib.h>
-#include "timers.h"
+#include <sled/timers.h>
 
 void random_seed(void) {
 	// Dumbass way of seeding the pseudo RNG.

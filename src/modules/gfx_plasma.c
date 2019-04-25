@@ -1,15 +1,15 @@
 // A plasma, kinda ported from borgware: https://github.com/das-labor/borgware-2d/blob/master/src/animations/fpmath_patterns.c
 // Done so with permission from Christian Kroll. Many thanks!
 
-#include <types.h>
-#include <matrix.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
 #include <math.h>
 #include <stddef.h>
-#include <graphics.h>
+#include <sled/graphics.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <random.h>
+#include <sled/random.h>
 
 #define FRAMETIME (T_SECOND / 60)
 #define FRAMES (TIME_MEDIUM * 60)

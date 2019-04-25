@@ -5,11 +5,11 @@
  *
  */
 
-#include <types.h>
-#include <matrix.h>
-#include <timers.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
 #include <stddef.h>
-#include <mathey.h>
+#include <sled/mathey.h>
 #include <math.h>
 
 #define FPS 60

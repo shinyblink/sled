@@ -92,7 +92,7 @@ else
  CFLAGS += -Og -ggdb
  CPPFLAGS += -DDEBUG
 endif
-CPPFLAGS += -Wall
+CPPFLAGS += -Iinclude -Wall
 
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
@@ -121,11 +121,11 @@ SOURCES += src/matrix.c   src/random.c      src/timers.c  src/util.c
 SOURCES += src/color.c    src/graphics.c    src/mathey.c
 SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c         src/modloader.c
 
-HEADERS := src/graphics.h src/main.h        src/mod.h
-HEADERS += src/matrix.h   src/plugin.h      src/timers.h  src/util.h
-HEADERS += src/asl.h      src/mathey.h      src/modloader.h
-HEADERS += src/random.h   src/types.h       src/oscore.h  src/perf.h
-HEADERS += src/taskpool.h src/ext/farbherd.h
+HEADERS := include/sled/graphics.h include/sled/main.h        include/sled/mod.h
+HEADERS += include/sled/matrix.h   include/sled/plugin.h      include/sled/timers.h  include/sled/util.h
+HEADERS += include/sled/asl.h      include/sled/mathey.h      include/sled/modloader.h
+HEADERS += include/sled/random.h   include/sled/types.h       include/sled/oscore.h  include/sled/perf.h
+HEADERS += include/sled/taskpool.h include/sled/ext/farbherd.h
 
 # Module libraries.
 # If we're statically linking, we want these to be around at all times.
@@ -187,7 +187,7 @@ modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null || true`
 
 # -- k2wrap/k2link
-src/slloadcore.gen.c: src/plugin.h static/k2link
+src/slloadcore.gen.c: include/sled/plugin.h static/k2link
 	./static/k2link $(MODULES_STATIC) > src/slloadcore.gen.c
 # The wrapper is made dependent on the module .c file not because it really has to be,
 #  but because it ensures that the compiled module depends indirectly on the module source.

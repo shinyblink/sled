@@ -9,12 +9,12 @@
   Donated to sled by orithena. Many thanks!
 */
 
-#include <types.h>
-#include <matrix.h>
-#include <timers.h>
-#include <random.h>
+#include <sled/types.h>
+#include <sled/matrix.h>
+#include <sled/timers.h>
+#include <sled/random.h>
 #include <stddef.h>
-#include <random.h>
+#include <sled/random.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>

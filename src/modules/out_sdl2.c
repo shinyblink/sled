@@ -27,10 +27,10 @@
 #error Define MATRIX_Y as the matrixes Y size.
 #endif
 
-#include <types.h>
+#include <sled/types.h>
 #include <string.h>
 #include <assert.h>
-#include <timers.h>
+#include <sled/timers.h>
 
 // Calculation for amount of bytes needed.
 #include <SDL2/SDL.h>
