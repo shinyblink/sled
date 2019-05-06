@@ -30,7 +30,6 @@
 static int modno;
 static RGB white = RGB(255, 255, 255);
 static RGB black = RGB(0, 0, 0);
-static int frame;
 static int line;
 static ulong nexttick;
 
@@ -76,11 +75,7 @@ int draw(int _modno, int argc, char* argv[]) {
 
     line ++;
     if(line > matrix_gety() -1)
-    {
-        line = 1;
-        matrix_clear();
-        rule90_init_line(0);
-    }
+        return 1;
 
     int cells = 0;
 
@@ -95,12 +90,6 @@ int draw(int _modno, int argc, char* argv[]) {
 
     matrix_render();
 
-    if (frame >= FRAMES) {
-        frame = 0;
-        return 1;
-    }
-    frame ++;
-
     nexttick += FRAMETIME;
     timer_add(nexttick, modno, 0, NULL);
     return 0;
@@ -109,7 +98,6 @@ int draw(int _modno, int argc, char* argv[]) {
 void reset(int _modno) {
     nexttick = udate();
     line = 0;
-    frame = 0;
     matrix_clear();
     rule90_init_line(line);
 }
