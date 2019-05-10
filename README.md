@@ -247,7 +247,7 @@ They are the following:
 
 * `gfx_afterglow`: CRT Tube like glow effect that uses the last image of the previous effec. by @cyriax0
 
-* `gfx_rule90`: [Rule90](https://en.wikipedia.org/wiki/Rule_90) cellular automata. by Matt Venn
+* `gfx_rule90`: [Rule90](https://en.wikipedia.org/wiki/Rule_90) cellular automata. by @mattvenn 
 ---
 
 If you want to only build a specific set of modules, change the "MODULES" array in your `sledconf` file.
