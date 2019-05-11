@@ -11,7 +11,7 @@ GFXMODS_AVAILABLE += gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
 GFXMODS_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D
 GFXMODS_AVAILABLE += gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_AVAILABLE += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
-GFXMODS_AVAILABLE += gfx_no13 gfx_candyswarm gfx_ursuppe2
+GFXMODS_AVAILABLE += gfx_no13 gfx_candyswarm gfx_ursuppe2 gfx_rule90
 
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 
