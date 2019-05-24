@@ -90,6 +90,7 @@ static bool USE_DAMPENING;
 static bool USE_ROTATION;
 static bool USE_PULSATION_DAMPENING;
 static bool USE_POTENTIAL_DAMPENING;
+static bool USE_POTENTIAL_BULK;
 static bool USE_TRAILS;
 static int TRAIL_LENGTH;
 static RGB MONOCHROMATIC_COLOR;
@@ -164,6 +165,7 @@ void reset(void) {
     USE_DAMPENING = false;
     USE_ROTATION = false;
     USE_POTENTIAL_DAMPENING = false;
+    USE_POTENTIAL_BULK = false;
     USE_PULSATION_DAMPENING = false;
     USE_TRAILS = true;
     TRAIL_LENGTH = 230;
@@ -171,9 +173,9 @@ void reset(void) {
     MONOCHROMATIC_COLOR = RGB(255,255,255);
     POTENTIAL_SIZE = 1;
     POTENTIAL_ECCENTRICITY = 0.8;
-    int r = randn(15);
+    int r = randn(18);
     int i = 1;
-    //r = 6;
+    r = 18;
     if (r == i++){ // 1
         USE_TRAILS = false;
     } else if (r == i++){ // 2
@@ -251,6 +253,42 @@ void reset(void) {
         USE_COLOR = true;
         USE_PULSATION = true;
         USE_ADDITIVE_COLOR = true;
+    } else if (r == i++){ // 16
+        POTENTIAL_ECCENTRICITY = 0.8;
+        POTENTIAL_SIZE = 0.8;
+        USE_POTENTIAL= true;
+        USE_POTENTIAL_BULK = true;
+        USE_DAMPENING = true;
+        USE_POTENTIAL_DAMPENING = true;
+        USE_PERTURBATION = true;
+        TRAIL_LENGTH = 240;
+        USE_COLOR = false;
+        USE_ADDITIVE_COLOR = true;
+        MONOCHROMATIC_COLOR = RGB(40,40,40);
+    } else if (r == i++){ // 17
+        POTENTIAL_ECCENTRICITY = 0.8;
+        POTENTIAL_SIZE = 0.8;
+        USE_POTENTIAL= true;
+        USE_POTENTIAL_BULK = true;
+        USE_DAMPENING = true;
+        USE_POTENTIAL_DAMPENING = true;
+        USE_PERTURBATION = false;
+        TRAIL_LENGTH = 240;
+        USE_COLOR = false;
+        USE_ADDITIVE_COLOR = true;
+        MONOCHROMATIC_COLOR = RGB(40,40,40);
+    } else if (r == i++){ // 18
+        POTENTIAL_ECCENTRICITY = 0.2;
+        POTENTIAL_SIZE = 0.8;
+        USE_POTENTIAL= true;
+        USE_POTENTIAL_BULK = true;
+        USE_DAMPENING = false;
+        USE_POTENTIAL_DAMPENING = true;
+        USE_PERTURBATION = false;
+        TRAIL_LENGTH = 240;
+        USE_COLOR = true;
+        USE_ADDITIVE_COLOR = true;
+        MONOCHROMATIC_COLOR = RGB(40,40,40);
     }
 
 
@@ -365,6 +403,11 @@ int draw(int argc, char* argv[]) {
         if (USE_POTENTIAL){
             b->vel_x += -rr*rr*rr*rr*xx/100;
             b->vel_y += -rr*rr*rr*rr*yy/(100*POTENTIAL_ECCENTRICITY);
+            if (USE_POTENTIAL_BULK){
+                b->vel_x += rr*rr*xx/100;
+                b->vel_y += rr*rr*yy/(100*POTENTIAL_ECCENTRICITY);
+            }
+
         }
         
         if (USE_ROTATION){
