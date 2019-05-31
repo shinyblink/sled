@@ -175,7 +175,7 @@ void reset(void) {
     POTENTIAL_ECCENTRICITY = 0.8;
     int r = randn(18);
     int i = 1;
-    r = 18;
+    //r = 18;
     if (r == i++){ // 1
         USE_TRAILS = false;
     } else if (r == i++){ // 2
