@@ -191,8 +191,8 @@ void reset(int _modno) {
 	mx = matrix_getx();
 	my = matrix_gety();
 	maze = init_maze(mx, my);
-	x_stack = stack_create(mx * my);
-	y_stack = stack_create(mx * my);
+	x_stack = stack_create((mx * my) / 2);
+	y_stack = stack_create((mx * my) / 2);
 	int x = randn(mx-2)+1;
 	int y = randn(my-2)+1;
 	stack_push(x_stack, x);
