@@ -1,5 +1,5 @@
 // Simple maze animation.
-// Maze algorithm taken from: https://github.com/Figglewatts/mazegen
+// Maze algorithm by Sam "Figglewatts" Gibson: https://github.com/Figglewatts/mazegen
 // Thank you kind stranger!
 //
 // Copyright (c) 2019, Cyrill "xermic" Leutwiler <me@09f9.org>
@@ -36,8 +36,7 @@
 
 #define NUM_DIRS 4
 typedef struct Stack Stack; // forward declaration
-extern int directions[];
-int directions[] = { 0, 1, 2, 3 };
+static int directions[] = { 0, 1, 2, 3 };
 static int* maze;
 static Stack* x_stack;
 static Stack* y_stack;
@@ -55,7 +54,7 @@ typedef struct Stack {
 	int* array;
 } Stack;
 
-Stack* stack_create(unsigned capacity) {
+static inline Stack* stack_create(unsigned capacity) {
 	Stack* stack = (Stack*) malloc(sizeof(Stack));
 	stack->capacity = capacity;
 	stack->top = -1;
@@ -63,34 +62,27 @@ Stack* stack_create(unsigned capacity) {
 	return stack;
 }
 
-bool stack_isfull(Stack* stack) {
+static inline bool stack_isfull(Stack* stack) {
 	return stack->top == stack->capacity - 1;
 }
 
-bool stack_isempty(Stack* stack) {
+static inline bool stack_isempty(Stack* stack) {
 	return stack->top == -1;
 }
 
-void stack_grow(Stack* stack, unsigned size) {
-	if (stack->capacity >= size)
-		return;
-	stack->array = realloc(stack->array, size * sizeof(int));
-	stack->capacity = size;
-}
-
-void stack_push(Stack* stack, int item) {
+static inline void stack_push(Stack* stack, int item) {
 	if (stack_isfull(stack))
-		stack_grow(stack, stack->capacity * 2);
+		return;
 	stack->array[++stack->top] = item;
 }
 
-int stack_pop(Stack* stack) {
+static inline int stack_pop(Stack* stack) {
 	if (stack_isempty(stack))
 		return INT_MIN;
 	return stack->array[stack->top--];
 }
 
-int* init_maze(unsigned width, unsigned height) {
+static inline int* init_maze(unsigned width, unsigned height) {
 	int* maze = (int*) malloc(width * height * sizeof(int));
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
@@ -100,7 +92,7 @@ int* init_maze(unsigned width, unsigned height) {
 	return maze;
 }
 
-void shuffle(int* array, size_t n) {
+static inline void shuffle(int* array, size_t n) {
 	if (n > 1) {
 		for (int i = 0; i < n - 1; i++) {
 			int j = i + rand() / (RAND_MAX / (n - i) + 1);
@@ -111,7 +103,7 @@ void shuffle(int* array, size_t n) {
 	}
 }
 
-bool carve_maze(int* maze, unsigned width, unsigned height, Stack* x_stack, Stack* y_stack) {
+static bool carve_maze(int* maze, unsigned width, unsigned height, Stack* x_stack, Stack* y_stack) {
 	shuffle(directions, NUM_DIRS);
 	int x = stack_pop(x_stack);
 	int y = stack_pop(y_stack);
@@ -172,7 +164,7 @@ bool carve_maze(int* maze, unsigned width, unsigned height, Stack* x_stack, Stac
 	return didit;
 }
 
-void render_maze(int *maze, unsigned width, unsigned height) {
+static inline void render_maze(int *maze, unsigned width, unsigned height) {
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
 			RGB color = HSV2RGB(HSV((y + x + frame) % 255, 255, 255));
@@ -199,8 +191,8 @@ void reset(int _modno) {
 	mx = matrix_getx();
 	my = matrix_gety();
 	maze = init_maze(mx, my);
-	x_stack = stack_create(32);
-	y_stack = stack_create(32);
+	x_stack = stack_create(mx * my);
+	y_stack = stack_create(mx * my);
 	int x = randn(mx-2)+1;
 	int y = randn(my-2)+1;
 	stack_push(x_stack, x);
@@ -215,7 +207,7 @@ void reset(int _modno) {
 
 int draw(int _modno, int argc, char* argv[]) {
 	while (!carve_maze(maze, mx, my, x_stack, y_stack)) {
-		if (stack_isempty(x_stack) || frame >= FRAMES) {
+		if (stack_isempty(x_stack) || stack_isfull(y_stack) || frame >= FRAMES) {
 			frame = 0;
 			return 1;
 		}
