@@ -197,6 +197,27 @@ int set(int _modno, int x, int y, RGB color) {
 	return 0;
 }
 
+RGB get(int _modno, int x, int y) {
+	assert(x >= 0);
+	assert(y >= 0);
+	assert(x < fbdev_w);
+	assert(y < fbdev_h);
+
+	if (!(fbdev_flags & SLEDFB_PLANAR)) {
+		int i = (x + (y * fbdev_w)) * ((fbdev_flags & SLEDFB_P4EN) ? 4 : 3);
+		if (fbdev_flags & SLEDFB_P4AF)
+			i++;
+		return RGB((fbdev_flags & SLEDFB_BGR) ? buf[i + 2] : buf[i], buf[i + 1], (fbdev_flags & SLEDFB_BGR) ? buf[i] : buf[i + 2]); 
+	} else {
+		int i = x + (y * fbdev_w);
+		int p = fbdev_w * fbdev_h;
+		if (fbdev_flags & SLEDFB_P4AF)
+			i += p;
+		return RGB((fbdev_flags & SLEDFB_BGR) ? buf[i + (p * 2)] : buf[i], buf[i + p], (fbdev_flags & SLEDFB_BGR) ? buf[i] : buf[i + (p * 2)]); 
+	}
+}
+
+
 int clear(int _modno) {
 	int i;
 	if (fbdev_flags & SLEDFB_P4AI) {
