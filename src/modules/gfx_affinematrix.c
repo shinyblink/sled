@@ -145,7 +145,6 @@ int draw(int _modno, int argc, char* argv[]) {
 
 	// pre-calculate some variables outside the loop
 	float pc1 = cosf(runvar[1]);
-	float pc121 = 0.125+((pc1/4) * sinf(runvar[11]));
 	float pc01 = runvar[0] + pc1;
 	float pc10 = (mx2*sinf(runvar[10]));
 
