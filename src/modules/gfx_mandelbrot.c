@@ -221,8 +221,6 @@ void drawrow(void* row) {
 }
 
 int draw(int _modno, int argc, char* argv[]) {
-	int py;
-
 	taskpool_forloop(TP_GLOBAL, &drawrow, 0, my);
 	taskpool_wait(TP_GLOBAL);
 

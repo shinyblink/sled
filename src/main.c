@@ -73,6 +73,7 @@ static int deinit(void) {
 	return 0;
 }
 
+#ifndef CIMODE
 static int pick_next_random(int current_modno, ulong in) {
 	int next_mod;
 
@@ -88,6 +89,7 @@ static int pick_next_random(int current_modno, ulong in) {
 	}
 	return timer_add(in, next_mod, 0, NULL);
 }
+#endif
 
 #ifdef CIMODE
 static int pick_next_seq(int current_modno, ulong in) {

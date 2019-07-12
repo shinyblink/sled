@@ -189,17 +189,12 @@ int draw(int _modno, int argc, char* argv[]) {
 			float hue = crossfadef(fader, hue1, hue2);
 
 			// calculate value of HSV float value
-			int i_val1 = (int)(_abs(sc)*512);
-			byte b_val1 = _min(255, i_val1);
 			int i_val2 = (int)(_abs(sc+0.125)*320);
 			byte b_val2 = _min(255, i_val2);
-			byte b_val = crossfadei(fader, i_val1, i_val2) & 0xFF;
 
 			// calculate byte value of HSV float hue ( [0.0..1.0] -> [0..255], overflows are intended! )
 			int i_hue1 = (int)(hue*256);
 			int i_hue2 = (int)(hue*256) + i_val2;
-			byte b_hue1 = (i_hue1 & 0xFF);
-			byte b_hue2 = (i_hue2 & 0xFF);
 			byte b_hue = crossfadei(fader, i_hue1, i_hue2) & 0xFF;
 
 			// convert HSV to RGB

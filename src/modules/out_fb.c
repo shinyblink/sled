@@ -7,6 +7,7 @@
 #include <sys/param.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -230,7 +231,7 @@ int clear(int _modno) {
 			}
 		} else {
 			memset(buf, 0, fbdev_w * fbdev_h * 4);
-			char * buf2 = buf;
+			unsigned char * buf2 = buf;
 			if (!(fbdev_flags & SLEDFB_P4AF))
 				buf2 += (fbdev_w * fbdev_h) * 3;
 			memset(buf2, 255, fbdev_w * fbdev_h);

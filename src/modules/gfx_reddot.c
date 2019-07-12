@@ -31,7 +31,6 @@
 static int modno;
 static ulong frame;
 static ulong nexttick;
-static const char precalc[] = {1,2,3};
 
 static int mx,my;
 static int bx,by;

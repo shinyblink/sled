@@ -127,8 +127,8 @@ static RGB colorwheel(int angle){
 
 int init(int moduleno, char* argstr) {
     die = 10;
-    while (--die);
-    
+    while (--die){}
+
 	mx = matrix_getx();
 	my = matrix_gety();
 
