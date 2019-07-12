@@ -32,14 +32,6 @@ static float fx, fy;		// size-dependent factors
 // Higher numbers mean that the camera is farther away from the canvas.
 static const float scale_factor = 4*M_PI;
 
-// maximum effect color range per frame. Values between 32 and 1024 are interesting here.
-// Values above 255 let the rainbow overflow inside the effect range... well, it's hard to describe ^^
-static const int effect_color_range = 	255;
-
-// middle of the scale factor range (the scale factors will revolve around these values). Keep them between 0.0 and 1.0.
-static const float offset_scale_x =	0.35f;
-static const float offset_scale_y =	0.35f;
-
 /*** module run variables (internal state) ***/
 
 // primary matrix coefficient run variables
