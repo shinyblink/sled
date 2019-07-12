@@ -60,7 +60,6 @@ static int comparisons_cold;
 static int exit_flag;
 
 // SETTINGS
-static const int s_color_range = 700;
 static const int s_generator_step = 8;
 static const int s_boring_percentage = 8;
 
@@ -82,11 +81,8 @@ static RGB colorwheel(int angle){
 	case 3: return RGB(0,255-v,255);
 	case 4: return RGB(v,0,255);
 	case 5: return RGB(255,0,255-v);
+	default: return RGB(0,0,0);
 	}
-}
-
-static RGB randcolor(){
-	return colorwheel(randn(1536));
 }
 
 static void fill_data(){
@@ -260,7 +256,7 @@ static void own_reset(){
     // timing
 #ifdef SORT_TIMING
     if (timer_n)
-        printf("Avg: sort %dus, draw %dus",td1_acc/timer_n,td2_acc/timer_n);
+        printf("Avg: sort %luus, draw %luus",td1_acc/timer_n,td2_acc/timer_n);
 #endif
     td1_acc=0;
     td2_acc=0;
@@ -288,8 +284,8 @@ int draw(int _modno, int argc, char* argv[]) {
 
 	for (int i=0;i<mx;i++){
 		for (int j=0;j<my;j++){
-            int doffset = i+mx*j;
 #ifdef USE_BITMASK
+            int doffset = i+mx*j;
             if (data_bitmask[doffset/8] & (1<<(doffset%8)))
 #endif
                 matrix_set(i,j,colorwheel(data[i+mx*j]));
