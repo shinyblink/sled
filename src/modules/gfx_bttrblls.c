@@ -52,11 +52,8 @@ static RGB colorwheel(int angle){
     case 3: return RGB(0,255-v,255);
     case 4: return RGB(v,0,255);
     case 5: return RGB(255,0,255-v);
+    default: return RGB(0,0,0);
     }
-}
-
-static RGB randcolor(){
-    return colorwheel(randn(1536));
 }
 
 int init(int moduleno, char* argstr) {
