@@ -50,13 +50,13 @@ static int __yield_value;
 
 // sorting algorithm internals
 static int i,j;
-static int a,b,c,d;
+static int a,b,c;
 static int inversions;
 static int step,stage,stride;
 static int iMin;
 static int start,end,child,root,swapable;
 static int last;
-static int partner,merge;
+static int partner;
 static int log_size;
 static int l,r,ll,rr,stack_p;
 
@@ -68,11 +68,9 @@ static int pairwise_sorting_net(){
     //printf("ls:%d\n",log_size);
     for (stage = 0;stage<log_size;stage++){
         for (i = 0;i<n;i++){
-            int box_size = 1<<stage;
             int box_start = (i>>(stage+1))<<(stage+1);
             int step_size = 1<<stage;
             partner = (i-step_size < box_start) ? i + step_size : i - step_size;
-            //printf("    %d <-> %d b:%d-%d (%d) >%d\n",i,partner,box_start,box_start+box_size-1,box_size,step_size);
             if (partner > i && partner < n) {
                 cmp_swap(i,partner);
                 YIELD(1);
