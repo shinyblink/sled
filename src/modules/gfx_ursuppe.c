@@ -59,7 +59,9 @@ static well* wells;
 static int mx;
 static int my;
 
+#if NO_TRAILS
 static RGB black = RGB(0, 0, 0);
+#endif
 
 static RGB colorwheel(int angle){
     angle = angle % 1536;
@@ -74,10 +76,6 @@ static RGB colorwheel(int angle){
     case 5: return RGB(255,0,255-v);
     }
     return RGB(0,0,0); // Should not happen
-}
-
-static RGB randcolor(){
-    return colorwheel(randn(1536));
 }
 
 int init(int moduleno, char* argstr) {
