@@ -245,9 +245,11 @@ They are the following:
 
 * `gfx_candyswarm`: Based on `gfx_candyflow` with additional particle physics and graphical effects. by @cyriax
 
-* `gfx_afterglow`: CRT Tube like glow effect that uses the last image of the previous effec. by @cyriax0
+* `gfx_afterglow`: CRT Tube like glow effect that uses the last image of the previous effect. by @cyriax0
 
 * `gfx_rule90`: [Rule90](https://en.wikipedia.org/wiki/Rule_90) cellular automata. by @mattvenn 
+
+* `gfx_invfourier`: Inverse fourier transformation on a limited spectrum. by @cyriax0
 ---
 
 If you want to only build a specific set of modules, change the "MODULES" array in your `sledconf` file.

@@ -12,7 +12,7 @@ GFXMODS_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D
 GFXMODS_AVAILABLE += gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_AVAILABLE += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 GFXMODS_AVAILABLE += gfx_no13 gfx_candyswarm gfx_ursuppe2 gfx_rule90
-GFXMODS_AVAILABLE += gfx_maze
+GFXMODS_AVAILABLE += gfx_maze gfx_invfourier
 
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 
@@ -30,7 +30,7 @@ GFXMODS_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls
 GFXMODS_DEFAULT += gfx_sort2D gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn
 GFXMODS_DEFAULT += gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_DEFAULT += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
-GFXMODS_DEFAULT += gfx_candyswarm gfx_ursuppe2
+GFXMODS_DEFAULT += gfx_candyswarm gfx_ursuppe2 gfx_invfourier
 
 BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
 FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90
