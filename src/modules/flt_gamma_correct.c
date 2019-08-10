@@ -37,12 +37,11 @@ int init(int _modno, char* argstr) {
 	float whitepoint[3] = WHITEPOINT;
 
 	int i;
-	for (i = 0; i <= 255; ++i)
+	for (i = 0; i <= MAX_VAL; ++i) {
 		ctx->LUT_R[i] = whitepoint[0] * CORRECTION;
-	for (i = 0; i <= 255; ++i)
 		ctx->LUT_G[i] = whitepoint[1] * CORRECTION;
-	for (i = 0; i <= 255; ++i)
 		ctx->LUT_B[i] = whitepoint[2] * CORRECTION;
+    }
 	return 0;
 }
 
