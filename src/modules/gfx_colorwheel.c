@@ -98,6 +98,14 @@ static float complex polynomial(float complex z){
 }
 
 
+static RGB color_function(float complex value){
+            byte hue = (unsigned char)(255*(.5+carg(value)/(2*M_PI)));
+            byte sat = (unsigned char)(255*(1-pow(.01,cabs(value))));
+            float discont = log(cabs(value))-floor(log(cabs(value)));
+            byte val = 96+(unsigned char)32*discont;
+            return HSV2RGB(HSV(hue,sat,val));
+}
+
 int draw(int _modno, int argc, char* argv[]) {
 
     for (int i = 0; i < NUM_PARAMETERS; i++){
@@ -115,9 +123,7 @@ int draw(int _modno, int argc, char* argv[]) {
         for (int y=0;y<my;y++){
             float complex point = ((y-my/2)+(x-mx/2)*I)*scale;
             float complex value = polynomial(point);
-            byte hue = (unsigned char)(255*(.5+carg(value)/(2*M_PI)));
-            byte sat = (unsigned char)(255*(1-pow(.01,cabs(value))));
-            matrix_set(x, y, HSV2RGB(HSV(hue,sat,128)));
+            matrix_set(x, y, color_function(value));
         }
     }
 
