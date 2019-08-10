@@ -20,6 +20,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <math.h>
+#include <complex.h>
 
 #define FPS 20
 #define FRAMETIME (T_SECOND / FPS)
@@ -32,18 +33,14 @@ static float sc;
 static ulong nexttick;
 
 typedef struct speclet {
-	float pos_ph;
-	float pos_rd;
-    float v_ph;
-    float v_rd;
-	float phase;
-	float radius;
-    float v_radius;
+    complex float pos;
+    complex float val;
 } speclet;
 static float voffset, xoffset, yoffset,dxoffset,dyoffset;
 
 static int numspeclets;
 static speclet* spectrum;
+static speclet* spectrum2;
 
 static float randf() {
     return (1.0*randn(200000)-100000.0)/100000.0;
@@ -54,9 +51,11 @@ static RGB dim(RGB c,float val){
     return RGB(c.red*val,c.green*val,c.blue*val);
 }
 static RGB colorwheel(float fangle){
-    if (fangle < 0) fangle += roundf(-fangle);
-    if (fangle < 0) fangle += 1;
-    int angle = (int)(fmodf(fangle,1.0)*1536);
+    fangle = fangle-floor(fangle);
+    //printf("%f ", fangle);
+    fangle *= 1536;
+    int angle = fangle;
+    //printf("%d ", angle);
     angle = angle % 1536;
     int t = (angle / 256)%6;
     int v = angle % 256;
@@ -80,6 +79,12 @@ int init(int moduleno, char* argstr) {
 
 	numspeclets = 10;
 	spectrum = malloc(numspeclets * sizeof(speclet));
+	spectrum2 = malloc(numspeclets * sizeof(speclet));
+
+    sc = 1.0;
+
+    //sc = 1.0/(mx>my?my:mx);
+    //sc *= sc;
 
 	modno = moduleno;
 	frame = 0;
@@ -88,14 +93,12 @@ int init(int moduleno, char* argstr) {
 
 static void randomize(void) {
     sc = randf()*6;
-    for (speclet * s=spectrum;s<spectrum+numspeclets;s++){
-        s->pos_ph = randf();
-        s->pos_rd = randf()*6.3;
-        s->v_ph = randf()/10.0;
-        s->v_rd = randf()/10.0;
-        s->phase  = randf()*6.3;
-        s->radius = randf();
-        s->v_radius = randf()/10.0;
+
+    for (int i=0;i<numspeclets;i++){
+        spectrum[i].pos = (randf()+randf()*I);
+        spectrum[i].val = (randf()+randf()*I)/5;
+        spectrum2[i].pos = (randf()+randf()*I);
+        spectrum2[i].val = (randf()+randf()*I)/5;
 	}
     xoffset=0;
     yoffset=0;
@@ -105,20 +108,9 @@ static void randomize(void) {
 }
 
 static void update(void) {
-    for (speclet * s=spectrum;s<spectrum+numspeclets;s++){
-        s->pos_ph += s->v_ph;
-        s->pos_rd += s->v_rd;
-        s->pos_rd = 0.01 + 0.99*s->pos_rd;
-        s->v_ph += randf()/40.0;
-        s->v_rd += randf()/40.0;
-        s->v_ph *= 0.9;
-        s->v_rd *= 0.9;
-        s->radius += s->v_radius;
-        s->v_radius += randf()/10.0;
-        s->v_radius *= 0.9;
-        s->radius = (0.01+0.99*s->radius);
-        s->radius /= 1.0+(s->pos_rd*s->pos_rd+s->pos_rd+0.25)*0.01;
-        s->phase += randf()/10.0;
+    for (int i=0;i<numspeclets;i++){
+        spectrum[i].val = 0.99*spectrum[i].val + 0.01*spectrum2[i].val;
+        spectrum[i].pos = 0.99*spectrum[i].pos + 0.01*spectrum2[i].pos;
     }
     xoffset += dxoffset;
     yoffset += dyoffset;
@@ -140,16 +132,14 @@ int draw(int _modno, int argc, char* argv[]) {
     update();
     for (int x =0;x<mx;x++){
         for (int y=0;y<my;y++){
-            float px=(x-mx/2.0)-xoffset,py=(y-my/2.0)-yoffset;
-            float val = 0;
+            complex float pos =(x-mx/2.0)-xoffset - ((y-my/2.0)-yoffset)*I;
+            pos *= sc * 0.05;
+            complex float val = 0;
             for (speclet * s=spectrum;s<spectrum+numspeclets;s++){
-                float xx=px,yy=py;
-                float vx=s->pos_rd*sinf(s->pos_ph);
-                float vy=s->pos_rd*cosf(s->pos_ph);
-                val += s->radius*sinf((vx*xx)/(sc*sc)+(vy*yy)/(sc*sc)+s->phase);
-
+                val += s->val*cexp(2*M_PI*I*creal(s->pos*pos));
             }
-            matrix_set(x, y, dim(colorwheel(0.3*val/numspeclets+voffset),0.5));
+            //printf("%f%+fi  (%f %f)\n",creal(val),cimag(val), cabs(val), carg(val));
+            matrix_set(x, y, colorwheel(cabs(val)+voffset));
         }
     }
 
@@ -167,4 +157,5 @@ int draw(int _modno, int argc, char* argv[]) {
 
 void deinit(int _modno) {
 	free(spectrum);
+	free(spectrum2);
 }
