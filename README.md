@@ -250,6 +250,9 @@ They are the following:
 * `gfx_rule90`: [Rule90](https://en.wikipedia.org/wiki/Rule_90) cellular automata. by @mattvenn 
 
 * `gfx_invfourier`: Inverse fourier transformation on a limited spectrum. by @cyriax0
+
+* `gfx_colorwheel`: Plots polynomials on the complex plane. by @cyriax0
+
 ---
 
 If you want to only build a specific set of modules, change the "MODULES" array in your `sledconf` file.
