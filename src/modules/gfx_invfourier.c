@@ -19,6 +19,7 @@
 #include <random.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define FPS 20
 #define FRAMETIME (T_SECOND / FPS)
