@@ -90,7 +90,7 @@ int gety(int moduleno);
 // Wait until the desired usec hit.
 // If you don't need to do anything special,
 // you can just `return wait_until_core(desired_usec);`.
-ulong wait_until(int moduleno, ulong desired_usec);
+oscore_time wait_until(int moduleno, oscore_time desired_usec);
 
 // FOR "out" and "flt" TYPE PLUGINS:
 // Interrupts any ongoing wait_until. Use *after* the timer operation to ensure this works correctly.

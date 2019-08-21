@@ -32,7 +32,7 @@
 // "gap" of zeroes after text
 #define TEXT_GAP matrix_getx()
 
-static ulong text_nexttick, text_frametime;
+static oscore_time text_nexttick, text_frametime;
 static int text_position, text_moduleno;
 
 static text* rendered = NULL;

@@ -28,7 +28,7 @@
 #define FRAMES (TIME_SHORT)
 #define CHARS_FULL 8 // 20:15:09, must also hold 20:15 (small)
 
-static ulong nexttick;
+static oscore_time nexttick;
 static int frame = 0;
 static int moduleno;
 static int usesmall;

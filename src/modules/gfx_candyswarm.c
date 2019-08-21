@@ -25,7 +25,7 @@
 
 static int modno;
 static int frame = 0;
-static ulong nexttick;
+static oscore_time nexttick;
 
 /*** matrix info (initialized in init()) ***/
 
@@ -126,7 +126,7 @@ int init(int moduleno, char* argstr) {
 	printf("(output scale for width=%d: %f) ", mx, outputscale);
 	
 	modno = moduleno;
-	ulong d = udate();
+	oscore_time d = udate();
 	for( int i = 0; i < runvar_count; i++ ) {
 		runvar[i] = addmod(runvar[i], runmod[i], ((d>>(i/2)) & 0x00FF) / (255/M_PI));
 	}

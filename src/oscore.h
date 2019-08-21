@@ -9,14 +9,14 @@ oscore_event oscore_event_new(void);
 // Returns 0 if the wait was undisturbed, anything not zero is an interrupt.
 // NOTE: If multiple threads are waiting on the same event, it's implementation-dependent.
 // Implementations are free to use a method that ensures only one thread, or all waiting threads, get interrupted.
-int oscore_event_wait_until(oscore_event ev, ulong desired_usec);
+int oscore_event_wait_until(oscore_event ev, oscore_time desired_usec);
 // Signal the event.
 void oscore_event_signal(oscore_event ev);
 void oscore_event_free(oscore_event ev);
 
 // Get the real time in usecs,
 // failing that, get the uptime.
-ulong oscore_udate(void);
+oscore_time oscore_udate(void);
 
 // Tasks
 // While the "tasks" are usually multithreaded, they might be singletasking and therefore

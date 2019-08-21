@@ -34,7 +34,8 @@ typedef struct {
 	farbherd_header_t hdr;
 	farbherd_frame_t frm;
 	uint16_t * buffer;
-	ulong basetick, frame;
+	oscore_time basetick;
+	int frame;
 } fh_mod_private;
 
 #define SELFCALL module* self = mod_get(moduleno); fh_mod_private* priv = self->modloader_user;
@@ -83,7 +84,7 @@ static int fh_draw(int moduleno, int argc, char* argv[]) {
 		matrix_render();
 	}
 	priv->frame++;
-	ulong time_ofs = (priv->hdr.frameTimeMul * priv->frame * 1000000) / priv->hdr.frameTimeDiv;
+	oscore_time time_ofs = (1000000ull * priv->hdr.frameTimeMul * priv->frame) / priv->hdr.frameTimeDiv;
 	timer_add(priv->basetick + time_ofs, moduleno, 0, NULL);
 	return 0;
 }

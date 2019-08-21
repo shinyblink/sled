@@ -30,7 +30,7 @@ static int modno;
 static int frame;
 static int mx, my;
 static float scale;
-static ulong nexttick;
+static oscore_time nexttick;
 
 
 #define NUM_PARAMETERS 12

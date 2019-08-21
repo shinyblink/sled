@@ -35,11 +35,11 @@ oscore_event oscore_event_new(void) {
 	return NULL;
 }
 
-int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
-	ulong tnow = udate();
+int oscore_event_wait_until(oscore_event ev, oscore_time desired_usec) {
+	oscore_time tnow = udate();
 	if (tnow >= desired_usec)
 		return tnow;
-	ulong sleeptime = desired_usec - tnow;
+	oscore_time sleeptime = desired_usec - tnow;
 
 	usleep(sleeptime);
 	return 0;
@@ -54,7 +54,7 @@ void oscore_event_free(oscore_event ev) {
 
 // Time keeping.
 // Note, this should be replaced.
-ulong oscore_udate(void) {
+oscore_time oscore_udate(void) {
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL) == -1) {
 		printf("Failed to get the time???\n");

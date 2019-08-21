@@ -27,8 +27,8 @@
 #define FRAMES (TIME_LONG * FPS)
 
 static int modno;
-static ulong frame;
-static ulong nexttick;
+static int frame;
+static oscore_time nexttick;
 
 static int mx;
 static int my;

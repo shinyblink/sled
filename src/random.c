@@ -29,12 +29,12 @@ uint randn(uint n) {
 	n++;
 
 	// Chop off all the values that would cause skew.
-	long end = RAND_MAX / n;
+	uint end = RAND_MAX / n;
 	end *= n;
 
 	// Ignore results that fall in that limit.
 	// Worst case, the loop condition should fail 50% of the time.
-	int r;
+	uint r;
 	while ((r = rand()) >= end);
 
 	return r % n;

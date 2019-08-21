@@ -31,7 +31,7 @@ static int modno;
 static RGB white = RGB(255, 255, 255);
 static RGB black = RGB(0, 0, 0);
 static int line;
-static ulong nexttick;
+static oscore_time nexttick;
 
 // as rule90 only depends on the previous line, don't create a representation of the cell's status,
 // use the matrix instead. Is this bad?

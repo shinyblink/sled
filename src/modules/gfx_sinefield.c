@@ -20,7 +20,7 @@
 
 static int modno;
 static int frame = 0;
-static ulong nexttick;
+static oscore_time nexttick;
 
 /*** matrix info (initialized in init()) ***/
 
@@ -56,7 +56,7 @@ int draw(int _modno, int argc, char* argv[]) {
 		for(int y = 0; y < my; y++ ) {
 			hue += 17 * sinf(y/(5*M_PI));
 			RGB color = HSV2RGB(HSV(
-				(byte)(hue + ((unsigned long)step & 0x000000FF)),
+				(byte)(hue + (byte)step),
 				255, //(byte)(192 - (63*cosf((hue+step)*M_PI*0.004145))),
 				(byte)(255*sinf((hue+step)*M_PI*0.003891))
 			));

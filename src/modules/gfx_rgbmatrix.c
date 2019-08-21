@@ -21,7 +21,7 @@
 
 static int modno;
 static int frame = 0;
-static ulong nexttick;
+static oscore_time nexttick;
 
 /*** matrix info (initialized in init()) ***/
 

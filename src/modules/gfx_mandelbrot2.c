@@ -40,7 +40,7 @@ static const double er = 3.0;
 static const double eg = 0.75;
 static const double eb = 0.5;
 
-static ulong nexttick;
+static oscore_time nexttick;
 static int moduleid;
 static int iter;
 static int w;
@@ -134,7 +134,7 @@ int draw(int _modno, int argc, char* argv[])
       }
    }
    matrix_render();
-   
+
    iter += points[pi].ipf;
    if (iter > points[pi].mi)
    {
