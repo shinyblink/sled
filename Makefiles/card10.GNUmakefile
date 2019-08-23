@@ -1,6 +1,6 @@
 ifneq (,$(findstring card10,$(DEFAULT_OUTMOD)))
 ifeq (,${FIRMWARE_HOME})
-	$(error Please set FIRMWARE_HOME)
+  $(error Please set FIRMWARE_HOME)
 endif
 
 PLATFORM := freertos
