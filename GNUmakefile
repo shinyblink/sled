@@ -162,11 +162,7 @@ ML_OBJECTS := $(ML_SOURCES:.c=.o)
 
 # --- Include other makefiles ---
 include Makefiles/3ds.GNUmakefile
-<<<<<<< HEAD
-=======
-include Makefiles/esp32.GNUmakefile
 include Makefiles/card10.GNUmakefile
->>>>>>> 415b58f... init card10 support
 
 # --- All/Cleaning begins here ---
 
