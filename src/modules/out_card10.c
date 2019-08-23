@@ -65,8 +65,8 @@ RGB get(int _modno, int x, int y) {
 int set(int modno, int x, int y, RGB color) {
 	// No OOB check, because performance.
 	uint16_t converted = RGB2RGB565(color);
-	fb.fb[y][x][0] = converted >> 8;
-	fb.fb[y][x][1] = converted & 0xFF;
+	fb.fb[MATRIX_Y-1-y][x][0] = converted >> 8;
+	fb.fb[MATRIX_Y-1-y][x][1] = converted & 0xFF;
 	return 0;
 }
 
