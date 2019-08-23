@@ -72,8 +72,13 @@ int set(int modno, int x, int y, RGB color) {
 
 
 int clear(void) {
-	// TODO this does not work yet
-	return epic_disp_clear(RGB2RGB565(RGB(0,0,0)));
+	for (int y = 0; y < MATRIX_Y; y++) {
+		for (int x = 0; x < MATRIX_X; x++) {
+			fb.fb[y][x][0] = 0;
+			fb.fb[y][x][1] = 0;
+		}
+	}
+	return 0;
 }
 
 int render(void) {

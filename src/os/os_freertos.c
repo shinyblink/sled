@@ -17,6 +17,7 @@
 #define USEC_CONST 1000 * 1000
 
 #define NCPUS 1
+#define USE_TASKS 0
 
 static void sled_task(void* pvParameters) {
 	if (sled_main(0, NULL)) {
@@ -30,11 +31,11 @@ static void sled_task(void* pvParameters) {
 // So you can pin SLED to one core and use the other cores for stuff like WiFi, Webserver, etc...
 // Use core = -1 to not pin
 void user_main(void* pvParameters, int core) {
-// TODO fix tasks first
-#ifndef ESP32
+	if (!USE_TASKS) {
 		sled_task(NULL);
 		return;
-#endif
+	}
+
 	if(xTaskGetSchedulerState() == 1)
 		vTaskStartScheduler();
 	if (core < 0 || core >= oscore_ncpus()) {
