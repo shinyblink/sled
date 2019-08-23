@@ -206,6 +206,9 @@ src/modules/mod_dl.c.libs:
 	echo "" > src/modules/mod_dl.c.libs
 endif
 
+libsled.a: $(OBJECTS) $(ML_OBJECTS)
+	$(AR) rcs "$@" $(OBJECTS) $(ML_OBJECTS)
+
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
  sled: $(OBJECTS)
