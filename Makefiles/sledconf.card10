@@ -1,0 +1,88 @@
+# Example SLED configuration for SDL2. These are the same as the defaults.
+# There may be other overridable things, see GNUmakefile for the absolute list.
+# This is the default sledconf that will be copied if no sledconf exists
+
+
+
+## NOTICE:
+## Use `make clean` after you modified this file
+##
+
+
+FIRMWARE_HOME := ${FIRMWARE_HOME}
+
+   ####################
+   # General settings #
+   ####################
+
+## executable name
+PROJECT := sled
+
+## Debug mode
+## 0 -> Compile with optimization and without debug symbols
+## 1 -> Compile without optimization and with debug symbols and define DEBUG
+DEBUG := 0
+
+## Static vs. Dynamic linking
+## 0 -> dynamic linking (use system libs)
+## 1 -> static linking (bundle libs into exe)
+STATIC := 1
+
+## Which platform to use (from src/os/os_*)
+PLATFORM := freertos
+
+## Which output module to us (from src/modules/out_*)
+DEFAULT_OUTMOD := card10
+
+## Directory to put modules into
+DEFAULT_MODULEDIR := "./modules"
+
+
+
+   ##########################
+   # Module build selection #
+   ##########################
+
+## required output module
+MODULES := out_$(DEFAULT_OUTMOD)
+
+
+## Build all background and filter modules
+#MODULES += $(BGMMODS_DEFAULT)
+MODULES += $(FLTMODS_DEFAULT)
+
+## Build all gfx modules (from GNUmakefile)
+## Comment this out if you want to build only single modules
+#MODULES += $(GFXMODS_DEFAULT)
+
+MODULES += gfx_bttrblls
+MODULES += gfx_random_rects
+MODULES += gfx_partirush
+MODULES += gfx_starfield
+MODULES += gfx_cube
+MODULES += gfx_matrix
+MODULES += gfx_rule90
+MODULES += gfx_twinkle
+
+
+   ############################
+   # Output size configuraion #
+   ############################
+
+## X and Y dimensions
+MATRIX_X := 160
+MATRIX_Y := 80
+
+# CFLAGS
+CFLAGS += -O3
+CFLAGS += -mthumb
+CFLAGS += -mcpu=cortex-m4
+CFLAGS += -mfloat-abi=softfp
+CFLAGS += -mfpu=fpv4-sp-d16
+CFLAGS += -Wa,-mimplicit-it=thumb
+CFLAGS += -ffunction-sections
+CFLAGS += -fdata-sections
+CFLAGS += -fsingle-precision-constant
+CFLAGS += -fno-isolate-erroneous-paths-dereference
+CFLAGS += -ffast-math
+
