@@ -81,7 +81,7 @@ static float * transform3d(float * x, float * y, float * src, float aspectx, flo
 
 // Now our major automatics,
 static int moduleno, framecount;
-static ulong nexttick;
+static oscore_time nexttick;
 
 // And then the main functions sublime!
 

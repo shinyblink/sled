@@ -41,15 +41,15 @@
 // Seems faster without on an i5
 //#define USE_BITMASK
 static int modno;
-static ulong frame;
-static ulong nexttick;
+static int frame;
+static oscore_time nexttick;
 
-static ulong t1;
-static ulong t2;
-static ulong t3;
-static ulong td1_acc;
-static ulong td2_acc;
-static ulong timer_n;
+static oscore_time t1;
+static oscore_time t2;
+static oscore_time t3;
+static oscore_time td1_acc;
+static oscore_time td2_acc;
+static oscore_time timer_n;
 
 static int * data;
 static char * data_bitmask;

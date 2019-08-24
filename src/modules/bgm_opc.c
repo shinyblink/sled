@@ -50,7 +50,7 @@ static byte opc_scratch_array[65536];
 static int opc_shutdown_fd_mt, opc_shutdown_fd_ot;
 // opc_mtcountdown is the time until we decide to end. It's main-thread-only.
 static int opc_moduleno, opc_mtcountdown;
-static ulong opc_mtlastframe;
+static oscore_time opc_mtlastframe;
 #define OPC_MTCOUNTDOWN_MAX 100
 #define FRAMETIME 10000
 #define OPC_SNAKE

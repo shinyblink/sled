@@ -15,7 +15,7 @@
 static int modno;
 static int pos;
 static int frame = 0;
-static ulong nexttick;
+static oscore_time nexttick;
 
 static int fire_bufsize;
 static byte* fire_buffer[2];

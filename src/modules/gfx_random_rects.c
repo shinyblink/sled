@@ -30,7 +30,7 @@ static int modno;
 static int step = 0;
 static int dir = 1;
 static int frame = 0;
-static ulong nexttick;
+static oscore_time nexttick;
 
 int init(int moduleno, char* argstr) {
 	if (matrix_getx() < (STEPS * 2))

@@ -37,12 +37,12 @@ static oscore_event breakpipe;
 
 // udate has been replaced by oscore.
 // No, this is not pretty.
-ulong udate(void) {
+oscore_time udate(void) {
 	return oscore_udate();
 }
 
 // The critical wait_until code
-ulong timers_wait_until_core(ulong desired_usec) {
+oscore_time timers_wait_until_core(oscore_time desired_usec) {
 	if (oscore_event_wait_until(breakpipe, desired_usec))
 		return udate();
 	return desired_usec;
@@ -59,7 +59,7 @@ void timers_wait_until_break_core(void) {
 // This code calls into the output module's wait_until impl.
 static module *out;
 static int outmodno;
-ulong timers_wait_until(ulong desired_usec) {
+oscore_time timers_wait_until(oscore_time desired_usec) {
 	return out->wait_until(outmodno, desired_usec);
 }
 
@@ -68,7 +68,7 @@ void timers_wait_until_break(void) {
 	return out->wait_until_break(outmodno);
 }
 
-int timer_add(ulong usec,int moduleno, int argc, char* argv[]) {
+int timer_add(oscore_time usec,int moduleno, int argc, char* argv[]) {
 	struct timer t = { .moduleno = moduleno, .time = usec, .args = {argc, argv}};
 
 	oscore_mutex_lock(tlock);
@@ -94,7 +94,7 @@ timer timer_get(void) {
 
 	// Find the soonest/smallest timer.
 	int smallest = 0;
-	ulong min = TIMERS[0].time;
+	oscore_time min = TIMERS[0].time;
 	if (timer_count > 1)
 		for (int i = 1; i < timer_count; i++)
 			if (min > TIMERS[i].time) {

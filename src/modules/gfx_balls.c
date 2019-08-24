@@ -27,7 +27,7 @@
 
 static int modno;
 static int frame;
-static ulong nexttick;
+static oscore_time nexttick;
 
 typedef struct ball {
 	RGB color;

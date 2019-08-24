@@ -136,10 +136,10 @@ int render(int _modno) {
 	return 0;
 }
 
-ulong wait_until(int _modno, ulong desired_usec) {
+oscore_time wait_until(int _modno, oscore_time desired_usec) {
 	SDL_Event ev;
 	while (1) {
-		ulong tnow = udate();
+		oscore_time tnow = udate();
 		if (tnow >= desired_usec)
 			return tnow;
 

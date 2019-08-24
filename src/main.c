@@ -74,7 +74,7 @@ static int deinit(void) {
 }
 
 #ifndef CIMODE
-static int pick_next_random(int current_modno, ulong in) {
+static int pick_next_random(int current_modno, oscore_time in) {
 	int next_mod;
 
 	if (modloader_gfx_rotation.argc == 0) {
@@ -92,7 +92,7 @@ static int pick_next_random(int current_modno, ulong in) {
 #endif
 
 #ifdef CIMODE
-static int pick_next_seq(int current_modno, ulong in) {
+static int pick_next_seq(int current_modno, oscore_time in) {
 	int next_mod = 0;
 
 	// No modules, uhoh
@@ -136,7 +136,7 @@ static int pick_next_seq(int current_modno, ulong in) {
 #endif
 
 // this could also be easily rewritten to be an actual feature
-static int pick_next(int current_modno, ulong in) {
+static int pick_next(int current_modno, oscore_time in) {
 	oscore_mutex_lock(rmod_lock);
 	if (main_rmod_override != -1) {
 		int res = timer_add(in, main_rmod_override, main_rmod_override_args.argc, main_rmod_override_args.argv);

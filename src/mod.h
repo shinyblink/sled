@@ -33,7 +33,7 @@ struct module {
 	int (*render)(int moduleno);
 	int (*getx)(int moduleno);
 	int (*gety)(int moduleno);
-	ulong (*wait_until)(int moduleno, ulong desired_usec);
+	oscore_time (*wait_until)(int moduleno, oscore_time desired_usec);
 	void (*wait_until_break)(int moduleno);
 	void (*setdir)(int moduleno, const char* dir);
 	int (*load)(int moduleno, module* mod, const char * name);

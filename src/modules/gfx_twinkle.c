@@ -36,7 +36,7 @@ static const RGB twinkle_level_tab[TWINKLE_LEVELS] = {
 };
 static int *twinkle_levels;
 static int twinkle_moduleno;
-static ulong twinkle_nexttick;
+static oscore_time twinkle_nexttick;
 static int twinkle_framecount = 0;
 
 int init(int moduleno, char* argstr) {

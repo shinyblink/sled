@@ -52,9 +52,9 @@
 
 
 static int modno;
-static ulong frame;
-static ulong nexttick;
-static ulong frame_time;
+static int frame;
+static oscore_time nexttick;
+static oscore_time frame_time;
 static int hyper_speed;
 static int mx, my;
 
@@ -209,7 +209,7 @@ static void draw_select(){
 
 int draw(int _modno, int argc, char* argv[]) {
 
-    ulong thistick = udate();
+    oscore_time thistick = udate();
 
     if (__rval==2){
         randomize_and_reset(0);

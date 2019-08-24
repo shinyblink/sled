@@ -30,7 +30,7 @@ static int modno;
 static int frame;
 static int mx, my;
 static float sc;
-static ulong nexttick;
+static oscore_time nexttick;
 
 typedef struct speclet {
     complex float pos;

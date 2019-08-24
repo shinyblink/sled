@@ -89,7 +89,7 @@ HSV RGB2HSV(RGB rgb)
         return hsv;
     }
 
-    hsv.s = 255 * (long) (rgbMax - rgbMin) / hsv.v;
+    hsv.s = 255 * (int32_t) (rgbMax - rgbMin) / hsv.v;
     if (hsv.s == 0)
     {
         hsv.h = 0;

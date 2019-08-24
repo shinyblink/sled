@@ -25,7 +25,7 @@
 
 static int modno;
 static int frame;
-static ulong nexttick;
+static oscore_time nexttick;
 
 int init(int moduleno, char* argstr) {
 	if (matrix_getx() < 2)

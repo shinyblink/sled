@@ -74,7 +74,7 @@ int render(int _modno) {
 	return ctx->next->render(ctx->nextid);
 }
 
-ulong wait_until(int _modno, ulong desired_usec) {
+oscore_time wait_until(int _modno, oscore_time desired_usec) {
 	PGCTX_GET
 	return ctx->next->wait_until(ctx->nextid, desired_usec);
 }

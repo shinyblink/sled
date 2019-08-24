@@ -23,7 +23,7 @@
 
 #include <timers.h>
 
-static unsigned long __earliest_execution_time;
+static oscore_time __earliest_execution_time;
 
 static int check_block() {
     return (udate() < __earliest_execution_time);

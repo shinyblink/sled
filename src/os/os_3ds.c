@@ -42,11 +42,11 @@ oscore_event oscore_event_new(void) {
 	return event;
 }
 
-int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
-	ulong tnow = udate();
+int oscore_event_wait_until(oscore_event ev, oscore_time desired_usec) {
+	oscore_time tnow = udate();
 	if (tnow >= desired_usec)
 		return tnow;
-	ulong sleeptime = desired_usec - tnow;
+	oscore_time sleeptime = desired_usec - tnow;
 
 	Result res = svcWaitSynchronization(TOHANDLE(ev), sleeptime * 1000);
 	if (R_FAILED(res))
@@ -65,7 +65,7 @@ void oscore_event_free(oscore_event ev) {
 }
 
 // Time keeping.
-ulong oscore_udate(void) {
+oscore_time oscore_udate(void) {
 	struct timeval tv;
 	if (gettimeofday(&tv, NULL) == -1) {
 		printf("Failed to get the time???\n");

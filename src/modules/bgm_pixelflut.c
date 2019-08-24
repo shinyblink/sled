@@ -57,7 +57,7 @@ static unsigned int px_pixelcount, px_clientcount;
 static int px_bgminactive;
 
 static int px_mx, px_my;
-static ulong px_mtlastframe;
+static oscore_time px_mtlastframe;
 static oscore_task px_task;
 
 

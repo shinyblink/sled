@@ -104,7 +104,7 @@ int render(void) {
 	return 0;
 }
 
-ulong wait_until(int _modno, ulong desired_usec) {
+oscore_time wait_until(int _modno, oscore_time desired_usec) {
 	// Hey, we can just delegate work to someone else. Yay!
 	return timers_wait_until_core(desired_usec);
 }

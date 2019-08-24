@@ -34,7 +34,7 @@
 static int modno;
 static int pos;
 static int frame;
-static ulong nexttick;
+static oscore_time nexttick;
 
 int mx, my;
 

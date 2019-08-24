@@ -36,19 +36,19 @@
 
 static int modno;
 static int frame;
-static ulong nexttick;
+static oscore_time nexttick;
 
 static int kMatrixWidth;
 static int kMatrixHeight;
 
 /* ======= internal state of this game of life =========*/
 
-static ulong gol_bufsize;
+static uint32_t gol_bufsize;
 static byte* gol_stat_buf;
 
 typedef struct GOL_InternalStatus {
   byte current_buf;
-  ulong nextrun;
+  oscore_time nextrun;
   int fadestep;
   int repetitions;
 } GOL_InternalStatus;
@@ -63,8 +63,8 @@ static GOL_InternalStatus gol_stat = {
 /*====== helper functions =====*/
 
 /* Simulates a 3D array. Calculates the cell number in the malloc'd buffer by: buffer number, X, Y. */
-static long ixy(int buffer_index, int x, int y) {
-  long pos = (buffer_index * kMatrixWidth * kMatrixHeight) + (x * kMatrixHeight) + y;
+static uint32_t ixy(int buffer_index, int x, int y) {
+  uint32_t pos = (buffer_index * kMatrixWidth * kMatrixHeight) + (x * kMatrixHeight) + y;
   assert(pos >= 0);
   assert(pos < gol_bufsize);
   return pos;
@@ -259,7 +259,7 @@ static void gol_fader(int cstep) {
 /* main Game of Life control loop. controls whether to reinitialize, calculate the next generation or run the fader. */
 static void gol_loop() {
   // 1024 microseconds or 1000 microseconds per millisecond, where's the difference? ;)
-  ulong ms = udate() >> 10;
+  oscore_time ms = udate() >> 10;
 
   // microsecond overflow protection -- if the gap between ms value and nextrun value is too big, we reset to sensible values.
   // this might lead to a very short generation time every 71.58278825 minutes, assuming udate works with 32 bit unsigned.

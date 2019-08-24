@@ -32,7 +32,7 @@
 static RGB fire_palette_lut[FIRE_LEVELS];
 static int *fire;
 static int fire_moduleno;
-static ulong fire_nexttick;
+static oscore_time fire_nexttick;
 static int fire_framecount = 0;
 
 void fire_palette_init(void);

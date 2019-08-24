@@ -32,8 +32,8 @@
 #define NO_OF_DOTS 20
 
 static int modno;
-static ulong frame;
-static ulong nexttick;
+static int frame;
+static oscore_time nexttick;
 
 static int mx,my;
 static int bx,by;

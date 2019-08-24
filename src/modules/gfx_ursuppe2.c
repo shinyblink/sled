@@ -48,7 +48,7 @@ static int die = 0.0;
 
 static int modno;
 static int frame;
-static ulong nexttick;
+static oscore_time nexttick;
 
 typedef struct force_curve {
     float range[4];
