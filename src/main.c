@@ -262,8 +262,7 @@ int sled_main(int argc, char** argv) {
 	int ret;
 
 	// Initialize pseudo RNG.
-	// TODO: this causes problems on the card10
-	//random_seed();
+	random_seed();
 
 	// Prepare for module loading
 	if (modloader_modpath == NULL) {
