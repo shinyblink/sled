@@ -113,6 +113,7 @@ MATRIX_X := 160
 MATRIX_Y := 80
 
 # CFLAGS
+CFLAGS += -O3
 CFLAGS += -mthumb
 CFLAGS += -mcpu=cortex-m4
 CFLAGS += -mfloat-abi=softfp
@@ -122,5 +123,5 @@ CFLAGS += -ffunction-sections
 CFLAGS += -fdata-sections
 CFLAGS += -fsingle-precision-constant
 CFLAGS += -fno-isolate-erroneous-paths-dereference
-CFLAGS += -DMATRIX_ORDER_SNAKE
+CFLAGS += -ffast-math
 
