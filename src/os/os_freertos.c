@@ -30,6 +30,7 @@ static void sled_task(void* pvParameters) {
 // We can choose to pin to a core. This makes sense if your chip has more than 1 core.
 // So you can pin SLED to one core and use the other cores for stuff like WiFi, Webserver, etc...
 // Use core = -1 to not pin
+// Set USE_TASKS to false to omit tasks
 void user_main(void* pvParameters, int core) {
 	if (!USE_TASKS) {
 		sled_task(NULL);
@@ -66,18 +67,18 @@ int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
 	if (desired_usec == 1) {
 		oscore_task_yield();
 
-		//printf("desired_usec is 1. wtf?\n");
+		printf("desired_usec is 1. wtf?\n");
 	} else {
-		//printf("desired_usec is %lu.\n", desired_usec);
+		printf("desired_usec is %lu.\n", desired_usec);
 	}
 
 	ulong waketick = oscore_udate();
 	if (waketick >= desired_usec) {
-		//printf("timer is late, waketick: %lu, desired: %lu\n", waketick, desired_usec);
+		printf("timer is late, waketick: %lu, desired: %lu\n", waketick, desired_usec);
 		return waketick;
 	}
 	ulong diff = desired_usec-waketick;
-	//printf("diff is %lu.\n", diff);
+	printf("diff is %lu.\n", diff);
 	// make the minimum time to wait 5ms.
 	// TODO: should be removed once we know what's going on.
 	if (diff <= 5000) diff = 5000;
@@ -101,16 +102,9 @@ void oscore_event_free(oscore_event ev) {
 }
 
 // Time keeping.
-// Since we don't have a RTC, presumably,
-// we'll use the uptime.
-// This aligns with the above.
+// FreeRTOS provides a tick count
 ulong oscore_udate(void) {
-
-	return 0;
-	//oscore_task_yield();
-	//struct timeval tv;
-	//gettimeofday(&tv, NULL);
-	//return (T_SECOND * tv.tv_sec + tv.tv_usec);
+	return ((1000 * 1000 * 1000) / configTICK_RATE_HZ) * (ulong)xTaskGetTickCount();
 }
 
 // Below: Stubs and untestet stuff. Danger zone!
