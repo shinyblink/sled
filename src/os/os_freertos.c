@@ -8,7 +8,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <stdlib.h>
+#include <inttypes.h>
 
 #include <stdio.h>
 
@@ -57,7 +57,7 @@ oscore_event oscore_event_new(void) {
 	return xSemaphoreCreateBinary(); // starts in taken state
 }
 
-int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
+int oscore_event_wait_until(oscore_event ev, oscore_time desired_usec) {
 	// If desired_usec is 0, it is used to simply clear the event.
 	if (desired_usec == 0) {
 		xSemaphoreTake(ev, 0); // Only take when not taken.
@@ -69,16 +69,16 @@ int oscore_event_wait_until(oscore_event ev, ulong desired_usec) {
 
 		printf("desired_usec is 1. wtf?\n");
 	} else {
-		printf("desired_usec is %lu.\n", desired_usec);
+		printf("desired_usec is %" PRIu64 ".\n", desired_usec);
 	}
 
-	ulong waketick = oscore_udate();
+	oscore_time waketick = oscore_udate();
 	if (waketick >= desired_usec) {
-		printf("timer is late, waketick: %lu, desired: %lu\n", waketick, desired_usec);
+		printf("timer is late, waketick: %" PRIu64 ", desired: %" PRIu64 "\n", waketick, desired_usec);
 		return waketick;
 	}
-	ulong diff = desired_usec-waketick;
-	printf("diff is %lu.\n", diff);
+	oscore_time diff = desired_usec-waketick;
+	printf("diff is %" PRIu64 ".\n", diff);
 	// make the minimum time to wait 5ms.
 	// TODO: should be removed once we know what's going on.
 	if (diff <= 5000) diff = 5000;
@@ -103,8 +103,8 @@ void oscore_event_free(oscore_event ev) {
 
 // Time keeping.
 // FreeRTOS provides a tick count
-ulong oscore_udate(void) {
-	return ((1000 * 1000 * 1000) / configTICK_RATE_HZ) * (ulong)xTaskGetTickCount();
+oscore_time oscore_udate(void) {
+	return ((1000 * 1000 * 1000) / configTICK_RATE_HZ) * (oscore_time)xTaskGetTickCount();
 }
 
 // Below: Stubs and untestet stuff. Danger zone!
