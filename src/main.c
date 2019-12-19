@@ -239,7 +239,7 @@ int sled_main(int argc, char** argv) {
 				outarg = strdup(arg);
 				assert(outarg);
 			}
-			util_strlcpy(outmod_c + 4, modname, 252);
+			util_strlcpy(outmodname + 4, modname, 252);
 			free(modname);
 			break;
 		}
