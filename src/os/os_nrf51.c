@@ -54,12 +54,16 @@ extern char __bss_end__[0];
 extern char __heap_start__[0];
 extern char __heap_end__[0];
 
+#define STACK_CHECK_VALUE 0xDACABE06
+extern char __stack_start__[0];
+
 // Management business.
 static volatile int * __nrf51event__;
 
 #define NREG(ev) (*((volatile int *) (ev)))
 #define NEVENT(ev) { __nrf51event__ = &NREG(ev); *__nrf51event__ = 0; }
 #define NWAIT { while (!*__nrf51event__); *__nrf51event__ = 0; }
+
 
 int _write(int fd, const char * text, int len) {
 	int index = 0;
@@ -78,6 +82,9 @@ void __libc_init_array();
 static const char * appname = "sled";
 
 void __prestart() {
+	// Set stackcheck
+	NREG(__stack_start__) = STACK_CHECK_VALUE;
+
 	// grr, this wasn't in docs I think - make this output
 	NREG(0x50000518) = 1 << NRF51_UART_TX_PIN; // DIRSET
 	// configure UART pin
@@ -300,7 +307,7 @@ static void oscore_task_portal_fling(oscore_task_context_t * saveTo, oscore_task
 
 // --- SECTION 6 - PORTAL LINKAGE PAIRS ---
 
-#define THREAD_STACK_SIZE_WORDS 0x200
+#define THREAD_STACK_SIZE_WORDS 0x100
 typedef struct {
 	oscore_task_context_t ctx;
 	// These are NOT a ring, despite the round-robin structure;
@@ -310,6 +317,8 @@ typedef struct {
 	void * next;
 	// If NULL, the stack is owned elsewhere
 	void ** stack;
+	// At the very start of stack memory...
+	int * stackcheck;
 	// -- oscore api stuff --
 	// Indicates deadness.
 	int dead;
@@ -319,8 +328,9 @@ typedef struct {
 	void * userdata;
 } oscore_task_t;
 
-// bss
-static oscore_task_t osc_main_thread;
+static oscore_task_t osc_main_thread = {
+	.stackcheck = (int *) __stack_start__
+};
 // data (also, this is thread-local)
 static oscore_task_t * osc_current_task = &osc_main_thread;
 
@@ -352,6 +362,8 @@ oscore_task oscore_task_create(const char* name, oscore_task_function func, void
 	// details of this function are important to what is about to happen to stack
 	tsk->ctx.pc = THUMB_PTR(__oscore_task_portal_open);
 	tsk->stack = malloc(sizeof(void *) * THREAD_STACK_SIZE_WORDS);
+	tsk->stackcheck = (int *) tsk->stack;
+	tsk->stackcheck[0] = STACK_CHECK_VALUE;
 	// in memory order, which is the order used for push/pop
 	tsk->stack[THREAD_STACK_SIZE_WORDS - 1] = THUMB_PTR(oscore_task_kick);
 	tsk->ctx.sp = tsk->stack + THREAD_STACK_SIZE_WORDS - 1;
@@ -359,6 +371,8 @@ oscore_task oscore_task_create(const char* name, oscore_task_function func, void
 }
 
 void oscore_task_yield(void) {
+	// sanity check
+	assert(osc_current_task->stackcheck[0] == STACK_CHECK_VALUE);
 	// So before we begin, keep in mind that everything's been aligned so that we already start in a valid state,
 	//  from the very first instruction the CPU executes.
 	// This is because SP is set in the vector table to point into osc_main_thread.
