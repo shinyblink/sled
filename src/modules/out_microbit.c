@@ -20,6 +20,7 @@
 #include "types.h"
 #include "timers.h"
 #include "oscore.h"
+#include "random.h"
 
 // DO BE AWARE: This is designed for a 5x5 matrix size.
 // If you enter in something bigger, it will show the top-left 5x5.
@@ -79,16 +80,22 @@ static void microbit_light(int row, const char * remap, int minimum) {
 static void microbit_update() {
 	// time-based in the hope that with often enough yields, it won't act weird
 	// shifted right to reduce 'quantumyness' from RTC 32768hz
-	oscore_time tmr = udate() >> 5;
+	oscore_time tmr = udate() >> 6;
 
 	// extract fields
+	// for proper PoV, keep this at about 6 bits max?
 	int row = tmr & 3;
 	tmr >>= 2;
-	int comparator = tmr & 0xFF;
+	int comparator = tmr & 0xF;
+	tmr >>= 4;
 
-	// try to remove some of the lack of light caused by 3 by borrowing from comparator field
-	if (tmr == 3)
-		tmr = comparator & 3;
+	// comparator adjustment
+	comparator = (comparator << 4) | 8;
+
+	// row 3 (index 2 here) is dark for some reason and we have a spare row index
+	// 'donate' it
+	if (row == 3)
+		row = 2;
 	// total: 4 ctrl bits
 	if (row != 3) {
 		// before continuing, let's handle something here: the comparator needs a gamma curve.
@@ -134,10 +141,10 @@ static void * microbit_thread(void * ctx) {
 }
 
 int getx(int _modno) {
-	return 5;
+	return MATRIX_X;
 }
 int gety(int _modno) {
-	return 5;
+	return MATRIX_Y;
 }
 
 int set(int _modno, int x, int y, RGB color) {

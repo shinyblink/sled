@@ -155,18 +155,34 @@ int main(int argc, char ** argv) {
 #define NRF51_RTC_TICK_MICROSECONDS_D  1000
 
 static oscore_time osc_current_base_time;
+
+// When we occasionally CLEAR the RTC to prevent overflow,
+//  the CLEAR task takes quite some time.
+// (see subsection 19.1.8 of nRF51_RM_v3.0.1)
+// This flag is used to indicate any overflow condition is because of an unfinished CLEAR.
+// It also contains the last amount of time read before the clear completed,
+//  which may help reduce drift.
+static oscore_time osc_clearing_time;
+
 oscore_time oscore_udate(void) {
 	// get RTC value
 	int rtcVal = NREG(0x4000B504);
 	oscore_time valUs = (((oscore_time) rtcVal) * NRF51_RTC_TICK_MICROSECONDS_I) / NRF51_RTC_TICK_MICROSECONDS_D;
 	// only do the reset thing if above a certain value to reduce drift
 	// (and prevent it endlessly being reset too fast)
-	if (rtcVal < 0x10000)
-		return osc_current_base_time + valUs;
-	NREG(0x4000B008) = 1; // CLEAR
-	osc_current_base_time += valUs;
-	// printf("@%i\n", (int) (osc_current_base_time / 1000));
-	return osc_current_base_time;
+	if (rtcVal < 0x10000) {
+		// General runtime (not / no longer clearing)
+		if (osc_clearing_time) {
+			osc_current_base_time += osc_clearing_time;
+			osc_clearing_time = 0;
+		}
+	} else {
+		// Clearing
+		if (!osc_clearing_time)
+			NREG(0x4000B008) = 1; // CLEAR
+		osc_clearing_time = valUs;
+	}
+	return osc_current_base_time + valUs;
 }
 
 int usleep(useconds_t time) {
@@ -422,7 +438,11 @@ void * oscore_task_join(oscore_task task) {
 // NOTE: as a .data variable, this requires setup; this is __prestart's job
 static char * osc_brk = __heap_start__;
 
+static int osc_already_exiting = 0;
 void _exit(int err) {
+	if (osc_already_exiting)
+		while (1) {}
+	osc_already_exiting = 1;
 	assert(0);
 }
 
