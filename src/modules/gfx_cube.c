@@ -24,7 +24,7 @@
 // Since 3D vectors aren't in mathey we just invent our own
 #define LINES 12
 
-static float points[LINES * 6] = {
+static const float points[LINES * 6] = {
 	// Firstly, do the Z-1 4 rods
 	-1, -1, -1, 1, -1, -1,
 	-1, -1, -1, -1, 1, -1,
@@ -55,7 +55,7 @@ static float matrix[] = {
 
 // The full transform pipeline we're using here.
 // matrix is the modelview matrix, projection gets done here.
-static float * transform3d(float * x, float * y, float * src, float aspectx, float aspecty, float mw, float mh) {
+static const float * transform3d(float * x, float * y, const float * src, float aspectx, float aspecty, float mw, float mh) {
 	float sx, sy, sz, dz;
 	sx = *(src++);
 	sy = *(src++);
@@ -117,7 +117,7 @@ int draw(int _modno, int argc, char* argv[]) {
 	RGB white = RGB(255, 255, 255);
 	matrix_clear();
 	// execute lines
-	float * lp = points;
+	const float * lp = points;
 	for (int i = 0; i < LINES; i++) {
 		float sx, sy;
 		float dx, dy;

@@ -47,8 +47,4 @@ void asl_pgrowiv(asl_iv_t * self, int nxt);
 int asl_pnabiv(asl_iv_t * self);
 void asl_cleariv(asl_iv_t * self);
 
-// Test functions (use for tracing memory corruption)
-void asl_test_av_validity(asl_av_t * self);
-void asl_test_iv_validity(asl_iv_t * self);
-
 #endif

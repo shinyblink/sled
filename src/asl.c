@@ -154,19 +154,3 @@ void asl_cleariv(asl_iv_t * self) {
 	free(self->argv);
 	self->argv = NULL;
 }
-
-void asl_test_av_validity(asl_av_t * self) {
-	FILE * nope = fopen("/dev/null", "wb");
-	assert(nope);
-	for (int i = 0; i < self->argc; i++)
-		fprintf(nope, "%p\n", self->argv[i]);
-	fclose(nope);
-}
-void asl_test_iv_validity(asl_iv_t * self) {
-	FILE * nope = fopen("/dev/null", "wb");
-	assert(nope);
-	for (int i = 0; i < self->argc; i++)
-		fprintf(nope, "%i\n", self->argv[i]);
-	fclose(nope);
-}
-

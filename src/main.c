@@ -170,6 +170,7 @@ void main_force_random(int mnum, int argc, char ** argv) {
 	asl_clearav(&bundled);
 }
 
+#ifndef BAREMETAL_HAS_NO_OPTIONS
 int usage(char* name) {
 	printf("Usage: %s [-of]\n", name);
 	printf("\t-m --modpath: Set directory that contains the modules to load.\n");
@@ -200,18 +201,25 @@ static void interrupt_handler(int sig) {
 
 	interrupt_count++;
 }
+#endif
+
 
 int sled_main(int argc, char** argv) {
-	int ch;
-
-	char outmod_c[256] = DEFAULT_OUTMOD;
-	char* outarg = NULL;
 
 	asl_av_t filternames = {0, NULL};
 	asl_av_t filterargs = {0, NULL};
 
-	while ((ch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
-		switch(ch) {
+#ifdef BAREMETAL_HAS_NO_OPTIONS
+	const char * outmodname = "out_" DEFAULT_OUTMOD;
+	char* outarg = NULL;
+#else
+	// Refer to via +4 252 so that the "out_" remains untouched
+	char outmodname[256] = "out_" DEFAULT_OUTMOD;
+	char* outarg = NULL;
+
+	int optch;
+	while ((optch = getopt_long(argc, argv, "m:o:f:", longopts, NULL)) != -1) {
+		switch(optch) {
 		case 'm': {
 			char* str = strdup(optarg);
 			assert(str);
@@ -231,7 +239,7 @@ int sled_main(int argc, char** argv) {
 				outarg = strdup(arg);
 				assert(outarg);
 			}
-			util_strlcpy(outmod_c, modname, 256);
+			util_strlcpy(outmod_c + 4, modname, 252);
 			free(modname);
 			break;
 		}
@@ -260,6 +268,7 @@ int sled_main(int argc, char** argv) {
 	}
 	argc -= optind;
 	argv += optind;
+#endif
 
 	int ret;
 
@@ -280,8 +289,6 @@ int sled_main(int argc, char** argv) {
 	}
 
 	// Load outmod
-	char outmodname[4 + ARRAY_SIZE(outmod_c)];
-	snprintf(outmodname, 4 + ARRAY_SIZE(outmod_c), "out_%s", outmod_c);
 	char * outmodbuf2 = strdup(outmodname);
 	assert(outmodbuf2);
 	asl_pgrowav(&filternames, outmodbuf2);
@@ -327,7 +334,9 @@ int sled_main(int argc, char** argv) {
 	int ncpus = oscore_ncpus();
 	TP_GLOBAL = taskpool_create("taskpool", ncpus, ncpus*8);
 
+#ifndef BAREMETAL_HAS_NO_OPTIONS
 	signal(SIGINT, interrupt_handler);
+#endif
 
 	// Startup.
 	pick_next(-1, udate());

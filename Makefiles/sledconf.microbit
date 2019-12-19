@@ -1,0 +1,29 @@
+# micro:bit configuration for SLED
+# the micro:bit programmer uses the debug port, so we can run bare metal,
+#  and doing this vastly improves the build system experience
+
+PLATFORM := nrf51
+STATIC := 1
+
+# Size of matrix buffer. Keep it at 5x5. Do not lower it. If you raise it you won't get a complete output.
+MATRIX_X := 5
+MATRIX_Y := 5
+
+# Platform config
+CFLAGS += -DNRF51_822_QFAA -DNRF51_UART_TX_PIN=24
+
+# we really, really do not have the RAM to waste; module headers in particular are pretty massive
+# MAX_MODULES is ideally the amount of modules PLUS 1 (k2link's modloader)
+
+# as a safety measure:
+# SLED should fail build on 64 MAX_MODULES (r/n by 9884 bytes), but not 32 MAX_MODULES
+# and you should set MAX_MODULES to as low as will fit your usecase, accounting for k2link
+CFLAGS += -DMAX_MODULES=8 -DMAX_TIMERS=8
+# used to save on stack (256-char buffers anyone?)
+CFLAGS += -DBAREMETAL_HAS_NO_OPTIONS
+
+DEFAULT_OUTMOD := microbit
+MODULES := out_$(DEFAULT_OUTMOD) gfx_sort1D gfx_balls gfx_maze gfx_twinkle
+
+MCU_LINKER_SCRIPT := Makefiles/microbit.ld
+

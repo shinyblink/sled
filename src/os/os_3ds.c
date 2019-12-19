@@ -75,10 +75,12 @@ oscore_time oscore_udate(void) {
 }
 
 // Threading
-oscore_task oscore_thread_create(const char* name, oscore_task_function func, void* ctx) {
+oscore_task oscore_task_create(const char* name, oscore_task_function func, void* ctx) {
 	// uuh
 	return NULL;
 }
+
+void oscore_task_setprio(oscore_task task, int prio) {}
 
 void oscore_task_yield(void) {
 	// nothing.

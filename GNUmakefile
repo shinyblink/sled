@@ -60,6 +60,9 @@ STATIC ?= 0
 # By default, we are not building for CI
 CIMODE ?= 0
 
+# By default, we have no reason whatsoever to use this.
+LINKER_SCRIPT ?= 
+
 # By default, we're compiling for a generic Unix.
 # Available: 'unix', possibly '3ds'
 PLATFORM ?= unix
@@ -164,10 +167,25 @@ ML_OBJECTS := $(ML_SOURCES:.c=.o)
 # --- Include other makefiles ---
 include Makefiles/3ds.GNUmakefile
 include Makefiles/card10.GNUmakefile
+include Makefiles/cortexm0.GNUmakefile
+
+# describe the generation of .hex files
+%.hex: %
+	$(OBJCOPY) $^ -Oihex $@
 
 # --- All/Cleaning begins here ---
 
 all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF)
+
+ifneq ($(MCU_LINKER_SCRIPT),)
+
+# This is a microcontroller (or something like it, like a RISC-V VM w/ no ELF support)
+# As such generate aux. files
+all: $(PROJECT).hex
+LDFLAGS += -T$(MCU_LINKER_SCRIPT)
+$(PROJECT): $(MCU_LINKER_SCRIPT)
+
+endif
 
 clean: FORCE
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o static/modwraps/*.incs src/slloadcore.gen.c
@@ -211,10 +229,12 @@ libsled.a: $(OBJECTS) $(ML_OBJECTS)
 	$(AR) rcs "$@" $(OBJECTS) $(ML_OBJECTS)
 
 # --- The actual build begins here ---
+# These have to explicitly refer to their dependency collections because dependencies get added in
+#  that aren't necessarily valid direct inputs to GCC (linker scripts, for example)
 ifeq ($(STATIC),0)
- sled: $(OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true` $(LIBS)
+ $(PROJECT): $(OBJECTS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $(OBJECTS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true` $(LIBS)
 else
- sled: $(OBJECTS) $(ML_OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true`
+ $(PROJECT): $(OBJECTS) $(ML_OBJECTS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJECTS) $(ML_OBJECTS) $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true`
 endif

@@ -176,7 +176,7 @@ static inline void render_maze(int *maze, unsigned width, unsigned height) {
 }
 
 int init(int moduleno, char* argstr) {
-	if (matrix_getx() < 8 || matrix_gety() < 8)
+	if (matrix_getx() < 2 || matrix_gety() < 2)
 		return 1;
 	modno = moduleno;
 	frame = 0;
