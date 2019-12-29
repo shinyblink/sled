@@ -66,9 +66,55 @@ static int max_row;
 static int max_column;
 struct font_char* buffer;
 
+//scroll buffer up by one line
+void scroll_up(){
+	int i;
+	for(i = 0; i < ((max_column * (max_row - 1)));++i){
+		buffer[i].c = buffer[i + max_column].c;
+		buffer[i].fg = buffer[i + max_column].fg;
+		buffer[i].bg = buffer[i + max_column].bg;
+	}
+	for(;i < ((max_column * max_row));++i){
+		buffer[i].c = ' ';
+		buffer[i].fg = RGB(255,255,255);
+		buffer[i].bg = RGB(0,0,0);
+	}
+}
+
+void write_buffer(char* str, int row, int column, RGB fg, RGB bg){
+	int i;
+	int pos = column + (row * max_column);
+	int len = strlen(str);
+	//check whether it does fit
+	while(pos + len > max_row * max_column){
+		scroll_up();
+		row--;
+		pos = column + (row * max_column);
+	}
+	for(i = 0; i < len; ++i){
+		printf("- %d %d\n", pos, i);
+		printf("%c %c\n", buffer[pos].c, str[i]);
+		if(pos >= 0){
+			buffer[pos].c = str[i];
+			buffer[pos].fg = fg;
+			buffer[pos].bg = bg;
+		}
+		pos++;
+	}
+}
+
+void clear_buffer(){
+	int i;
+	for(i=0; i< max_row * max_column; ++i){
+		buffer[i].c=' ';
+		buffer[i].fg=RGB(255,255,255);
+		buffer[i].bg=RGB(0,0,0);
+	}
+}
+
 int init (int modno, char* argstr) {
 	moduleno = modno;
-	int i;
+	
 	//for(i = 0; i < 32; ++i)
 	//	foxel35[i] = notfound;
 
@@ -76,11 +122,28 @@ int init (int modno, char* argstr) {
 	max_column = matrix_getx() / 4;
 
 	buffer = malloc(max_row * max_column * sizeof(struct font_char));
-	for(i=0; i< max_row * max_column; ++i){
-		buffer[i].c='A';
-		buffer[i].fg=RGB(255,255,255);
-		buffer[i].bg=RGB(0,0,0);
-	}
+	
+	clear_buffer();
+	write_buffer("Hello 36C3!", 2, 3, RGB(247, 127, 190), RGB(50,50,50));
+	write_buffer("Hello 36C3!", 3, 10, RGB(255, 0, 0), RGB(50,50,50));
+	write_buffer("Hello 36C3!", 4, 17, RGB(0, 255, 0), RGB(50,50,50));
+	write_buffer("Hello 36C3!", 5, 24, RGB(0, 0, 255), RGB(50,50,50));
+	write_buffer("Hello 36C3!", 6, 4, RGB(247, 127, 190), RGB(100,100,100));
+	write_buffer("Hello 36C3!", 7, 11, RGB(255, 0, 0), RGB(100,100,100));
+	write_buffer("Hello 36C3!", 8, 18, RGB(0, 255, 0), RGB(100,100,100));
+	write_buffer("Hello 36C3!", 9, 25, RGB(0, 0, 255), RGB(100,100,100));
+	write_buffer("Hello 36C3!", 10, 5, RGB(247, 127, 190), RGB(150,150,150));
+	write_buffer("Hello 36C3!", 11, 12, RGB(255, 0, 0), RGB(150,150,150));
+	write_buffer("Hello 36C3!", 12, 19, RGB(0, 255, 0), RGB(150,150,150));
+	write_buffer("Hello 36C3!", 13, 26, RGB(0, 0, 255), RGB(150,150,150));
+	RGB fg = RGB(247,127,190);
+	RGB bg = RGB(50,50,50);
+	scroll_up();
+	scroll_up();
+
+	write_buffer("Line Break", 41, 60, RGB(247, 127, 190), RGB(50,50,50));
+
+
 
 	//2 rows
 	if (matrix_getx() < 11)
@@ -107,20 +170,22 @@ int draw(int _modno, int argc, char* argv[]) {
 	int y = 0;
 	int row = 0;
 	int column = 0;
+	int pos = 0;
 	RGB fg = RGB(247,127,190);
 	RGB bg = RGB(50,50,50);
 	for(row = 0; row < max_row; ++row)
 		for(column = 0; column < max_column; ++column){
 			for (y = 0; y < 6; ++y){
 				for (x = 0; x < 4; ++x) {
-					matrix_set((column*4) + x,(row*6) + y, (load_char(foxel35_bits, ch,x,y,font_width,font_height) == 1?fg:bg));
+					matrix_set((column*4) + x,(row*6) + y, (load_char(foxel35_bits, buffer[pos].c,x,y,font_width,font_height) == 1?buffer[pos].fg:buffer[pos].bg));
 					
 				}
 			}
-			ch++;
-			if(ch >= 128){
-				ch = 0;
-			}
+			pos++;
+			// ch++;
+			// if(ch >= 128){
+			// 	ch = 0;
+			// }
 		}
 
 	matrix_render();
