@@ -26,6 +26,9 @@
 #include "foxel35.xbm"
 #include "xbm_font_loader.c"
 
+#include <sys/types.h>
+#include <unistd.h>
+
 const int font_width = 4;
 const int font_height = 6;
 
@@ -65,9 +68,12 @@ static text* rendered = NULL;
 static int max_row;
 static int max_column;
 struct font_char* buffer;
+RGB fg = RGB(247,127,190);
+RGB bg = RGB(50,50,50);
+int current_row = 0;
 
 //scroll buffer up by one line
-void scroll_up(){
+static void scroll_up(){
 	int i;
 	for(i = 0; i < ((max_column * (max_row - 1)));++i){
 		buffer[i].c = buffer[i + max_column].c;
@@ -81,7 +87,8 @@ void scroll_up(){
 	}
 }
 
-void write_buffer(char* str, int row, int column, RGB fg, RGB bg){
+// returns the row on which the output ends
+static int write_buffer(char* str, int row, int column, RGB fg, RGB bg){
 	int i;
 	int pos = column + (row * max_column);
 	int len = strlen(str);
@@ -92,18 +99,50 @@ void write_buffer(char* str, int row, int column, RGB fg, RGB bg){
 		pos = column + (row * max_column);
 	}
 	for(i = 0; i < len; ++i){
-		printf("- %d %d\n", pos, i);
-		printf("%c %c\n", buffer[pos].c, str[i]);
-		if(pos >= 0){
-			buffer[pos].c = str[i];
-			buffer[pos].fg = fg;
-			buffer[pos].bg = bg;
+		if(str[i] != '\n'){
+			//printf("- %d %d\n", pos, i);
+			//printf("%c %c\n", buffer[pos].c, str[i]);
+			if(pos >= 0){
+				buffer[pos].c = str[i];
+				buffer[pos].fg = fg;
+				buffer[pos].bg = bg;
+			}
+			pos++;
+		}else{//\n
+			pos = ((pos/max_column) + 1)*max_column;
 		}
-		pos++;
 	}
+	// calculate the last row of our output
+	while(len > max_column){
+		len -= max_column;
+		row++;
+	};
+	return row;
 }
 
-void clear_buffer(){
+static void launch(char* command){
+	char cmd[max_column*3];
+	sprintf(cmd, "$ %s\n", command);
+	current_row = write_buffer(cmd, current_row, 0, fg, bg);
+	current_row++;
+	FILE *fp;
+	//int mypid = fork();
+	//char* args[] = {"-c",command};
+	//if(mypid == 0){
+		//execv("/bin/sh", args);
+		//execl("/bin/sh", "-c", command, (char*)0);
+	//}
+	FILE* cout = popen(command, "r");
+	char tmpbuffer[max_column*3];
+	while(fgets(tmpbuffer, max_column*3,cout)!=NULL){
+		current_row = write_buffer(tmpbuffer, current_row, 0, fg, bg);
+		current_row++;
+	};
+	fclose(cout);
+	//printf("wat: %s", tmpbuffer);
+}
+
+static void clear_buffer(){
 	int i;
 	for(i=0; i< max_row * max_column; ++i){
 		buffer[i].c=' ';
@@ -141,8 +180,11 @@ int init (int modno, char* argstr) {
 	scroll_up();
 	scroll_up();
 
-	write_buffer("Line Break", 41, 60, RGB(247, 127, 190), RGB(50,50,50));
-
+	//write_buffer("Line Break", 41, 60, RGB(247, 127, 190), RGB(50,50,50));
+	launch("echo mom | tr m l");
+	launch("echo mom | tr m l");
+	launch("ip a");
+	//launch("fortune|cowsay");
 
 
 	//2 rows
@@ -171,8 +213,6 @@ int draw(int _modno, int argc, char* argv[]) {
 	int row = 0;
 	int column = 0;
 	int pos = 0;
-	RGB fg = RGB(247,127,190);
-	RGB bg = RGB(50,50,50);
 	for(row = 0; row < max_row; ++row)
 		for(column = 0; column < max_column; ++column){
 			for (y = 0; y < 6; ++y){
