@@ -68,6 +68,10 @@ static text* rendered = NULL;
 static int max_row;
 static int max_column;
 struct font_char* buffer;
+char* type_buffer[] = {"echo mom | tr m l","fortune | cowsay","ip a"};//first is last
+int type_pos;
+int type_index;
+int max_index;
 RGB fg = RGB(247,127,190);
 RGB bg = RGB(50,50,50);
 int current_row = 0;
@@ -122,9 +126,9 @@ static int write_buffer(char* str, int row, int column, RGB fg, RGB bg){
 
 static void launch(char* command){
 	char cmd[max_column*3];
-	sprintf(cmd, "$ %s\n", command);
-	current_row = write_buffer(cmd, current_row, 0, fg, bg);
-	current_row++;
+	//sprintf(cmd, "$ %s\n", command);
+	//current_row = write_buffer(cmd, current_row, 0, fg, bg);
+	//current_row++;
 	FILE *fp;
 	//int mypid = fork();
 	//char* args[] = {"-c",command};
@@ -160,8 +164,18 @@ int init (int modno, char* argstr) {
 	max_row = matrix_gety() / 6;
 	max_column = matrix_getx() / 4;
 
+	max_index = 2;
+	type_pos = 0;
+
 	buffer = malloc(max_row * max_column * sizeof(struct font_char));
+	//type_buffer = malloc(3 * sizeof(char*));
+
+
+	//type_buffer[0] = "echo mom | tr m l";
+	//type_buffer[1] = "echo mom | tr m l";
+	//type_buffer[2] = "ip a";
 	
+
 	clear_buffer();
 	write_buffer("Hello 36C3!", 2, 3, RGB(247, 127, 190), RGB(50,50,50));
 	write_buffer("Hello 36C3!", 3, 10, RGB(255, 0, 0), RGB(50,50,50));
@@ -181,10 +195,13 @@ int init (int modno, char* argstr) {
 	scroll_up();
 
 	//write_buffer("Line Break", 41, 60, RGB(247, 127, 190), RGB(50,50,50));
-	launch("echo mom | tr m l");
-	launch("echo mom | tr m l");
-	launch("ip a");
+	//launch("echo mom | tr m l");
+	//launch("echo mom | tr m l");
+	//launch("ip a");
 	//launch("fortune|cowsay");
+	if(type_index >= 0){
+		current_row = write_buffer("$ ", current_row, 0, fg, bg);
+	}
 
 
 	//2 rows
@@ -199,6 +216,13 @@ int init (int modno, char* argstr) {
 }
 
 void reset(int _modno) {
+	type_index = max_index;
+	type_pos = 0;
+	current_row = 0;
+	clear_buffer();
+	if(type_index >= 0){
+		current_row = write_buffer("$ ", current_row, 0, fg, bg);
+	}
 	nexttick = udate();
 	frame = 0;
 }
@@ -207,25 +231,43 @@ int draw(int _modno, int argc, char* argv[]) {
 	time_t rawtime;
 	struct tm * timeinfo;
 	const char * format = "%T";
-	unsigned char ch = 0;
+	//unsigned char ch = 0;
 	int x = 0;
 	int y = 0;
 	int row = 0;
 	int column = 0;
 	int pos = 0;
+	char ch[1];
+	if(type_index >=0 ){
+		if(type_pos < strlen(type_buffer[type_index])){
+			ch[0] = type_buffer[type_index][type_pos];
+			current_row = write_buffer(ch, current_row, type_pos + 2, fg, bg);
+			type_pos++;
+		}else{
+			current_row++;
+			if(current_row > max_row){
+				current_row--;
+				scroll_up();
+			}
+			launch(type_buffer[type_index]);
+			type_index--;
+			type_pos = 0;
+			if(type_index >= 0){
+				current_row = write_buffer("$ ", current_row, 0, fg, bg);
+			}else{
+				return 1;
+			}
+		}
+	}
+
 	for(row = 0; row < max_row; ++row)
 		for(column = 0; column < max_column; ++column){
 			for (y = 0; y < 6; ++y){
 				for (x = 0; x < 4; ++x) {
 					matrix_set((column*4) + x,(row*6) + y, (load_char(foxel35_bits, buffer[pos].c,x,y,font_width,font_height) == 1?buffer[pos].fg:buffer[pos].bg));
-					
 				}
 			}
 			pos++;
-			// ch++;
-			// if(ch >= 128){
-			// 	ch = 0;
-			// }
 		}
 
 	matrix_render();
