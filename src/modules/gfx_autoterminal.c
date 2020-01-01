@@ -51,7 +51,7 @@ static text* rendered = NULL;
 static int max_row;
 static int max_column;
 struct font_char* buffer;
-char* type_buffer[] = {"echo mom | tr m l","fortune | cowsay","ls --color"};//first is last
+char** type_buffer;
 int type_pos;
 int type_index;
 int max_index;
@@ -207,12 +207,45 @@ int init (int modno, char* argstr) {
 	max_row = matrix_gety() / 6;
 	max_column = matrix_getx() / 4;
 
-	max_index = 2;
+	max_index = 1;
+
+
+	//read script
+	FILE *file;
+	char ch;
+
+	//char tmpbuffer[max_column*3];
+	file = fopen("scripts/auto.sh", "r");
+	if (file) {
+		//last line endns with eof and not new line
+		for(ch = getc(file); ch != EOF; ch = getc(file))
+			if(ch == '\n')
+				max_index++;
+		printf("%d lines\n", max_index);
+		type_buffer = malloc(max_index * sizeof(char*));
+		for(type_index = 0; type_index < max_index; type_index++){
+			type_buffer[type_index] = malloc(max_column * 3 * sizeof(char));
+		}
+		//type_index = 0;
+		rewind(file);
+		for(type_index = 0; type_index < max_index && fgets(type_buffer[type_index], max_column*3, file) !=NULL; type_index++){
+			printf("_ %s\n", type_buffer[type_index]);
+			//skip comments
+			if(type_buffer[type_index][0] == '#'){
+				type_index--;
+			}
+			//max_index++;
+		};
+		fclose(file); 
+	}
+
 	type_pos = 0;
+	max_index = type_index-1;
+	type_index = 0;
 
 	buffer = malloc(max_row * max_column * sizeof(struct font_char));
 	clear_buffer();
-	if(type_index >= 0){
+	if(max_index >= 0){
 		current_row = write_buffer("$ ", current_row, 0);
 	}
 
@@ -229,13 +262,13 @@ int init (int modno, char* argstr) {
 }
 
 void reset(int _modno) {
-	type_index = max_index;
+	type_index = 0;
 	type_pos = 0;
 	current_row = 0;
 	fg = fg_default;
 	bg = bg_default;
 	clear_buffer();
-	if(type_index >= 0){
+	if(max_index >= 0){
 		current_row = write_buffer("$ ", current_row, 0);
 	}
 	nexttick = udate();
@@ -253,7 +286,7 @@ int draw(int _modno, int argc, char* argv[]) {
 	int column = 0;
 	int pos = 0;
 	char ch[1];
-	if(type_index >=0 ){
+	if(type_index <= max_index ){
 		if(type_pos < strlen(type_buffer[type_index])){
 			ch[0] = type_buffer[type_index][type_pos];
 			current_row = write_buffer(ch, current_row, type_pos + 2);
@@ -265,9 +298,9 @@ int draw(int _modno, int argc, char* argv[]) {
 				scroll_up();
 			}
 			launch(type_buffer[type_index]);
-			type_index--;
+			type_index++;
 			type_pos = 0;
-			if(type_index >= 0){
+			if(type_index <= max_index){
 				current_row = write_buffer("$ ", current_row, 0);
 			}else{
 				return 1;
@@ -287,7 +320,7 @@ int draw(int _modno, int argc, char* argv[]) {
 
 	matrix_render();
 	frame++;
-	nexttick += (FRAMETIME/4);
+	nexttick += (FRAMETIME/8);
 	timer_add(nexttick, moduleno, 0, NULL);
 	return 0;
 }
