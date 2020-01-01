@@ -87,32 +87,37 @@ static int interpret_sgr(char* str, int i){
 			code += (str[i]-'0');
 		}
 		if(str[i] == ';' || str[i] == 'm'){
-			if(code >= 30 && code <= 47){
+			if((code >= 30 && code <= 47) || (code >= 90 && code <= 107)){
 				RGB color = RGB(0,0,0);
+				int shift = 0;
+				if(code >= 90){
+					shift = 85;
+					code -= 60;
+				}
 				switch(code%10){
 				case 0:
-					color = RGB(0,0,0);
+					color = RGB(shift,shift,shift);
 					break;
 				case 1:
-					color = RGB(170,0,0);
+					color = RGB(170+shift,shift,shift);
 					break;
 				case 2:
-					color = RGB(0,170,0);
+					color = RGB(shift,170+shift,shift);
 					break;
 				case 3:
-					color = RGB(170,85,0);
+					color = RGB(170+shift,85+shift,shift);
 					break;
 				case 4:
-					color = RGB(0,0,170);
+					color = RGB(shift,shift,170+shift);
 					break;
 				case 5:
-					color = RGB(170,0,170);
+					color = RGB(170+shift,shift,170+shift);
 					break;
 				case 6:
-					color = RGB(0,170,170);
+					color = RGB(shift,170+shift,170+shift);
 					break;
 				case 7:
-					color = RGB(170,170,170);
+					color = RGB(170+shift,170+shift,170+shift);
 					break;
 				}
 				if(code <40)
@@ -135,6 +140,7 @@ static int interpret_sgr(char* str, int i){
 		}
 		i++;
 	}
+	printf("\n");
 	return i;
 }
 
@@ -226,6 +232,8 @@ void reset(int _modno) {
 	type_index = max_index;
 	type_pos = 0;
 	current_row = 0;
+	fg = fg_default;
+	bg = bg_default;
 	clear_buffer();
 	if(type_index >= 0){
 		current_row = write_buffer("$ ", current_row, 0);
@@ -279,7 +287,7 @@ int draw(int _modno, int argc, char* argv[]) {
 
 	matrix_render();
 	frame++;
-	nexttick += FRAMETIME;
+	nexttick += (FRAMETIME/4);
 	timer_add(nexttick, moduleno, 0, NULL);
 	return 0;
 }
