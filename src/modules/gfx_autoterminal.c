@@ -1,6 +1,6 @@
-// A digital clock.
+// Automatically typing terminal.
 //
-// Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
+// Copyright (c) 2019/2020, Sebastian "basxto" Riedel <git@basxto.de>
 // 
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
@@ -32,23 +32,6 @@
 const int font_width = 4;
 const int font_height = 6;
 
-//typedef unsigned int[5][3] char35;
-
-// notfound = {{1,1,1},
-// 			  {1,0,1},
-// 			  {1,0,1},
-// 			  {1,0,1},
-// 			  {1,1,1}};
-//int notfound = 0b111
-// unsigned int notfound[5][3]= {{1,1,1},
-//  			  {1,0,1},
-//  			  {1,0,1},
-//  			  {1,0,1},
-//  			  {1,1,1}};
-//#define unknownCharacter {{1,1,1},{1,0,1},{1,0,1},{1,0,1},{1,1,1}}
-
-
-
 #define FRAMETIME (T_SECOND)
 #define FRAMES (TIME_SHORT)
 #define CHARS_FULL 8 // 20:15:09, must also hold 20:15 (small)
@@ -68,12 +51,14 @@ static text* rendered = NULL;
 static int max_row;
 static int max_column;
 struct font_char* buffer;
-char* type_buffer[] = {"echo mom | tr m l","fortune | cowsay","ip a"};//first is last
+char* type_buffer[] = {"echo mom | tr m l","fortune | cowsay","ls --color"};//first is last
 int type_pos;
 int type_index;
 int max_index;
-RGB fg = RGB(247,127,190);
-RGB bg = RGB(50,50,50);
+const RGB fg_default = RGB(247,127,190);
+const RGB bg_default = RGB(50,50,50);
+RGB fg = fg_default;
+RGB bg = bg_default;
 int current_row = 0;
 
 //scroll buffer up by one line
@@ -86,13 +71,75 @@ static void scroll_up(){
 	}
 	for(;i < ((max_column * max_row));++i){
 		buffer[i].c = ' ';
-		buffer[i].fg = RGB(255,255,255);
-		buffer[i].bg = RGB(0,0,0);
+		buffer[i].fg = fg;
+		buffer[i].bg = bg;
 	}
 }
 
+//csi sgr
+static int interpret_sgr(char* str, int i){
+	int code = 0;
+	int len = strlen(str);
+
+	while(i < len){
+		if(str[i] >= '0' && str[i] <= '9'){
+			code *= 10;
+			code += (str[i]-'0');
+		}
+		if(str[i] == ';' || str[i] == 'm'){
+			if(code >= 30 && code <= 47){
+				RGB color = RGB(0,0,0);
+				switch(code%10){
+				case 0:
+					color = RGB(0,0,0);
+					break;
+				case 1:
+					color = RGB(170,0,0);
+					break;
+				case 2:
+					color = RGB(0,170,0);
+					break;
+				case 3:
+					color = RGB(170,85,0);
+					break;
+				case 4:
+					color = RGB(0,0,170);
+					break;
+				case 5:
+					color = RGB(170,0,170);
+					break;
+				case 6:
+					color = RGB(0,170,170);
+					break;
+				case 7:
+					color = RGB(170,170,170);
+					break;
+				}
+				if(code <40)
+					fg = color;
+				else
+					bg = color;
+			}else
+				switch(code){
+				case 0:
+					fg = fg_default;
+					bg = bg_default;
+					break;
+				case 7: //reverse video
+					break;
+				}
+			code = 0;
+		}
+		if(str[i] == 'm'){
+			break;
+		}
+		i++;
+	}
+	return i;
+}
+
 // returns the row on which the output ends
-static int write_buffer(char* str, int row, int column, RGB fg, RGB bg){
+static int write_buffer(char* str, int row, int column){
 	int i;
 	int pos = column + (row * max_column);
 	int len = strlen(str);
@@ -103,9 +150,11 @@ static int write_buffer(char* str, int row, int column, RGB fg, RGB bg){
 		pos = column + (row * max_column);
 	}
 	for(i = 0; i < len; ++i){
-		if(str[i] != '\n'){
-			//printf("- %d %d\n", pos, i);
-			//printf("%c %c\n", buffer[pos].c, str[i]);
+		//look for char 27 + [
+		if(str[i] == 0x1B){
+			if(i+1 < len && str[i+1] == '[')
+				i = interpret_sgr(str, i+2);
+		}else if(str[i] != '\n'){
 			if(pos >= 0){
 				buffer[pos].c = str[i];
 				buffer[pos].fg = fg;
@@ -126,40 +175,28 @@ static int write_buffer(char* str, int row, int column, RGB fg, RGB bg){
 
 static void launch(char* command){
 	char cmd[max_column*3];
-	//sprintf(cmd, "$ %s\n", command);
-	//current_row = write_buffer(cmd, current_row, 0, fg, bg);
-	//current_row++;
 	FILE *fp;
-	//int mypid = fork();
-	//char* args[] = {"-c",command};
-	//if(mypid == 0){
-		//execv("/bin/sh", args);
-		//execl("/bin/sh", "-c", command, (char*)0);
-	//}
 	FILE* cout = popen(command, "r");
 	char tmpbuffer[max_column*3];
 	while(fgets(tmpbuffer, max_column*3,cout)!=NULL){
-		current_row = write_buffer(tmpbuffer, current_row, 0, fg, bg);
+		current_row = write_buffer(tmpbuffer, current_row, 0);
 		current_row++;
 	};
 	fclose(cout);
-	//printf("wat: %s", tmpbuffer);
 }
 
 static void clear_buffer(){
 	int i;
 	for(i=0; i< max_row * max_column; ++i){
 		buffer[i].c=' ';
-		buffer[i].fg=RGB(255,255,255);
-		buffer[i].bg=RGB(0,0,0);
+		buffer[i].fg=fg;
+		buffer[i].bg=bg;
 	}
 }
 
 int init (int modno, char* argstr) {
 	moduleno = modno;
 	
-	//for(i = 0; i < 32; ++i)
-	//	foxel35[i] = notfound;
 
 	max_row = matrix_gety() / 6;
 	max_column = matrix_getx() / 4;
@@ -168,39 +205,9 @@ int init (int modno, char* argstr) {
 	type_pos = 0;
 
 	buffer = malloc(max_row * max_column * sizeof(struct font_char));
-	//type_buffer = malloc(3 * sizeof(char*));
-
-
-	//type_buffer[0] = "echo mom | tr m l";
-	//type_buffer[1] = "echo mom | tr m l";
-	//type_buffer[2] = "ip a";
-	
-
 	clear_buffer();
-	write_buffer("Hello 36C3!", 2, 3, RGB(247, 127, 190), RGB(50,50,50));
-	write_buffer("Hello 36C3!", 3, 10, RGB(255, 0, 0), RGB(50,50,50));
-	write_buffer("Hello 36C3!", 4, 17, RGB(0, 255, 0), RGB(50,50,50));
-	write_buffer("Hello 36C3!", 5, 24, RGB(0, 0, 255), RGB(50,50,50));
-	write_buffer("Hello 36C3!", 6, 4, RGB(247, 127, 190), RGB(100,100,100));
-	write_buffer("Hello 36C3!", 7, 11, RGB(255, 0, 0), RGB(100,100,100));
-	write_buffer("Hello 36C3!", 8, 18, RGB(0, 255, 0), RGB(100,100,100));
-	write_buffer("Hello 36C3!", 9, 25, RGB(0, 0, 255), RGB(100,100,100));
-	write_buffer("Hello 36C3!", 10, 5, RGB(247, 127, 190), RGB(150,150,150));
-	write_buffer("Hello 36C3!", 11, 12, RGB(255, 0, 0), RGB(150,150,150));
-	write_buffer("Hello 36C3!", 12, 19, RGB(0, 255, 0), RGB(150,150,150));
-	write_buffer("Hello 36C3!", 13, 26, RGB(0, 0, 255), RGB(150,150,150));
-	RGB fg = RGB(247,127,190);
-	RGB bg = RGB(50,50,50);
-	scroll_up();
-	scroll_up();
-
-	//write_buffer("Line Break", 41, 60, RGB(247, 127, 190), RGB(50,50,50));
-	//launch("echo mom | tr m l");
-	//launch("echo mom | tr m l");
-	//launch("ip a");
-	//launch("fortune|cowsay");
 	if(type_index >= 0){
-		current_row = write_buffer("$ ", current_row, 0, fg, bg);
+		current_row = write_buffer("$ ", current_row, 0);
 	}
 
 
@@ -221,7 +228,7 @@ void reset(int _modno) {
 	current_row = 0;
 	clear_buffer();
 	if(type_index >= 0){
-		current_row = write_buffer("$ ", current_row, 0, fg, bg);
+		current_row = write_buffer("$ ", current_row, 0);
 	}
 	nexttick = udate();
 	frame = 0;
@@ -241,7 +248,7 @@ int draw(int _modno, int argc, char* argv[]) {
 	if(type_index >=0 ){
 		if(type_pos < strlen(type_buffer[type_index])){
 			ch[0] = type_buffer[type_index][type_pos];
-			current_row = write_buffer(ch, current_row, type_pos + 2, fg, bg);
+			current_row = write_buffer(ch, current_row, type_pos + 2);
 			type_pos++;
 		}else{
 			current_row++;
@@ -253,7 +260,7 @@ int draw(int _modno, int argc, char* argv[]) {
 			type_index--;
 			type_pos = 0;
 			if(type_index >= 0){
-				current_row = write_buffer("$ ", current_row, 0, fg, bg);
+				current_row = write_buffer("$ ", current_row, 0);
 			}else{
 				return 1;
 			}
