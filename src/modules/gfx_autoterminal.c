@@ -60,6 +60,7 @@ const RGB bg_default = RGB(50,50,50);
 RGB fg = fg_default;
 RGB bg = bg_default;
 int current_row = 0;
+//regex_t csi_regex;
 
 //scroll buffer up by one line
 static void scroll_up(){
@@ -203,12 +204,18 @@ static void clear_buffer(){
 int init (int modno, char* argstr) {
 	moduleno = modno;
 	
-
+	char* from_int = malloc(10*sizeof(char));
 	max_row = matrix_gety() / 6;
 	max_column = matrix_getx() / 4;
-
+	setenv("TERM", "xterm", 1);
+	snprintf(from_int, 10, "%d", max_row);
+	setenv("LINES",from_int, 1);
+	snprintf(from_int, 10, "%d", max_column);
+	setenv("COLUMNS",from_int, 1);
 	max_index = 1;
 
+	//legal CSI codes
+//	regcomp(&csi_regex, "(?:[0-9]*;)*[0-9]*([a-zA-Z])"), 0);
 
 	//read script
 	FILE *file;
