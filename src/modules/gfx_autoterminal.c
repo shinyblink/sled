@@ -60,7 +60,6 @@ const RGB bg_default = RGB(50,50,50);
 RGB fg = fg_default;
 RGB bg = bg_default;
 int current_row = 0;
-//regex_t csi_regex;
 
 //scroll buffer up by one line
 static void scroll_up(){
@@ -77,61 +76,122 @@ static void scroll_up(){
 	}
 }
 
+static int csi_type(char* str, int i){
+	while((str[i] >= '0' && str[i] <= '?')){
+		i++;
+	}
+	return i;
+}
+
+static RGB sgr2rgb(int code){
+	RGB color = RGB(0,0,0);
+	int shift = 0;
+	//high intensity is 8-15
+	if(code > 7 && code < 16){
+		shift = 85;
+		code -= 8;
+	}
+	switch(code%10){
+	case 0:
+		color = RGB(shift,shift,shift);
+		break;
+	case 1:
+		color = RGB(170+shift,shift,shift);
+		break;
+	case 2:
+		color = RGB(shift,170+shift,shift);
+		break;
+	case 3:
+		color = RGB(170+shift,85+shift,shift);
+		break;
+	case 4:
+		color = RGB(shift,shift,170+shift);
+		break;
+	case 5:
+		color = RGB(170+shift,shift,170+shift);
+		break;
+	case 6:
+		color = RGB(shift,170+shift,170+shift);
+		break;
+	case 7:
+		color = RGB(170+shift,170+shift,170+shift);
+		break;
+	}
+	if(code >= 16 && code < 232){///color cubes
+		int cubemap[] = {0x00,0x5f, 0x87, 0xaf, 0xd7, 0xff};
+		code -= 16;
+		int r = code / 36;
+		int g = (code % 36) / 6;
+		int b = code % 6;
+		color = RGB(cubemap[r], cubemap[g], cubemap[b]);
+	} else if(code >= 232){//black to white in 24 steps
+		int gray = (code - 232) * (256/24);
+		color = RGB(gray, gray, gray);
+	}
+	return color;
+
+}
+
+//read decimal number and set i to following character
+static int parse_sgr_value(char* str, int i, int* code){
+	int len = strlen(str);
+	for(*code = 0; i < len && (str[i] >= '0' && str[i] <= '9'); ++i){
+		*code *= 10;
+		*code += str[i] - '0';
+	}
+	return i;
+}
+
 //csi sgr
 static int interpret_sgr(char* str, int i){
 	int code = 0;
 	int len = strlen(str);
 
 	while(i < len){
-		if(str[i] >= '0' && str[i] <= '9'){
-			code *= 10;
-			code += (str[i]-'0');
-		}
+		i = parse_sgr_value(str, i, &code);
 		if(str[i] == ';' || str[i] == 'm'){
-			if((code >= 30 && code <= 47) || (code >= 90 && code <= 107)){
+			if(code == 38 || code == 48){
 				RGB color = RGB(0,0,0);
-				int shift = 0;
-				if(code >= 90){
-					shift = 85;
-					code -= 60;
-				}
-				switch(code%10){
-				case 0:
-					color = RGB(shift,shift,shift);
-					break;
-				case 1:
-					color = RGB(170+shift,shift,shift);
-					break;
-				case 2:
-					color = RGB(shift,170+shift,shift);
-					break;
-				case 3:
-					color = RGB(170+shift,85+shift,shift);
-					break;
-				case 4:
-					color = RGB(shift,shift,170+shift);
-					break;
-				case 5:
-					color = RGB(170+shift,shift,170+shift);
-					break;
-				case 6:
-					color = RGB(shift,170+shift,170+shift);
-					break;
-				case 7:
-					color = RGB(170+shift,170+shift,170+shift);
-					break;
+				int tmpcode = 0;
+				int tmpi;
+				tmpi = parse_sgr_value(str, i+1, &tmpcode);
+				i = tmpi;
+				if(tmpcode == 5){
+					i = parse_sgr_value(str, i+1, &tmpcode);
+					color = sgr2rgb(tmpcode);
+					//printf("%d = #%02x%02x%02x\n", tmpcode, color.red, color.green, color.blue);
+				}else if(tmpcode == 2){
+					//colors are simply given as rgb codes
+					int r;
+					int g;
+					int b;
+					i = parse_sgr_value(str, i+1, &r);
+					i = parse_sgr_value(str, i+1, &g);
+					i = parse_sgr_value(str, i+1, &b);
+					color = RGB(r,g,b);
 				}
 				if(code <40)
 					fg = color;
 				else
 					bg = color;
-			}else
+
+			}else if((code >= 30 && code <= 47) || (code >= 90 && code <= 107)){
+				//map regular foreground color to 0-7 and high intensity to 8-15
+				RGB color = sgr2rgb(code%10 + (code>=90 ? 8 : 0));
+				if(code <40)
+					fg = color;
+				else
+					bg = color;
+			}else 
 				switch(code){
 				case 0:
 					fg = fg_default;
 					bg = bg_default;
 					break;
-				case 7: //reverse video
+				//case 7: //reverse video
+				//	break;
+				default:
+					printf("Unhandled escape code %d\n", code);
 					break;
 				}
 			code = 0;
@@ -141,13 +201,13 @@ static int interpret_sgr(char* str, int i){
 		}
 		i++;
 	}
-	printf("\n");
 	return i;
 }
 
 // returns the row on which the output ends
 static int write_buffer(char* str, int row, int column){
 	int i;
+	int end;
 	int pos = column + (row * max_column);
 	int len = strlen(str);
 	//check whether it does fit
@@ -159,8 +219,15 @@ static int write_buffer(char* str, int row, int column){
 	for(i = 0; i < len; ++i){
 		//look for char 27 + [
 		if(str[i] == 0x1B){
-			if(i+1 < len && str[i+1] == '[')
-				i = interpret_sgr(str, i+2);
+			if(i+1 < len && str[i+1] == '['){
+				end = csi_type(str, i+2);
+				if(str[end] == 'm'){
+					interpret_sgr(str, i+2);
+				}else{
+					printf("Unhandled CSI type %c\n", str[end]);
+				}
+				i = end;
+			}
 		}else if(str[i] != '\n'){
 			if(pos >= 0){
 				buffer[pos].c = str[i];
@@ -214,34 +281,26 @@ int init (int modno, char* argstr) {
 	setenv("COLUMNS",from_int, 1);
 	max_index = 1;
 
-	//legal CSI codes
-//	regcomp(&csi_regex, "(?:[0-9]*;)*[0-9]*([a-zA-Z])"), 0);
-
 	//read script
 	FILE *file;
 	char ch;
 
-	//char tmpbuffer[max_column*3];
 	file = fopen("scripts/auto.sh", "r");
 	if (file) {
 		//last line endns with eof and not new line
 		for(ch = getc(file); ch != EOF; ch = getc(file))
 			if(ch == '\n')
 				max_index++;
-		printf("%d lines\n", max_index);
 		type_buffer = malloc(max_index * sizeof(char*));
 		for(type_index = 0; type_index < max_index; type_index++){
 			type_buffer[type_index] = malloc(max_column * 3 * sizeof(char));
 		}
-		//type_index = 0;
 		rewind(file);
 		for(type_index = 0; type_index < max_index && fgets(type_buffer[type_index], max_column*3, file) !=NULL; type_index++){
-			printf("_ %s\n", type_buffer[type_index]);
 			//skip comments
 			if(type_buffer[type_index][0] == '#'){
 				type_index--;
 			}
-			//max_index++;
 		};
 		fclose(file); 
 	}
@@ -286,7 +345,6 @@ int draw(int _modno, int argc, char* argv[]) {
 	time_t rawtime;
 	struct tm * timeinfo;
 	const char * format = "%T";
-	//unsigned char ch = 0;
 	int x = 0;
 	int y = 0;
 	int row = 0;
