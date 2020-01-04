@@ -53,6 +53,7 @@ const RGB bg_default = RGB(50, 50, 50);
 RGB fg = fg_default;
 RGB bg = bg_default;
 int current_row = 0;
+int current_column = 0;
 
 // scroll buffer up by one line
 static void scroll_up() {
@@ -199,17 +200,18 @@ static int interpret_sgr(char *str, int i) {
     return i;
 }
 
-// returns the row on which the output ends
-static int write_buffer(char *str, int row, int column) {
+// If string ends with an unfinished escape sequence it
+// it returns amount of read characters of that sequence
+static int write_buffer(char *str, int *row, int *column) {
     int i;
     int end;
-    int pos = column + (row * max_column);
+    int pos = (*column) + ((*row) * max_column);
     int len = strlen(str);
     // check whether it does fit
     while (pos + len > max_row * max_column) {
         scroll_up();
-        row--;
-        pos = column + (row * max_column);
+        (*row)--;
+        pos = (*column) + ((*row) * max_column);
     }
     for (i = 0; i < len; ++i) {
         // look for char 27 + [
@@ -219,6 +221,10 @@ static int write_buffer(char *str, int row, int column) {
                 if (str[end] == 'm') {
                     interpret_sgr(str, i + 2);
                 } else {
+                    if(end == len){
+                        //reached end of string, but escape code is incomplete
+                        return end-i;
+                    }
                     printf("Unhandled CSI type %c\n", str[end]);
                 }
                 i = end;
@@ -229,25 +235,32 @@ static int write_buffer(char *str, int row, int column) {
                 buffer[pos].fg = fg;
                 buffer[pos].bg = bg;
             }
+            (*column)++;
             pos++;
         } else { //\n
+            (*row)++;
+            *column = 0;
             pos = ((pos / max_column) + 1) * max_column;
         }
     }
     // calculate the last row of our output
     while (len > max_column) {
         len -= max_column;
-        row++;
+        (*row)++;
     };
-    return row;
+    // we reached end of string and everything went well
+    return 0;
 }
 
 static void launch(char *command) {
     FILE *cout = popen(command, "r");
-    char tmpbuffer[max_column * 3];
-    while (fgets(tmpbuffer, max_column * 3, cout) != NULL) {
-        current_row = write_buffer(tmpbuffer, current_row, 0);
-        current_row++;
+    char *tmpbuffer = malloc(max_column*3*sizeof(char));
+    int offset = 0;
+    while (fgets(tmpbuffer + offset, max_column * 3 - offset, cout) != NULL) {
+        offset = write_buffer(tmpbuffer, &current_row, &current_column);
+        if(offset != 0){
+            strcpy(tmpbuffer,tmpbuffer + (max_column * 3) - offset - 1);
+        }
     };
     fclose(cout);
 }
@@ -308,7 +321,7 @@ int init(int modno, char *argstr) {
     buffer = malloc(max_row * max_column * sizeof(struct font_char));
     clear_buffer();
     if (max_index >= 0) {
-        current_row = write_buffer("$ ", current_row, 0);
+        write_buffer("$ ", &current_row, &current_column);
     }
 
     // 2 rows
@@ -324,11 +337,12 @@ void reset(int _modno) {
     type_index = 0;
     type_pos = 0;
     current_row = 0;
+    current_column = 0;
     fg = fg_default;
     bg = bg_default;
     clear_buffer();
     if (max_index >= 0) {
-        current_row = write_buffer("$ ", current_row, 0);
+        write_buffer("$ ", &current_row, &current_column);
     }
     nexttick = udate();
 }
@@ -343,7 +357,7 @@ int draw(int _modno, int argc, char *argv[]) {
     if (type_index <= max_index) {
         if (type_pos < strlen(type_buffer[type_index])) {
             ch[0] = type_buffer[type_index][type_pos];
-            current_row = write_buffer(ch, current_row, type_pos + 2);
+            write_buffer(ch, &current_row, &current_column);
             type_pos++;
         } else {
             current_row++;
@@ -355,7 +369,7 @@ int draw(int _modno, int argc, char *argv[]) {
             type_index++;
             type_pos = 0;
             if (type_index <= max_index) {
-                current_row = write_buffer("$ ", current_row, 0);
+                write_buffer("$ ", &current_row, &current_column);
             } else {
                 return 1;
             }
