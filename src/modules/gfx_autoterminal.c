@@ -126,8 +126,11 @@ static RGB sgr2rgb(int code) {
 }
 
 // read decimal number and set i to following character
-static int parse_sgr_value(char *str, int i, int *code) {
+static int parse_sgr_value(char *str, int i, int *code, int def) {
     int len = strlen(str);
+    if(!(i < len && (str[i] >= '0' && str[i] <= '9'))){
+        return def;
+    }
     for (*code = 0; i < len && (str[i] >= '0' && str[i] <= '9'); ++i) {
         *code *= 10;
         *code += str[i] - '0';
@@ -141,16 +144,16 @@ static int interpret_sgr(char *str, int i) {
     int len = strlen(str);
 
     while (i < len) {
-        i = parse_sgr_value(str, i, &code);
+        i = parse_sgr_value(str, i, &code, 0);
         if (str[i] == ';' || str[i] == 'm') {
             if (code == 38 || code == 48) {
                 RGB color = RGB(0, 0, 0);
                 int tmpcode = 0;
                 int tmpi;
-                tmpi = parse_sgr_value(str, i + 1, &tmpcode);
+                tmpi = parse_sgr_value(str, i + 1, &tmpcode, 0);
                 i = tmpi;
                 if (tmpcode == 5) {
-                    i = parse_sgr_value(str, i + 1, &tmpcode);
+                    i = parse_sgr_value(str, i + 1, &tmpcode, 0);
                     color = sgr2rgb(tmpcode);
                     // printf("%d = #%02x%02x%02x\n", tmpcode, color.red,
                     // color.green, color.blue);
@@ -159,9 +162,9 @@ static int interpret_sgr(char *str, int i) {
                     int r;
                     int g;
                     int b;
-                    i = parse_sgr_value(str, i + 1, &r);
-                    i = parse_sgr_value(str, i + 1, &g);
-                    i = parse_sgr_value(str, i + 1, &b);
+                    i = parse_sgr_value(str, i + 1, &r, 0);
+                    i = parse_sgr_value(str, i + 1, &g, 0);
+                    i = parse_sgr_value(str, i + 1, &b, 0);
                     color = RGB(r, g, b);
                 }
                 if (code < 40)
@@ -204,23 +207,58 @@ static int interpret_sgr(char *str, int i) {
 // it returns amount of read characters of that sequence
 static int write_buffer(char *str, int *row, int *column) {
     int i;
+    int j = 0;
+    int j_len = 0;
     int end;
+    int code = 0;
     int pos = (*column) + ((*row) * max_column);
     int len = strlen(str);
     // check whether it does fit
-    while (pos + len > max_row * max_column) {
+    /*while (pos + len > max_row * max_column) {
         scroll_up();
         (*row)--;
         pos = (*column) + ((*row) * max_column);
-    }
+    }*/
     for (i = 0; i < len; ++i) {
         // look for char 27 + [
         if (str[i] == 0x1B) {
             if (i + 1 < len && str[i + 1] == '[') {
                 end = csi_type(str, i + 2);
-                if (str[end] == 'm') {
+                switch(str[end]){
+                case 'm':
                     interpret_sgr(str, i + 2);
-                } else {
+                    break;
+                case 'H': // cursor position
+                    i = parse_sgr_value(str, i + 2, &code, 1);
+                    current_row = code - 1;
+                    // column handled by G
+                case 'G': // cursor horizontal absolute
+                    parse_sgr_value(str, i + 2, &code, 1);
+                    current_column = code - 1;
+                    break;
+                case 'K':// erase line
+                    parse_sgr_value(str, i + 2, &code, 0);
+                    switch(code){
+                    case 0:
+                        j = current_column;
+                        j_len = max_column;
+                        break;
+                    case 1:
+                        j = 0;
+                        j_len = current_column;
+                        break;
+                    case 2:
+                        j = 0;
+                        j_len = max_column;
+                        break;
+                    }
+                    for(; j <= j_len; ++j){
+                        buffer[j + ((*row) * max_column)].c = ' ';
+                        buffer[j + ((*row) * max_column)].fg = fg;
+                        buffer[j + ((*row) * max_column)].bg = bg;
+                    }
+                    break;
+                default:
                     if(end == len){
                         //reached end of string, but escape code is incomplete
                         return end-i;
@@ -239,27 +277,27 @@ static int write_buffer(char *str, int *row, int *column) {
             pos++;
         } else { //\n
             (*row)++;
+            while(*row > max_row){
+                (*row)--;
+                scroll_up();
+            }
             *column = 0;
             pos = ((pos / max_column) + 1) * max_column;
         }
     }
-    // calculate the last row of our output
-    while (len > max_column) {
-        len -= max_column;
-        (*row)++;
-    };
     // we reached end of string and everything went well
     return 0;
 }
 
+// 6* is just a hack, since offset isn’t really working yet
 static void launch(char *command) {
     FILE *cout = popen(command, "r");
-    char *tmpbuffer = malloc(max_column*3*sizeof(char));
+    char *tmpbuffer = malloc(max_column*6*sizeof(char));
     int offset = 0;
-    while (fgets(tmpbuffer + offset, max_column * 3 - offset, cout) != NULL) {
+    while (fgets(tmpbuffer + offset, max_column * 6 - offset, cout) != NULL) {
         offset = write_buffer(tmpbuffer, &current_row, &current_column);
         if(offset != 0){
-            strcpy(tmpbuffer,tmpbuffer + (max_column * 3) - offset - 1);
+            strcpy(tmpbuffer,tmpbuffer + (max_column * 6) - offset - 1);
         }
     };
     fclose(cout);
