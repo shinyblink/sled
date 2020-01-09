@@ -437,4 +437,9 @@ int draw(int _modno, int argc, char *argv[]) {
 void deinit(int _modno) {
     // This acts conditionally on rendered being non-NULL.
     //text_free(rendered);
+    free(buffer);
+    for (type_index = 0; type_index < max_index; type_index++) {
+        free(type_buffer[type_index]);
+    }
+    free(type_buffer);
 }
