@@ -34,9 +34,10 @@ const int font_height = 6;
 #define FRAMES (TIME_SHORT)
 
 struct font_char {
-    char c;
+    unsigned char c;
     RGB fg;
     RGB bg;
+    int flags;
 };
 
 static oscore_time nexttick;
@@ -292,15 +293,39 @@ static int write_buffer(char *str, int *row, int *column) {
 // 6* is just a hack, since offset isn’t really working yet
 static void launch(char *command) {
     FILE *cout = popen(command, "r");
+    //according to man console_codes ESC [ has a maximum of 16 parameters
+    // and since 255; is the maximum int value, that makes 16*4
     char *tmpbuffer = malloc(max_column*6*sizeof(char));
     int offset = 0;
-    while (fgets(tmpbuffer + offset, max_column * 6 - offset, cout) != NULL) {
-        offset = write_buffer(tmpbuffer, &current_row, &current_column);
-        if(offset != 0){
-            strcpy(tmpbuffer,tmpbuffer + (max_column * 6) - offset - 1);
+    unsigned char c;
+    int escape_code = 0;
+    while((c = fgetc(cout)) != (unsigned char)EOF){
+        if(escape_code != 0){
+            tmpbuffer[escape_code - 1] = c;
+            // first char always allowed
+            // after that numbers , ; ?
+            if(escape_code == 1 || (c >= '0' && c <= '?')){
+                escape_code++;
+            }else{//exit escape code parsing
+                tmpbuffer[escape_code] = 0;
+                if(tmpbuffer[0] == '[' && tmpbuffer[escape_code-1] == 'm'){
+                    interpret_sgr(tmpbuffer, 1);
+                }
+                escape_code = 0;
+            }
+                
+        }else{
+            if(c == 0x1B){
+                escape_code = 1;
+            }else{
+                tmpbuffer[0] = c;
+                tmpbuffer[1] = 0;
+                offset = write_buffer(tmpbuffer, &current_row, &current_column);
+            }
         }
-    };
+    }
     fclose(cout);
+    free(tmpbuffer);
 }
 
 static void clear_buffer() {
