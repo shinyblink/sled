@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include <pthread.h>
+#include <pty.h>
 
 const int font_width = 4;
 const int font_height = 6;
@@ -46,18 +47,18 @@ static oscore_time nexttick;
 static int moduleno;
 static int max_row;
 static int max_column;
-struct font_char *buffer;
+static struct font_char *buffer;
 static int active_shell = 0;
-char **type_buffer;
-int type_pos;
-int type_index;
-int max_index;
-const RGB fg_default = RGB(247, 127, 190);
-const RGB bg_default = RGB(50, 50, 50);
-RGB fg = fg_default;
-RGB bg = bg_default;
-int current_row = 0;
-int current_column = 0;
+static char **type_buffer;
+static int type_pos;
+static int type_index;
+static int max_index;
+static const RGB fg_default = RGB(247, 127, 190);
+static const RGB bg_default = RGB(50, 50, 50);
+static RGB fg = fg_default;
+static RGB bg = bg_default;
+static int current_row = 0;
+static int current_column = 0;
 
 // scroll buffer up by one line
 static void scroll_up() {
@@ -159,8 +160,6 @@ static int interpret_sgr(char *str, int i) {
                 if (tmpcode == 5) {
                     i = parse_sgr_value(str, i + 1, &tmpcode, 0);
                     color = sgr2rgb(tmpcode);
-                    // printf("%d = #%02x%02x%02x\n", tmpcode, color.red,
-                    // color.green, color.blue);
                 } else if (tmpcode == 2) {
                     // colors are simply given as rgb codes
                     int r;
@@ -217,61 +216,21 @@ static int write_buffer(char *str, int *row, int *column) {
     int code = 0;
     int pos = (*column) + ((*row) * max_column);
     int len = strlen(str);
-    // check whether it does fit
-    /*while (pos + len > max_row * max_column) {
-        scroll_up();
-        (*row)--;
-        pos = (*column) + ((*row) * max_column);
-    }*/
     for (i = 0; i < len; ++i) {
-        // look for char 27 + [
-        if (str[i] == 0x1B) {
-            if (i + 1 < len && str[i + 1] == '[') {
-                end = csi_type(str, i + 2);
-                switch(str[end]){
-                case 'm':
-                    interpret_sgr(str, i + 2);
-                    break;
-                case 'H': // cursor position
-                    i = parse_sgr_value(str, i + 2, &code, 1);
-                    current_row = code - 1;
-                    // column handled by G
-                case 'G': // cursor horizontal absolute
-                    parse_sgr_value(str, i + 2, &code, 1);
-                    current_column = code - 1;
-                    break;
-                case 'K':// erase line
-                    parse_sgr_value(str, i + 2, &code, 0);
-                    switch(code){
-                    case 0:
-                        j = current_column;
-                        j_len = max_column;
-                        break;
-                    case 1:
-                        j = 0;
-                        j_len = current_column;
-                        break;
-                    case 2:
-                        j = 0;
-                        j_len = max_column;
-                        break;
-                    }
-                    for(; j <= j_len; ++j){
-                        buffer[j + ((*row) * max_column)].c = ' ';
-                        buffer[j + ((*row) * max_column)].fg = fg;
-                        buffer[j + ((*row) * max_column)].bg = bg;
-                    }
-                    break;
-                default:
-                    if(end == len){
-                        //reached end of string, but escape code is incomplete
-                        return end-i;
-                    }
-                    printf("Unhandled CSI type %c\n", str[end]);
-                }
-                i = end;
+        switch(str[i]){
+        case '\n':
+            (*row)++;
+            while(*row > max_row){
+                (*row)--;
+                scroll_up();
             }
-        } else if (str[i] != '\n') {
+            pos = ((pos / max_column) + 1) * max_column;
+            break;
+        case '\r':
+            *column = 0;
+            pos = ((pos / max_column) + 1) * max_column;
+            break;
+        default:
             if (pos >= 0) {
                 buffer[pos].c = str[i];
                 buffer[pos].fg = fg;
@@ -279,25 +238,114 @@ static int write_buffer(char *str, int *row, int *column) {
             }
             (*column)++;
             pos++;
-        } else { //\n
-            (*row)++;
-            while(*row > max_row){
-                (*row)--;
-                scroll_up();
-            }
-            *column = 0;
-            pos = ((pos / max_column) + 1) * max_column;
-        }
+            break;
+        } 
     }
     // we reached end of string and everything went well
     return 0;
+}
+
+static void parse_csi(char *str, int end){
+    int i = 1;// skip [
+    int j = 0;
+    int j_len = 0;
+    int code = 0;
+    switch(str[end]){
+    case 'm':
+        interpret_sgr(str, i);
+        break;
+    case 'A':
+        i = parse_sgr_value(str, i, &code, 1);
+        current_row -= i;
+        if(current_row < 0)
+            current_row = 0;
+        break;
+    case 'B':
+        i = parse_sgr_value(str, i, &code, 1);
+        current_row += i;
+        if(current_row > max_row)
+            current_row = max_row;
+        break;
+    case 'C':
+        i = parse_sgr_value(str, i, &code, 1);
+        current_column += i;
+        if(current_column > max_column)
+            current_column = max_column;
+        break;
+    case 'D':
+        i = parse_sgr_value(str, i, &code, 1);
+        current_column -= i;
+        if(current_column < 0)
+            current_column = 0;
+        break;
+    case 'H': // cursor position
+        i = parse_sgr_value(str, i, &code, 1);
+        current_row = code - 1;
+        // column handled by G
+    case 'G': // cursor horizontal absolute
+        parse_sgr_value(str, i, &code, 1);
+        current_column = code - 1;
+        break;
+    case 'K':// erase line
+        parse_sgr_value(str, i, &code, 0);
+        switch(code){
+        case 0:
+            j = current_column;
+            j_len = max_column;
+            break;
+        case 1:
+            j = 0;
+            j_len = current_column;
+            break;
+        case 2:
+            j = 0;
+            j_len = max_column;
+            break;
+        }
+        for(; j <= j_len; ++j){
+            buffer[j + (current_row * max_column)].c = ' ';
+            buffer[j + (current_row * max_column)].fg = fg;
+            buffer[j + (current_row * max_column)].bg = bg;
+        }
+        break;
+    case 'J'://erase in display
+        parse_sgr_value(str, i, &code, 0);
+        switch(code){
+        case 0:
+            j = current_column + (current_row * max_column);
+            j_len = max_column * max_row;
+            break;
+        case 1:
+            j = 0;
+            j_len = current_column + (current_row * max_column);
+            break;
+        default:
+            j = 0;
+            j_len = max_column * max_row;
+            break;
+        }
+        for(; j <= j_len; ++j){
+            buffer[j].c = ' ';
+            buffer[j].fg = fg;
+            buffer[j].bg = bg;
+        }
+        break;
+    default:
+        printf("Unhandled CSI type %c\n", str[end]);
+    }
 }
 
 // run in own thread
 // 6* is just a hack, since offset isn’t really working yet
 static void *launch(void *type_buffer) {
     char *command = (char *)type_buffer;
-    FILE *cout = popen(command, "r");
+    int fd;
+    struct winsize win = {max_row, max_column, max_column * font_width, max_row * font_height};
+    if(forkpty(&fd, NULL, NULL, &win) == 0){
+        char* args[] = {"/bin/bash", "-c", command, NULL};
+        execv(args[0], args);
+    }
+    FILE *cout = fdopen(fd, "r");
     //according to man console_codes ESC [ has a maximum of 16 parameters
     // and since 255; is the maximum int value, that makes 16*4
     char *tmpbuffer = malloc(max_column*6*sizeof(char));
@@ -308,17 +356,16 @@ static void *launch(void *type_buffer) {
         if(escape_code != 0){
             tmpbuffer[escape_code - 1] = c;
             // first char always allowed
-            // after that numbers , ; ?
+            // and all legit characters
             if(escape_code == 1 || (c >= '0' && c <= '?')){
                 escape_code++;
             }else{//exit escape code parsing
                 tmpbuffer[escape_code] = 0;
-                if(tmpbuffer[0] == '[' && tmpbuffer[escape_code-1] == 'm'){
-                    interpret_sgr(tmpbuffer, 1);
-                }
+                //printf("escape code: %s\n", tmpbuffer);
+                if(tmpbuffer[0] == '[')
+                    parse_csi(tmpbuffer, escape_code-1);
                 escape_code = 0;
             }
-                
         }else{
             if(c == 0x1B){
                 escape_code = 1;
@@ -332,7 +379,6 @@ static void *launch(void *type_buffer) {
     fclose(cout);
     free(tmpbuffer);
     active_shell = 0;
-    printf("thread finished: %s\n", command);
     return 0;
 }
 
@@ -351,7 +397,8 @@ int init(int modno, char *argstr) {
     char *from_int = malloc(10 * sizeof(char));
     max_row = matrix_gety() / 6;
     max_column = matrix_getx() / 4;
-    setenv("TERM", "xterm", 1);
+    setenv("TERMINFO", "./terminfo/", 1);
+    setenv("TERM", "autoterminal", 1);
     snprintf(from_int, 10, "%d", max_row);
     setenv("LINES", from_int, 1);
     snprintf(from_int, 10, "%d", max_column);
@@ -439,11 +486,7 @@ int draw(int _modno, int argc, char *argv[]) {
             write_buffer(ch, &current_row, &current_column);
             type_pos++;
         } else {
-            current_row++;
-            if (current_row > max_row) {
-                current_row--;
-                scroll_up();
-            }
+            current_column = 0;
             active_shell = 1;
             type_index++;
             type_pos = 0;
@@ -472,8 +515,6 @@ int draw(int _modno, int argc, char *argv[]) {
 }
 
 void deinit(int _modno) {
-    // This acts conditionally on rendered being non-NULL.
-    //text_free(rendered);
     free(buffer);
     for (type_index = 0; type_index < max_index; type_index++) {
         free(type_buffer[type_index]);

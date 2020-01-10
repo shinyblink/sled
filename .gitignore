@@ -7,6 +7,7 @@ sledconf
 /modules
 sled
 sled.fish
+terminfo/
 
 # crashy stuff
 *.core
