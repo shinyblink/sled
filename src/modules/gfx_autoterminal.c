@@ -27,6 +27,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <pthread.h>
+
 const int font_width = 4;
 const int font_height = 6;
 
@@ -45,6 +47,7 @@ static int moduleno;
 static int max_row;
 static int max_column;
 struct font_char *buffer;
+static int active_shell = 0;
 char **type_buffer;
 int type_pos;
 int type_index;
@@ -290,8 +293,10 @@ static int write_buffer(char *str, int *row, int *column) {
     return 0;
 }
 
+// run in own thread
 // 6* is just a hack, since offset isn’t really working yet
-static void launch(char *command) {
+static void *launch(void *type_buffer) {
+    char *command = (char *)type_buffer;
     FILE *cout = popen(command, "r");
     //according to man console_codes ESC [ has a maximum of 16 parameters
     // and since 255; is the maximum int value, that makes 16*4
@@ -326,6 +331,9 @@ static void launch(char *command) {
     }
     fclose(cout);
     free(tmpbuffer);
+    active_shell = 0;
+    printf("thread finished: %s\n", command);
+    return 0;
 }
 
 static void clear_buffer() {
@@ -417,7 +425,15 @@ int draw(int _modno, int argc, char *argv[]) {
     int column = 0;
     int pos = 0;
     char ch[1];
-    if (type_index <= max_index) {
+    pthread_t thread_id;
+    if (active_shell == 0) {
+        // we are through with all commands
+        if(type_index > max_index)
+            return 1;
+        // this happens right after other thread finished
+        if(type_pos == 0){//prepare next line or exit
+           write_buffer("$ ", &current_row, &current_column);
+        }
         if (type_pos < strlen(type_buffer[type_index])) {
             ch[0] = type_buffer[type_index][type_pos];
             write_buffer(ch, &current_row, &current_column);
@@ -428,14 +444,10 @@ int draw(int _modno, int argc, char *argv[]) {
                 current_row--;
                 scroll_up();
             }
-            launch(type_buffer[type_index]);
+            active_shell = 1;
             type_index++;
             type_pos = 0;
-            if (type_index <= max_index) {
-                write_buffer("$ ", &current_row, &current_column);
-            } else {
-                return 1;
-            }
+            pthread_create(&thread_id, NULL, launch, type_buffer[type_index-1]);
         }
     }
 
