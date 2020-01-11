@@ -61,6 +61,7 @@ static RGB bg = bg_default;
 static int current_row = 0;
 static int current_column = 0;
 static oscore_mutex buffer_busy;
+static char* shell;
 
 // scroll buffer up by one line
 static void scroll_up() {
@@ -333,7 +334,7 @@ static void* launch(void *type_buffer) {
     int fd;
     struct winsize win = {max_row, max_column, max_column * font_width, max_row * font_height};
     if(forkpty(&fd, NULL, NULL, &win) == 0){
-        char* args[] = {"/bin/bash", "-c", command, NULL};
+        char* args[] = {shell, "-c", command, NULL};
         execv(args[0], args);
     }
     FILE *cout = fdopen(fd, "r");
@@ -385,7 +386,7 @@ static void clear_buffer() {
 
 int init(int modno, char *argstr) {
     moduleno = modno;
-
+    int first_line = 1;
     char *from_int = malloc(10 * sizeof(char));
     max_row = matrix_gety() / 6;
     max_column = matrix_getx() / 4;
@@ -396,7 +397,8 @@ int init(int modno, char *argstr) {
     snprintf(from_int, 10, "%d", max_column);
     setenv("COLUMNS", from_int, 1);
     max_index = 1;
-
+    shell = malloc(30*sizeof(char));
+    strcpy(shell, "/bin/sh");
     // read script
     FILE *file;
     char ch;
@@ -418,8 +420,16 @@ int init(int modno, char *argstr) {
              type_index++) {
             // skip comments
             if (type_buffer[type_index][0] == '#') {
+                if(first_line && type_buffer[0][1] == '!'){
+                    strcpy(shell, type_buffer[type_index] + 2);
+                    //each input ends with a newline
+                    int last = strlen(shell) - 1;
+                    if(shell[last] == '\n')
+                        shell[last] = '\0';
+                }
                 type_index--;
             }
+            first_line = 0;
         };
         fclose(file);
     }
@@ -504,6 +514,7 @@ int draw(int _modno, int argc, char *argv[]) {
 
 void deinit(int _modno) {
     free(buffer);
+    free(shell);
     for (type_index = 0; type_index < max_index; type_index++) {
         free(type_buffer[type_index]);
     }
