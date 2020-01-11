@@ -98,7 +98,7 @@ CPPFLAGS += -Wall
 
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
-LIBS ?= -lm -pthread -lutil
+LIBS ?= -lm -lutil
 
 ifeq ($(STATIC),0)
  OS := $(shell uname)

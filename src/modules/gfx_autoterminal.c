@@ -27,7 +27,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <pthread.h>
+//#include <pthread.h>
+#include <oscore.h>
 #include <pty.h>
 
 const int font_width = 4;
@@ -59,6 +60,8 @@ static RGB fg = fg_default;
 static RGB bg = bg_default;
 static int current_row = 0;
 static int current_column = 0;
+
+static oscore_mutex buffer_busy;
 
 // scroll buffer up by one line
 static void scroll_up() {
@@ -337,7 +340,7 @@ static void parse_csi(char *str, int end){
 
 // run in own thread
 // 6* is just a hack, since offset isn’t really working yet
-static void *launch(void *type_buffer) {
+static void* launch(void *type_buffer) {
     char *command = (char *)type_buffer;
     int fd;
     struct winsize win = {max_row, max_column, max_column * font_width, max_row * font_height};
@@ -372,7 +375,9 @@ static void *launch(void *type_buffer) {
             }else{
                 tmpbuffer[0] = c;
                 tmpbuffer[1] = 0;
+                oscore_mutex_lock(buffer_busy);
                 offset = write_buffer(tmpbuffer, &current_row, &current_column);
+                oscore_mutex_unlock(buffer_busy);
             }
         }
     }
@@ -436,6 +441,8 @@ int init(int modno, char *argstr) {
     max_index = type_index - 1;
     type_index = 0;
 
+    buffer_busy = oscore_mutex_new();
+
     buffer = malloc(max_row * max_column * sizeof(struct font_char));
     clear_buffer();
     if (max_index >= 0) {
@@ -472,7 +479,6 @@ int draw(int _modno, int argc, char *argv[]) {
     int column = 0;
     int pos = 0;
     char ch[1];
-    pthread_t thread_id;
     if (active_shell == 0) {
         // we are through with all commands
         if(type_index > max_index)
@@ -490,10 +496,11 @@ int draw(int _modno, int argc, char *argv[]) {
             active_shell = 1;
             type_index++;
             type_pos = 0;
-            pthread_create(&thread_id, NULL, launch, type_buffer[type_index-1]);
+            oscore_task_create("shell", launch, type_buffer[type_index-1]);
         }
     }
 
+    oscore_mutex_lock(buffer_busy);
     for (row = 0; row < max_row; ++row)
         for (column = 0; column < max_column; ++column) {
             for (y = 0; y < 6; ++y) {
@@ -507,7 +514,7 @@ int draw(int _modno, int argc, char *argv[]) {
             }
             pos++;
         }
-
+    oscore_mutex_unlock(buffer_busy);
     matrix_render();
     nexttick += (FRAMETIME);
     timer_add(nexttick, moduleno, 0, NULL);
@@ -520,4 +527,5 @@ void deinit(int _modno) {
         free(type_buffer[type_index]);
     }
     free(type_buffer);
+    oscore_mutex_free(buffer_busy);
 }
