@@ -60,7 +60,6 @@ static RGB fg = fg_default;
 static RGB bg = bg_default;
 static int current_row = 0;
 static int current_column = 0;
-
 static oscore_mutex buffer_busy;
 
 // scroll buffer up by one line
@@ -76,13 +75,6 @@ static void scroll_up() {
         buffer[i].fg = fg;
         buffer[i].bg = bg;
     }
-}
-
-static int csi_type(char *str, int i) {
-    while ((str[i] >= '0' && str[i] <= '?')) {
-        i++;
-    }
-    return i;
 }
 
 static RGB sgr2rgb(int code) {
@@ -213,10 +205,6 @@ static int interpret_sgr(char *str, int i) {
 // it returns amount of read characters of that sequence
 static int write_buffer(char *str, int *row, int *column) {
     int i;
-    int j = 0;
-    int j_len = 0;
-    int end;
-    int code = 0;
     int pos = (*column) + ((*row) * max_column);
     int len = strlen(str);
     for (i = 0; i < len; ++i) {
@@ -352,7 +340,6 @@ static void* launch(void *type_buffer) {
     //according to man console_codes ESC [ has a maximum of 16 parameters
     // and since 255; is the maximum int value, that makes 16*4
     char *tmpbuffer = malloc(max_column*6*sizeof(char));
-    int offset = 0;
     unsigned char c;
     int escape_code = 0;
     while((c = fgetc(cout)) != (unsigned char)EOF){
@@ -376,7 +363,7 @@ static void* launch(void *type_buffer) {
                 tmpbuffer[0] = c;
                 tmpbuffer[1] = 0;
                 oscore_mutex_lock(buffer_busy);
-                offset = write_buffer(tmpbuffer, &current_row, &current_column);
+                write_buffer(tmpbuffer, &current_row, &current_column);
                 oscore_mutex_unlock(buffer_busy);
             }
         }
@@ -445,9 +432,6 @@ int init(int modno, char *argstr) {
 
     buffer = malloc(max_row * max_column * sizeof(struct font_char));
     clear_buffer();
-    if (max_index >= 0) {
-        write_buffer("$ ", &current_row, &current_column);
-    }
 
     // 2 rows
     if (matrix_getx() < font_height * 2)
@@ -466,9 +450,6 @@ void reset(int _modno) {
     fg = fg_default;
     bg = bg_default;
     clear_buffer();
-    if (max_index >= 0) {
-        write_buffer("$ ", &current_row, &current_column);
-    }
     nexttick = udate();
 }
 
