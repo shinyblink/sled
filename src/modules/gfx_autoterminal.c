@@ -130,7 +130,8 @@ static RGB sgr2rgb(int code) {
 static int parse_sgr_value(char *str, int i, int *code, int def) {
     int len = strlen(str);
     if (!(i < len && (str[i] >= '0' && str[i] <= '9'))) {
-        return def;
+        *code = def;
+        return i;
     }
     for (*code = 0; i < len && (str[i] >= '0' && str[i] <= '9'); ++i) {
         *code *= 10;
@@ -247,26 +248,26 @@ static void parse_csi(char *str, int end) {
         interpret_sgr(str, i);
         break;
     case 'A':
-        i = parse_sgr_value(str, i, &code, 1);
-        current_row -= i;
+        parse_sgr_value(str, i, &code, 1);
+        current_row -= code;
         if (current_row < 0)
             current_row = 0;
         break;
     case 'B':
-        i = parse_sgr_value(str, i, &code, 1);
-        current_row += i;
+        parse_sgr_value(str, i, &code, 1);
+        current_row += code;
         if (current_row > max_row)
             current_row = max_row;
         break;
     case 'C':
-        i = parse_sgr_value(str, i, &code, 1);
-        current_column += i;
+        parse_sgr_value(str, i, &code, 1);
+        current_column += code;
         if (current_column > max_column)
             current_column = max_column;
         break;
     case 'D':
-        i = parse_sgr_value(str, i, &code, 1);
-        current_column -= i;
+        parse_sgr_value(str, i, &code, 1);
+        current_column -= code;
         if (current_column < 0)
             current_column = 0;
         break;
@@ -328,7 +329,6 @@ static void parse_csi(char *str, int end) {
 }
 
 // run in own thread
-// 6* is just a hack, since offset isn’t really working yet
 static void *launch(void *type_buffer) {
     char *command = (char *)type_buffer;
     int fd;
@@ -341,7 +341,7 @@ static void *launch(void *type_buffer) {
     FILE *cout = fdopen(fd, "r");
     // according to man console_codes ESC [ has a maximum of 16 parameters
     // and since 255; is the maximum int value, that makes 16*4
-    char *tmpbuffer = malloc(max_column * 6 * sizeof(char));
+    char *tmpbuffer = malloc(16 * 4 * sizeof(char));
     int ch;
     int escape_code = 0;
     while ((ch = getc(cout)) != EOF) {
@@ -353,9 +353,11 @@ static void *launch(void *type_buffer) {
                 escape_code++;
             } else { // exit escape code parsing
                 tmpbuffer[escape_code] = 0;
-                // printf("escape code: %s\n", tmpbuffer);
-                if (tmpbuffer[0] == '[')
+                if (tmpbuffer[0] == '['){
                     parse_csi(tmpbuffer, escape_code - 1);
+                }else{
+                    printf("Unhandled escape code: %s\n", tmpbuffer);
+                }
                 escape_code = 0;
             }
         } else {

@@ -1,6 +1,7 @@
 image: freebsd/latest
 packages:
   - gmake
+  - ncurses
 sources:
   - https://github.com/vifino/sled
 environment:
