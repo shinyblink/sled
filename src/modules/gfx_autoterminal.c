@@ -342,14 +342,14 @@ static void *launch(void *type_buffer) {
     // according to man console_codes ESC [ has a maximum of 16 parameters
     // and since 255; is the maximum int value, that makes 16*4
     char *tmpbuffer = malloc(max_column * 6 * sizeof(char));
-    unsigned char c;
+    int ch;
     int escape_code = 0;
-    while ((c = fgetc(cout)) != (unsigned char)EOF) {
+    while ((ch = getc(cout)) != EOF) {
         if (escape_code != 0) {
-            tmpbuffer[escape_code - 1] = c;
+            tmpbuffer[escape_code - 1] = ch;
             // first char always allowed
             // and all legit characters
-            if (escape_code == 1 || (c >= '0' && c <= '?')) {
+            if (escape_code == 1 || (ch >= '0' && ch <= '?')) {
                 escape_code++;
             } else { // exit escape code parsing
                 tmpbuffer[escape_code] = 0;
@@ -359,10 +359,10 @@ static void *launch(void *type_buffer) {
                 escape_code = 0;
             }
         } else {
-            if (c == 0x1B) {
+            if (ch == 0x1B) {
                 escape_code = 1;
             } else {
-                tmpbuffer[0] = c;
+                tmpbuffer[0] = (unsigned char)ch;
                 tmpbuffer[1] = 0;
                 oscore_mutex_lock(buffer_busy);
                 write_buffer(tmpbuffer, &current_row, &current_column);
@@ -405,9 +405,9 @@ int init(int modno, char *argstr) {
     file = fopen("scripts/autoterminal.sh", "r");
     if (file) {
         // last line endns with eof and not new line
-        unsigned char ch;
-        while ((ch = getc(file)) != (unsigned char)EOF)
-            if (ch == '\n')
+        int ch;
+        while ((ch = getc(file)) != EOF)
+            if ((unsigned char)ch == '\n')
                 max_index++;
         type_buffer = malloc(max_index * sizeof(char *));
         for (type_index = 0; type_index < max_index; type_index++) {
