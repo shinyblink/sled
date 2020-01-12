@@ -53,40 +53,58 @@ static RGB bg = bg_default;
 static int current_row = 0;
 static int current_column = 0;
 static char *shell;
+static int flags = 0;
+static const int flag_intense = 1;
+static const int flag_faint = 1<<1;
+static const int flag_inverse = 1<<2;
 
+static int shift_color(int value, int shift){
+    if(shift < 0){
+        if(value >= -shift){
+            return value + shift;
+        }else
+            return 0;
+    }
+    if(shift > 0){
+        if(value + shift < 256){
+            return value + shift;
+        }else
+            return 255;
+    }
+    return value;
+}
 
-static RGB sgr2rgb(int code) {
+static RGB sgr2rgb(int code, int shift) {
     RGB color = RGB(0, 0, 0);
-    int shift = 0;
     // high intensity is 8-15
     if (code > 7 && code < 16) {
-        shift = 85;
+        shift += 85;
         code -= 8;
     }
     switch (code % 10) {
     case 0:
-        color = RGB(shift, shift, shift);
+        color = RGB(0, 0, 0);
         break;
     case 1:
-        color = RGB(170 + shift, shift, shift);
+        color = RGB(170, 0, 0);
         break;
     case 2:
-        color = RGB(shift, 170 + shift, shift);
+        color = RGB(0, 170, 0);
         break;
     case 3:
-        color = RGB(170 + shift, 85 + shift, shift);
+        color = RGB(170, 85, 0);
         break;
     case 4:
-        color = RGB(shift, shift, 170 + shift);
+        color = RGB(0, 0, 170);
         break;
     case 5:
-        color = RGB(170 + shift, shift, 170 + shift);
+        color = RGB(170, 0, 170);
         break;
     case 6:
-        color = RGB(shift, 170 + shift, 170 + shift);
+        color = RGB(0, 170, 170);
         break;
     case 7:
-        color = RGB(170 + shift, 170 + shift, 170 + shift);
+        color = RGB(170, 170, 170);
         break;
     }
     if (code >= 16 && code < 232) { /// color cubes
@@ -100,6 +118,9 @@ static RGB sgr2rgb(int code) {
         int gray = (code - 232) * (256 / 24);
         color = RGB(gray, gray, gray);
     }
+    color.red = shift_color(color.red, shift);
+    color.green = shift_color(color.green, shift);
+    color.blue = shift_color(color.blue, shift);
     return color;
 }
 
@@ -129,11 +150,21 @@ static int interpret_sgr(char *str, int i) {
                 RGB color = RGB(0, 0, 0);
                 int tmpcode = 0;
                 int tmpi;
+                int shift = 0;
+                if (flags&flag_intense){
+                    shift += 85;
+                }
+                if (flags&flag_faint){
+                    shift -= 85;
+                }
+                //only shift foreground
+                if(code >= 40)
+                    shift = 0;
                 tmpi = parse_sgr_value(str, i + 1, &tmpcode, 0);
                 i = tmpi;
                 if (tmpcode == 5) {
                     i = parse_sgr_value(str, i + 1, &tmpcode, 0);
-                    color = sgr2rgb(tmpcode);
+                    color = sgr2rgb(tmpcode, shift);
                 } else if (tmpcode == 2) {
                     // colors are simply given as rgb codes
                     int r;
@@ -144,17 +175,28 @@ static int interpret_sgr(char *str, int i) {
                     i = parse_sgr_value(str, i + 1, &b, 0);
                     color = RGB(r, g, b);
                 }
-                if (code < 40)
+                //logic XOR
+                if ((code < 40) == !(flags&flag_inverse))
                     fg = color;
                 else
                     bg = color;
 
             } else if ((code >= 30 && code <= 47) ||
                        (code >= 90 && code <= 107)) {
+                int shift = 0;
+                if (flags&flag_intense){
+                    shift += 85;
+                }
+                if (flags&flag_faint){
+                    shift -= 85;
+                }
+                //only shift foreground
+                if(code >= 40)
+                    shift = 0;
                 // map regular foreground color to 0-7 and high intensity to
                 // 8-15
-                RGB color = sgr2rgb(code % 10 + (code >= 90 ? 8 : 0));
-                if (code < 40)
+                RGB color = sgr2rgb(code % 10 + (code >= 90 ? 8 : 0), shift);
+                if ((code < 40) == !(flags&flag_inverse))
                     fg = color;
                 else
                     bg = color;
@@ -163,9 +205,26 @@ static int interpret_sgr(char *str, int i) {
                 case 0:
                     fg = fg_default;
                     bg = bg_default;
+                    flags = 0;
                     break;
-                // case 7: //reverse video
-                //	break;
+                case 1:
+                    flags |= flag_intense;
+                    flags &= ~flag_faint;
+                    break;
+                case 2:
+                    flags |= flag_faint;
+                    flags &= ~flag_intense;
+                    break;
+                case 22:
+                    flags &= ~flag_intense;
+                    flags &= ~flag_faint;
+                    break;
+                case 7: //reverse video
+                    flags |= flag_inverse;
+                    break;
+                case 27:
+                    flags &= ~flag_inverse;
+                    break;
                 default:
                     printf("Unhandled escape code %d\n", code);
                     break;
