@@ -274,6 +274,9 @@ static void parse_csi(char *str, int end) {
     case 'H': // cursor position
         i = parse_sgr_value(str, i, &code, 1);
         current_row = code - 1;
+        //skip the ;
+        if(i < strlen(str))
+            i++;
         // column handled by G
     case 'G': // cursor horizontal absolute
         parse_sgr_value(str, i, &code, 1);
