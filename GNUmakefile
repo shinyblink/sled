@@ -173,7 +173,7 @@ all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF) terminfo/a/autoterminal
 clean: FORCE
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o static/modwraps/*.incs src/slloadcore.gen.c
 	rm -f src/modules/mod_dl.c.libs
-	rm -r ./terminfo/
+	rm -rf terminfo/
 
 default_sledconf: FORCE
 	[ -e sledconf ] || cp Makefiles/sledconf.default sledconf
