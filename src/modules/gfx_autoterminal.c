@@ -316,8 +316,8 @@ static void *launch(void *type_buffer) {
 int init(int modno, char *argstr) {
     moduleno = modno;
     char *from_int = malloc(10 * sizeof(char));
-    max_row = matrix_gety() / 6;
-    max_column = matrix_getx() / 4;
+    max_row = matrix_gety() / font_height;
+    max_column = matrix_getx() / font_width;
     setenv("TERMINFO", "./terminfo/", 1);
     setenv("TERM", "autoterminal", 1);
     snprintf(from_int, 10, "%d", max_row);

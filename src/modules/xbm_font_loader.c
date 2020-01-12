@@ -11,7 +11,9 @@ static struct font_char *buffer;
 static oscore_mutex buffer_busy;
 static int max_row;
 static int max_column;
-
+static RGB trans = {0,0,0,0};
+const int font_width_def = 4;
+const int font_height_def = 6;
 
 void clear_buffer(int from, int to, RGB fg, RGB bg) {
     int i;
@@ -24,6 +26,10 @@ void clear_buffer(int from, int to, RGB fg, RGB bg) {
     oscore_mutex_unlock(buffer_busy);
 }
 
+void clear_buffer_default(){
+    clear_buffer(0, max_row * max_column, trans, trans);
+}
+
 void init_buffer(int row, int column, RGB fg, RGB bg){
     max_row = row;
     max_column = column;
@@ -31,6 +37,10 @@ void init_buffer(int row, int column, RGB fg, RGB bg){
     buffer = malloc(max_row * max_column * sizeof(struct font_char));
 
     clear_buffer(0, max_row * max_column, fg, bg);
+}
+
+void init_buffer_default(){
+    init_buffer(matrix_gety() / font_height_def, matrix_getx() / font_width_def, trans, trans);
 }
 
 void deinit_buffer(){
@@ -54,9 +64,7 @@ static void scroll_up(RGB fg, RGB bg) {
     }
 }
 
-// If string ends with an unfinished escape sequence it
-// it returns amount of read characters of that sequence
-int write_buffer(char *str, int *row, int *column, RGB fg, RGB bg) {
+void write_buffer(char *str, int *row, int *column, RGB fg, RGB bg) {
     int i;
     int pos = (*column) + ((*row) * max_column);
     int len = strlen(str);
@@ -88,14 +96,17 @@ int write_buffer(char *str, int *row, int *column, RGB fg, RGB bg) {
     }
     oscore_mutex_unlock(buffer_busy);
     // we reached end of string and everything went well
-    return 0;
+}
+
+void write_buffer_default(char *str, int *row, int *column) {
+    write_buffer(str, row, column, RGB(0,0,0), trans);
 }
 
 // c is the character you want to load
 // x and y are pixel inside the character
 // xbm must have 16 characters per row
 // xbm must contain 128 characters
-int load_char(unsigned char bits[], char c, int x, int y, int w, int h) {
+int load_xbm_char(unsigned char bits[], char c, int x, int y, int w, int h) {
     int offset_x = (c % 16) * w;
     int offset_y = (c / 16) * h;
     int total_x = offset_x + x;
@@ -104,7 +115,6 @@ int load_char(unsigned char bits[], char c, int x, int y, int w, int h) {
     return (((bits[pos / 8]) >> ((pos % 8))) & 1);
 }
 
-//draw_buffer_default
 
 // this calls matrix_set
 void draw_buffer(unsigned char bits[], int font_width, int font_height){
@@ -113,19 +123,23 @@ void draw_buffer(unsigned char bits[], int font_width, int font_height){
     int row;
     int column;
     int pos = 0;
+    int bit = 0;
     oscore_mutex_lock(buffer_busy);
     for (row = 0; row < max_row; ++row)
         for (column = 0; column < max_column; ++column) {
-            for (y = 0; y < 6; ++y) {
-                for (x = 0; x < 4; ++x) {
+            for (y = 0; y < font_height; ++y) {
+                for (x = 0; x < font_width; ++x) {
+                    bit = load_xbm_char(bits, buffer[pos].c, x, y, font_width, font_height);
                     matrix_set((column * 4) + x, (row * 6) + y,
-                               (load_char(bits, buffer[pos].c, x, y,
-                                          font_width, font_height) == 1
-                                    ? buffer[pos].fg
-                                    : buffer[pos].bg));
+                               (bit == 1 ? buffer[pos].fg : buffer[pos].bg));
                 }
             }
             pos++;
         }
     oscore_mutex_unlock(buffer_busy);
+}
+
+// TODO: replace bits with included font
+void draw_buffer_default(unsigned char bits[]){
+    draw_buffer(bits, font_width_def, font_height_def);
 }
