@@ -22,7 +22,7 @@
 #include <types.h>
 
 #include "foxel35.xbm"
-#include "xbm_font_loader.c"
+#include "printbuffer.c"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -196,6 +196,11 @@ static int interpret_sgr(char *str, int i) {
                 // map regular foreground color to 0-7 and high intensity to
                 // 8-15
                 RGB color = sgr2rgb(code % 10 + (code >= 90 ? 8 : 0), shift);
+                // translate high color intensity to normal
+                if(code >= 90){
+                    code -= 60;
+                }
+
                 if ((code < 40) == !(flags&flag_inverse))
                     fg = color;
                 else
