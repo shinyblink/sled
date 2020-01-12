@@ -37,18 +37,10 @@ const int font_height = 6;
 #define FRAMETIME (T_SECOND / 8)
 #define FRAMES (TIME_SHORT)
 
-struct font_char {
-    unsigned char c;
-    RGB fg;
-    RGB bg;
-    int flags;
-};
-
 static oscore_time nexttick;
 static int moduleno;
 static int max_row;
 static int max_column;
-static struct font_char *buffer;
 static int active_shell = 0;
 static char **type_buffer;
 static int type_pos;
@@ -60,23 +52,8 @@ static RGB fg = fg_default;
 static RGB bg = bg_default;
 static int current_row = 0;
 static int current_column = 0;
-static oscore_mutex buffer_busy;
 static char *shell;
 
-// scroll buffer up by one line
-static void scroll_up() {
-    int i;
-    for (i = 0; i < ((max_column * (max_row - 1))); ++i) {
-        buffer[i].c = buffer[i + max_column].c;
-        buffer[i].fg = buffer[i + max_column].fg;
-        buffer[i].bg = buffer[i + max_column].bg;
-    }
-    for (; i < ((max_column * max_row)); ++i) {
-        buffer[i].c = ' ';
-        buffer[i].fg = fg;
-        buffer[i].bg = bg;
-    }
-}
 
 static RGB sgr2rgb(int code) {
     RGB color = RGB(0, 0, 0);
@@ -203,41 +180,6 @@ static int interpret_sgr(char *str, int i) {
     return i;
 }
 
-// If string ends with an unfinished escape sequence it
-// it returns amount of read characters of that sequence
-static int write_buffer(char *str, int *row, int *column) {
-    int i;
-    int pos = (*column) + ((*row) * max_column);
-    int len = strlen(str);
-    for (i = 0; i < len; ++i) {
-        switch (str[i]) {
-        case '\n':
-            (*row)++;
-            while (*row > max_row) {
-                (*row)--;
-                scroll_up();
-            }
-            pos = ((pos / max_column) + 1) * max_column;
-            break;
-        case '\r':
-            *column = 0;
-            pos = ((pos / max_column) + 1) * max_column;
-            break;
-        default:
-            if (pos >= 0) {
-                buffer[pos].c = str[i];
-                buffer[pos].fg = fg;
-                buffer[pos].bg = bg;
-            }
-            (*column)++;
-            pos++;
-            break;
-        }
-    }
-    // we reached end of string and everything went well
-    return 0;
-}
-
 static void parse_csi(char *str, int end) {
     int i = 1; // skip [
     int j = 0;
@@ -298,11 +240,7 @@ static void parse_csi(char *str, int end) {
             j_len = max_column;
             break;
         }
-        for (; j <= j_len; ++j) {
-            buffer[j + (current_row * max_column)].c = ' ';
-            buffer[j + (current_row * max_column)].fg = fg;
-            buffer[j + (current_row * max_column)].bg = bg;
-        }
+        clear_buffer(j + (current_row * max_column), j_len + (current_row * max_column), fg, bg);
         break;
     case 'J': // erase in display
         parse_sgr_value(str, i, &code, 0);
@@ -320,11 +258,7 @@ static void parse_csi(char *str, int end) {
             j_len = max_column * max_row;
             break;
         }
-        for (; j <= j_len; ++j) {
-            buffer[j].c = ' ';
-            buffer[j].fg = fg;
-            buffer[j].bg = bg;
-        }
+        clear_buffer(j, j_len, fg, bg);
         break;
     default:
         printf("Unhandled CSI type %c\n", str[end]);
@@ -369,9 +303,7 @@ static void *launch(void *type_buffer) {
             } else {
                 tmpbuffer[0] = (unsigned char)ch;
                 tmpbuffer[1] = 0;
-                oscore_mutex_lock(buffer_busy);
-                write_buffer(tmpbuffer, &current_row, &current_column);
-                oscore_mutex_unlock(buffer_busy);
+                write_buffer(tmpbuffer, &current_row, &current_column, fg, bg);
             }
         }
     }
@@ -379,15 +311,6 @@ static void *launch(void *type_buffer) {
     free(tmpbuffer);
     active_shell = 0;
     return 0;
-}
-
-static void clear_buffer() {
-    int i;
-    for (i = 0; i < max_row * max_column; ++i) {
-        buffer[i].c = ' ';
-        buffer[i].fg = fg;
-        buffer[i].bg = bg;
-    }
 }
 
 int init(int modno, char *argstr) {
@@ -445,10 +368,7 @@ int init(int modno, char *argstr) {
     max_index = type_index - 1;
     type_index = 0;
 
-    buffer_busy = oscore_mutex_new();
-
-    buffer = malloc(max_row * max_column * sizeof(struct font_char));
-    clear_buffer();
+    init_buffer(max_row, max_column, fg_default, bg_default);
 
     // 2 rows
     if (matrix_getx() < font_height * 2)
@@ -466,29 +386,24 @@ void reset(int _modno) {
     current_column = 0;
     fg = fg_default;
     bg = bg_default;
-    clear_buffer();
+    clear_buffer(0, max_row * max_column, fg, bg);
     nexttick = udate();
 }
 
 int draw(int _modno, int argc, char *argv[]) {
-    int x;
-    int y;
-    int row;
-    int column;
-    int pos = 0;
     if (active_shell == 0) {
         // we are through with all commands
         if (type_index > max_index)
             return 1;
         // this happens right after other thread finished
         if (type_pos == 0) { // prepare next line or exit
-            write_buffer("$ ", &current_row, &current_column);
+            write_buffer("$ ", &current_row, &current_column, fg, bg);
         }
         if (type_pos < strlen(type_buffer[type_index])) {
             char ch[2];
             ch[0] = type_buffer[type_index][type_pos];
             ch[1] = 0;
-            write_buffer(ch, &current_row, &current_column);
+            write_buffer(ch, &current_row, &current_column, fg, bg);
             type_pos++;
         } else {
             current_column = 0;
@@ -499,21 +414,8 @@ int draw(int _modno, int argc, char *argv[]) {
         }
     }
 
-    oscore_mutex_lock(buffer_busy);
-    for (row = 0; row < max_row; ++row)
-        for (column = 0; column < max_column; ++column) {
-            for (y = 0; y < 6; ++y) {
-                for (x = 0; x < 4; ++x) {
-                    matrix_set((column * 4) + x, (row * 6) + y,
-                               (load_char(foxel35_bits, buffer[pos].c, x, y,
-                                          font_width, font_height) == 1
-                                    ? buffer[pos].fg
-                                    : buffer[pos].bg));
-                }
-            }
-            pos++;
-        }
-    oscore_mutex_unlock(buffer_busy);
+    draw_buffer(foxel35_bits, font_width, font_height);
+
     matrix_render();
     nexttick += (FRAMETIME);
     timer_add(nexttick, moduleno, 0, NULL);
@@ -521,11 +423,10 @@ int draw(int _modno, int argc, char *argv[]) {
 }
 
 void deinit(int _modno) {
-    free(buffer);
     free(shell);
     for (type_index = 0; type_index < max_index; type_index++) {
         free(type_buffer[type_index]);
     }
     free(type_buffer);
-    oscore_mutex_free(buffer_busy);
+    deinit_buffer();
 }
