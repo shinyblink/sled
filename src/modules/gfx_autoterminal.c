@@ -27,7 +27,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-//#include <pthread.h>
 #include <oscore.h>
 #include <pty.h>
 
@@ -36,6 +35,15 @@ const int font_height = 6;
 
 #define FRAMETIME (T_SECOND / 8)
 #define FRAMES (TIME_SHORT)
+
+#define font_width 4
+#define font_height 6
+
+#define flag_intense 1
+#define flag_faint (1<<1)
+#define flag_inverse (1<<2)
+#define flag_blink (1<<3)
+#define flag_altchar (1<<4)
 
 static oscore_time nexttick;
 static int moduleno;
@@ -54,9 +62,6 @@ static int current_row = 0;
 static int current_column = 0;
 static char *shell;
 static int flags = 0;
-static const int flag_intense = 1;
-static const int flag_faint = 1<<1;
-static const int flag_inverse = 1<<2;
 
 static int shift_color(int value, int shift){
     if(shift < 0){
@@ -210,11 +215,13 @@ static int interpret_sgr(char *str, int i) {
                 case 0:
                     fg = fg_default;
                     bg = bg_default;
-                    flags = 0;
+                    flags &= ~flag_intense;
+                    flags &= ~flag_faint;
+                    flags &= ~flag_inverse;
+                    flags &= ~flag_blink;
                     break;
                 case 1:
                     flags |= flag_intense;
-                    flags &= ~flag_faint;
                     break;
                 case 2:
                     flags |= flag_faint;
@@ -223,6 +230,12 @@ static int interpret_sgr(char *str, int i) {
                 case 22:
                     flags &= ~flag_intense;
                     flags &= ~flag_faint;
+                    break;
+                case 5: //reverse video
+                    flags |= flag_blink;
+                    break;
+                case 25:
+                    flags &= ~flag_blink;
                     break;
                 case 7: //reverse video
                     flags |= flag_inverse;
@@ -345,17 +358,25 @@ static void *launch(void *type_buffer) {
     char *tmpbuffer = malloc(16 * 4 * sizeof(char));
     int ch;
     int escape_code = 0;
+    int pb_flags;
     while ((ch = getc(cout)) != EOF) {
         if (escape_code != 0) {
             tmpbuffer[escape_code - 1] = ch;
             // first char always allowed
             // and all legit characters
-            if (escape_code == 1 || (ch >= '0' && ch <= '?')) {
+            // everything but [ and ? is followed by just one char (ISO/IEC 2022)
+            if (escape_code == 1 || ((ch >= '0' && ch <= '?') && !(escape_code > 1 && tmpbuffer[0] != '[' && tmpbuffer[0] != '?'))) {
                 escape_code++;
             } else { // exit escape code parsing
                 tmpbuffer[escape_code] = 0;
                 if (tmpbuffer[0] == '['){
                     parse_csi(tmpbuffer, escape_code - 1);
+                }else if (tmpbuffer[0] == '('){
+                    if(tmpbuffer[1] == '0'){
+                        flags |= flag_altchar;
+                    }else{
+                        flags &= !flag_altchar;
+                    }
                 }else{
                     printf("Unhandled escape code: %s\n", tmpbuffer);
                 }
@@ -367,7 +388,13 @@ static void *launch(void *type_buffer) {
             } else {
                 tmpbuffer[0] = (unsigned char)ch;
                 tmpbuffer[1] = 0;
-                printbuffer_write(tmpbuffer, &current_row, &current_column, fg, bg);
+                // translate flags
+                pb_flags = 0;
+                if(flags&flag_altchar)
+                    pb_flags|=printbuffer_flag_altchar;
+                if(flags&flag_blink)
+                    pb_flags|=printbuffer_flag_blink;
+                printbuffer_write(tmpbuffer, &current_row, &current_column, fg, bg, pb_flags);
             }
         }
     }
@@ -461,13 +488,13 @@ int draw(int _modno, int argc, char *argv[]) {
             return 1;
         // this happens right after other thread finished
         if (type_pos == 0) { // prepare next line or exit
-            printbuffer_write("$ ", &current_row, &current_column, fg, bg);
+            printbuffer_write("$ ", &current_row, &current_column, fg, bg, 0);
         }
         if (type_pos < strlen(type_buffer[type_index])) {
             char ch[2];
             ch[0] = type_buffer[type_index][type_pos];
             ch[1] = 0;
-            printbuffer_write(ch, &current_row, &current_column, fg, bg);
+            printbuffer_write(ch, &current_row, &current_column, fg, bg, 0);
             type_pos++;
         } else {
             current_column = 0;
@@ -478,7 +505,7 @@ int draw(int _modno, int argc, char *argv[]) {
         }
     }
 
-    printbuffer_draw(foxel35_bits, font_width, font_height);
+    printbuffer_draw(foxel35_bits, font_width, font_height, 4);
 
     matrix_render();
     nexttick += (FRAMETIME);
