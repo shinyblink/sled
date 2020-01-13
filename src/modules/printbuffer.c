@@ -213,6 +213,8 @@ static int detect_unicode(char *str, int *i) {
     } else if (strcmp(uc, "♦") == 0) {
         str[*i] = '`';
         flags |= printbuffer_flag_altchar;
+    } else if (strcmp(uc, " ") == 0) {
+        str[*i] = ' ';
     }
     // powerline
     else if (strcmp(uc, "") == 0 || strcmp(uc, "⯈") == 0) {
