@@ -453,12 +453,12 @@ int init(int modno, char *argstr) {
                 max_index++;
         type_buffer = malloc(max_index * sizeof(char *));
         for (type_index = 0; type_index < max_index; type_index++) {
-            type_buffer[type_index] = malloc(max_column * 3 * sizeof(char));
+            type_buffer[type_index] = malloc(MAX(max_column, 40) * 3 * sizeof(char));
         }
         rewind(file);
         int first_line = 1;
         type_index = 0;
-        while (fgets(type_buffer[type_index], max_column * 3, file) != NULL) {
+        while (fgets(type_buffer[type_index], MAX(max_column, 40) * 3, file) != NULL) {
             // skip comments
             if (type_buffer[type_index][0] == '#') {
                 if (first_line && type_buffer[0][1] == '!') {
