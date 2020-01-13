@@ -40,10 +40,10 @@ const int font_height = 6;
 #define font_height 6
 
 #define flag_intense 1
-#define flag_faint (1<<1)
-#define flag_inverse (1<<2)
-#define flag_blink (1<<3)
-#define flag_altchar (1<<4)
+#define flag_faint (1 << 1)
+#define flag_inverse (1 << 2)
+#define flag_blink (1 << 3)
+#define flag_altchar (1 << 4)
 
 static oscore_time nexttick;
 static int moduleno;
@@ -63,17 +63,17 @@ static int current_column = 0;
 static char *shell;
 static int flags = 0;
 
-static int shift_color(int value, int shift){
-    if(shift < 0){
-        if(value >= -shift){
+static int shift_color(int value, int shift) {
+    if (shift < 0) {
+        if (value >= -shift) {
             return value + shift;
-        }else
+        } else
             return 0;
     }
-    if(shift > 0){
-        if(value + shift < 256){
+    if (shift > 0) {
+        if (value + shift < 256) {
             return value + shift;
-        }else
+        } else
             return 255;
     }
     return value;
@@ -151,19 +151,29 @@ static int interpret_sgr(char *str, int i) {
     while (i < len) {
         i = parse_sgr_value(str, i, &code, 0);
         if (str[i] == ';' || str[i] == 'm') {
-            if (code == 38 || code == 48) {
+            if (code == 39) { // reset to default color
+                if (flags & flag_inverse)
+                    bg = fg_default;
+                else
+                    fg = fg_default;
+            } else if (code == 49) {
+                if (flags & flag_inverse)
+                    fg = bg_default;
+                else
+                    bg = bg_default;
+            } else if (code == 38 || code == 48) { // 8/24bit
                 RGB color = RGB(0, 0, 0);
                 int tmpcode = 0;
                 int tmpi;
                 int shift = 0;
-                if (flags&flag_intense){
+                if (flags & flag_intense) {
                     shift += 85;
                 }
-                if (flags&flag_faint){
+                if (flags & flag_faint) {
                     shift -= 85;
                 }
-                //only shift foreground
-                if(code >= 40)
+                // only shift foreground
+                if (code >= 40)
                     shift = 0;
                 tmpi = parse_sgr_value(str, i + 1, &tmpcode, 0);
                 i = tmpi;
@@ -180,8 +190,8 @@ static int interpret_sgr(char *str, int i) {
                     i = parse_sgr_value(str, i + 1, &b, 0);
                     color = RGB(r, g, b);
                 }
-                //logic XOR
-                if ((code < 40) == !(flags&flag_inverse))
+                // logic XOR
+                if ((code < 40) == !(flags & flag_inverse))
                     fg = color;
                 else
                     bg = color;
@@ -189,24 +199,24 @@ static int interpret_sgr(char *str, int i) {
             } else if ((code >= 30 && code <= 47) ||
                        (code >= 90 && code <= 107)) {
                 int shift = 0;
-                if (flags&flag_intense){
+                if (flags & flag_intense) {
                     shift += 85;
                 }
-                if (flags&flag_faint){
+                if (flags & flag_faint) {
                     shift -= 85;
                 }
-                //only shift foreground
-                if(code >= 40)
+                // only shift foreground
+                if (code >= 40)
                     shift = 0;
                 // map regular foreground color to 0-7 and high intensity to
                 // 8-15
                 RGB color = sgr2rgb(code % 10 + (code >= 90 ? 8 : 0), shift);
                 // translate high color intensity to normal
-                if(code >= 90){
+                if (code >= 90) {
                     code -= 60;
                 }
 
-                if ((code < 40) == !(flags&flag_inverse))
+                if ((code < 40) == !(flags & flag_inverse))
                     fg = color;
                 else
                     bg = color;
@@ -231,29 +241,17 @@ static int interpret_sgr(char *str, int i) {
                     flags &= ~flag_intense;
                     flags &= ~flag_faint;
                     break;
-                case 5: //reverse video
+                case 5:
                     flags |= flag_blink;
                     break;
                 case 25:
                     flags &= ~flag_blink;
                     break;
-                case 7: //reverse video
+                case 7: // reverse video
                     flags |= flag_inverse;
                     break;
                 case 27:
                     flags &= ~flag_inverse;
-                    break;
-                case 39:
-                    if(flags&flag_inverse)
-                        bg = fg_default;
-                    else
-                        fg = fg_default;
-                    break;
-                case 49:
-                    if(flags&flag_inverse)
-                        fg = bg_default;
-                    else
-                        bg = bg_default;
                     break;
                 default:
                     printf("Unhandled escape code %d\n", code);
@@ -305,8 +303,8 @@ static void parse_csi(char *str, int end) {
     case 'H': // cursor position
         i = parse_sgr_value(str, i, &code, 1);
         current_row = code - 1;
-        //skip the ;
-        if(i < strlen(str))
+        // skip the ;
+        if (i < strlen(str))
             i++;
         // column handled by G
     case 'G': // cursor horizontal absolute
@@ -329,7 +327,8 @@ static void parse_csi(char *str, int end) {
             j_len = max_column;
             break;
         }
-        printbuffer_clear(j + (current_row * max_column), j_len + (current_row * max_column), fg, bg);
+        printbuffer_clear(j + (current_row * max_column),
+                          j_len + (current_row * max_column), fg, bg);
         break;
     case 'J': // erase in display
         parse_sgr_value(str, i, &code, 0);
@@ -376,20 +375,23 @@ static void *launch(void *type_buffer) {
             tmpbuffer[escape_code - 1] = ch;
             // first char always allowed
             // and all legit characters
-            // everything but [ and ? is followed by just one char (ISO/IEC 2022)
-            if (escape_code == 1 || ((ch >= '0' && ch <= '?') && !(escape_code > 1 && tmpbuffer[0] != '[' && tmpbuffer[0] != '?'))) {
+            // everything but [ and ? is followed by just one char
+            // (ISO/IEC 2022)
+            if (escape_code == 1 || ((ch >= '0' && ch <= '?') &&
+                                     !(escape_code > 1 && tmpbuffer[0] != '[' &&
+                                       tmpbuffer[0] != '?'))) {
                 escape_code++;
             } else { // exit escape code parsing
                 tmpbuffer[escape_code] = 0;
-                if (tmpbuffer[0] == '['){
+                if (tmpbuffer[0] == '[') {
                     parse_csi(tmpbuffer, escape_code - 1);
-                }else if (tmpbuffer[0] == '('){
-                    if(tmpbuffer[1] == '0'){
+                } else if (tmpbuffer[0] == '(') {
+                    if (tmpbuffer[1] == '0') {
                         flags |= flag_altchar;
-                    }else{
+                    } else {
                         flags &= !flag_altchar;
                     }
-                }else{
+                } else {
                     printf("Unhandled escape code: %s\n", tmpbuffer);
                 }
                 escape_code = 0;
@@ -400,24 +402,25 @@ static void *launch(void *type_buffer) {
             } else {
                 tmpbuffer[0] = (unsigned char)ch;
                 tmpbuffer[1] = 0;
-                //detect unicode und forward as one string
-                if(tmpbuffer[0]&(1<<(7))){
+                // detect unicode und forward as one string
+                if (tmpbuffer[0] & (1 << (7))) {
                     // go through all bytes; max 3
                     int j;
-                    for(j = 0; j < 3 && tmpbuffer[0]&(1<<(6-j)) ; ++j){
-                        if((ch = getc(cout)) == EOF)
+                    for (j = 0; j < 3 && tmpbuffer[0] & (1 << (6 - j)); ++j) {
+                        if ((ch = getc(cout)) == EOF)
                             break;
-                        tmpbuffer[1+j] = (unsigned char)ch;
-                        tmpbuffer[2+j] = 0;
+                        tmpbuffer[1 + j] = (unsigned char)ch;
+                        tmpbuffer[2 + j] = 0;
                     }
                 }
                 // translate flags
                 pb_flags = 0;
-                if(flags&flag_altchar)
-                    pb_flags|=printbuffer_flag_altchar;
-                if(flags&flag_blink)
-                    pb_flags|=printbuffer_flag_blink;
-                printbuffer_write(tmpbuffer, &current_row, &current_column, fg, bg, pb_flags);
+                if (flags & flag_altchar)
+                    pb_flags |= printbuffer_flag_altchar;
+                if (flags & flag_blink)
+                    pb_flags |= printbuffer_flag_blink;
+                printbuffer_write(tmpbuffer, &current_row, &current_column, fg,
+                                  bg, pb_flags);
             }
         }
     }
@@ -453,12 +456,13 @@ int init(int modno, char *argstr) {
                 max_index++;
         type_buffer = malloc(max_index * sizeof(char *));
         for (type_index = 0; type_index < max_index; type_index++) {
-            type_buffer[type_index] = malloc(MAX(max_column, 40) * 3 * sizeof(char));
+            type_buffer[type_index] =
+                malloc(MAX(max_column, 40) * 3 * sizeof(char));
         }
         rewind(file);
         int first_line = 1;
         type_index = 0;
-        while (fgets(type_buffer[type_index], MAX(max_column, 40) * 3, file) != NULL) {
+        while (fgets(type_buffer[type_index], MAX(max_column, 40) * 3, file)) {
             // skip comments
             if (type_buffer[type_index][0] == '#') {
                 if (first_line && type_buffer[0][1] == '!') {
