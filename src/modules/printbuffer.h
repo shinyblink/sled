@@ -15,8 +15,9 @@ void printbuffer_deinit();
 #define printbuffer_flag_blink 1
 #define printbuffer_flag_altchar (1<<1)
 
-void printbuffer_write(char *str, int *row, int *column, RGB fg, RGB bg, int flags);
-void printbuffer_write_default(char *str, int *row, int *column);
+
+void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg, int flags);
+void printbuffer_write_default(const char *str, int *row, int *column);
 // c is the character you want to load
 // x and y are pixel inside the character
 // xbm must have 16 characters per row

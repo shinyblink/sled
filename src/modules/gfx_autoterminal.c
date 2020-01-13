@@ -388,6 +388,17 @@ static void *launch(void *type_buffer) {
             } else {
                 tmpbuffer[0] = (unsigned char)ch;
                 tmpbuffer[1] = 0;
+                //detect unicode und forward as one string
+                if(tmpbuffer[0]&(1<<(7))){
+                    // go through all bytes; max 3
+                    int j;
+                    for(j = 0; j < 3 && tmpbuffer[0]&(1<<(6-j)) ; ++j){
+                        if((ch = getc(cout)) == EOF)
+                            break;
+                        tmpbuffer[1+j] = (unsigned char)ch;
+                        tmpbuffer[2+j] = 0;
+                    }
+                }
                 // translate flags
                 pb_flags = 0;
                 if(flags&flag_altchar)

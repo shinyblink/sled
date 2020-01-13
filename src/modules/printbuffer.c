@@ -91,13 +91,58 @@ static void scroll_up(RGB fg, RGB bg) {
     }
 }
 
-void printbuffer_write(char *str, int *row, int *column, RGB fg, RGB bg, int flags) {
+// increases i if unicode character is detected
+// replace str[i] with similar ASCII code if possible
+// return printbuffer_flag_altchar or zero
+// only detects UTF-8
+static int detect_unicode(char *str, int* i){
+    int len = strlen(str);
+    int flags = 0;
+    char uc[] = {str[*i],'\0', '\0', '\0', '\0'};
+    int j;
+    //is this even unicode?
+    if(uc[0]&(1<<(7))){
+        // go through all bytes; max 3
+        for(j = 0; j < 3 && uc[0]&(1<<(6-j)) ; ++j){
+            if(*i >= len - 1){
+                return 0;
+            }
+            uc[1+j] = str[++(*i)];
+        }
+    }
+    // replace with similar characters in our font
+    if(strcmp(uc, "│") == 0){
+        str[*i] = 'x';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "─") == 0){
+        str[*i] = 'q';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "┌") == 0){
+        str[*i] = 'l';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "┐") == 0){
+        str[*i] = 'k';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "└") == 0){
+        str[*i] = 'm';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "┘") == 0){
+        str[*i] = 'j';
+        flags |= printbuffer_flag_altchar;
+    }
+    return flags;
+}
+
+void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg, int flags) {
     int i;
     int pos = (*column) + ((*row) * max_column);
     int len = strlen(str);
+    //it's possible that we can't change str
+    char* str2 = malloc(len*sizeof(char));
+    strcpy(str2, str);
     oscore_mutex_lock(buffer_busy);
     for (i = 0; i < len; ++i) {
-        switch (str[i]) {
+        switch (str2[i]) {
         case '\n':
             (*row)++;
             while (*row > max_row) {
@@ -112,10 +157,10 @@ void printbuffer_write(char *str, int *row, int *column, RGB fg, RGB bg, int fla
             break;
         default:
             if (pos >= 0) {
-                buffer[pos].c = str[i];
+                buffer[pos].flags = flags | detect_unicode(str2, &i);
+                buffer[pos].c = str2[i];
                 buffer[pos].fg = fg;
                 buffer[pos].bg = bg;
-                buffer[pos].flags = flags;
             }
             (*column)++;
             pos++;
@@ -126,7 +171,7 @@ void printbuffer_write(char *str, int *row, int *column, RGB fg, RGB bg, int fla
     // we reached end of string and everything went well
 }
 
-void printbuffer_write_default(char *str, int *row, int *column) {
+void printbuffer_write_default(const char *str, int *row, int *column) {
     printbuffer_write(str, row, column, RGB(0,0,0), trans, 0);
 }
 
@@ -135,6 +180,9 @@ void printbuffer_write_default(char *str, int *row, int *column) {
 // xbm must have 16 characters per row
 // xbm must contain 128 characters
 int load_xbm_char(unsigned char bits[], unsigned char c, int x, int y, int w, int h, int flags) {
+    //filter out illegal characters
+    if(c>=128)
+        c=0x1a;// substitute character
     if(flags&printbuffer_flag_altchar){
         c+=128;
     }
