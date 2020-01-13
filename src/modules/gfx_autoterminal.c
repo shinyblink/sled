@@ -22,7 +22,7 @@
 #include <types.h>
 
 #include "foxel35.xbm"
-#include "printbuffer.c"
+#include "printbuffer.h"
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -304,7 +304,7 @@ static void parse_csi(char *str, int end) {
             j_len = max_column;
             break;
         }
-        clear_buffer(j + (current_row * max_column), j_len + (current_row * max_column), fg, bg);
+        printbuffer_clear(j + (current_row * max_column), j_len + (current_row * max_column), fg, bg);
         break;
     case 'J': // erase in display
         parse_sgr_value(str, i, &code, 0);
@@ -322,7 +322,7 @@ static void parse_csi(char *str, int end) {
             j_len = max_column * max_row;
             break;
         }
-        clear_buffer(j, j_len, fg, bg);
+        printbuffer_clear(j, j_len, fg, bg);
         break;
     default:
         printf("Unhandled CSI type %c\n", str[end]);
@@ -367,7 +367,7 @@ static void *launch(void *type_buffer) {
             } else {
                 tmpbuffer[0] = (unsigned char)ch;
                 tmpbuffer[1] = 0;
-                write_buffer(tmpbuffer, &current_row, &current_column, fg, bg);
+                printbuffer_write(tmpbuffer, &current_row, &current_column, fg, bg);
             }
         }
     }
@@ -432,7 +432,7 @@ int init(int modno, char *argstr) {
     max_index = type_index - 1;
     type_index = 0;
 
-    init_buffer(max_row, max_column, fg_default, bg_default);
+    printbuffer_init(max_row, max_column, fg_default, bg_default);
 
     // 2 rows
     if (matrix_getx() < font_height * 2)
@@ -450,7 +450,7 @@ void reset(int _modno) {
     current_column = 0;
     fg = fg_default;
     bg = bg_default;
-    clear_buffer(0, max_row * max_column, fg, bg);
+    printbuffer_clear(0, max_row * max_column, fg, bg);
     nexttick = udate();
 }
 
@@ -461,13 +461,13 @@ int draw(int _modno, int argc, char *argv[]) {
             return 1;
         // this happens right after other thread finished
         if (type_pos == 0) { // prepare next line or exit
-            write_buffer("$ ", &current_row, &current_column, fg, bg);
+            printbuffer_write("$ ", &current_row, &current_column, fg, bg);
         }
         if (type_pos < strlen(type_buffer[type_index])) {
             char ch[2];
             ch[0] = type_buffer[type_index][type_pos];
             ch[1] = 0;
-            write_buffer(ch, &current_row, &current_column, fg, bg);
+            printbuffer_write(ch, &current_row, &current_column, fg, bg);
             type_pos++;
         } else {
             current_column = 0;
@@ -478,7 +478,7 @@ int draw(int _modno, int argc, char *argv[]) {
         }
     }
 
-    draw_buffer(foxel35_bits, font_width, font_height);
+    printbuffer_draw(foxel35_bits, font_width, font_height);
 
     matrix_render();
     nexttick += (FRAMETIME);
@@ -492,5 +492,5 @@ void deinit(int _modno) {
         free(type_buffer[type_index]);
     }
     free(type_buffer);
-    deinit_buffer();
+    printbuffer_deinit();
 }

@@ -134,8 +134,8 @@ HEADERS += src/taskpool.h src/ext/farbherd.h
 # NOTE FROM THE FUTURE: Or do we???
 # If we're dynamically linking, we want the modules to refer to them if needed.
 
-ML_SOURCES := src/modules/text.c
-ML_HEADERS := src/modules/text.h src/modules/font.h
+ML_SOURCES := src/modules/text.c src/modules/printbuffer.c
+ML_HEADERS := src/modules/text.h src/modules/printbuffer.h src/modules/font.h
 
 ifeq ($(STATIC),0)
  # User's selected module set gets compiled dynamically (including outmod),

@@ -1,5 +1,9 @@
-
+#include "printbuffer.h"
 #include <oscore.h>
+#include <stdlib.h>
+#include <string.h>
+#include <matrix.h>
+#include "foxel35.xbm"
 
 struct font_char {
     unsigned char c;
@@ -15,7 +19,7 @@ static RGB trans = {0,0,0,0};
 const int font_width_def = 4;
 const int font_height_def = 6;
 
-void clear_buffer(int from, int to, RGB fg, RGB bg) {
+void printbuffer_clear(int from, int to, RGB fg, RGB bg) {
     int i;
     oscore_mutex_lock(buffer_busy);
     for (i = from; i < to; ++i) {
@@ -26,24 +30,24 @@ void clear_buffer(int from, int to, RGB fg, RGB bg) {
     oscore_mutex_unlock(buffer_busy);
 }
 
-void clear_buffer_default(){
-    clear_buffer(0, max_row * max_column, trans, trans);
+void printbuffer_clear_default(){
+    printbuffer_clear(0, max_row * max_column, trans, trans);
 }
 
-void init_buffer(int row, int column, RGB fg, RGB bg){
+void printbuffer_init(int row, int column, RGB fg, RGB bg){
     max_row = row;
     max_column = column;
     buffer_busy = oscore_mutex_new();
     buffer = malloc(max_row * max_column * sizeof(struct font_char));
 
-    clear_buffer(0, max_row * max_column, fg, bg);
+    printbuffer_clear(0, max_row * max_column, fg, bg);
 }
 
-void init_buffer_default(){
-    init_buffer(matrix_gety() / font_height_def, matrix_getx() / font_width_def, trans, trans);
+void printbuffer_init_default(){
+    printbuffer_init(matrix_gety() / font_height_def, matrix_getx() / font_width_def, trans, trans);
 }
 
-void deinit_buffer(){
+void printbuffer_deinit(){
     free(buffer);
     oscore_mutex_free(buffer_busy);
 }
@@ -64,7 +68,7 @@ static void scroll_up(RGB fg, RGB bg) {
     }
 }
 
-void write_buffer(char *str, int *row, int *column, RGB fg, RGB bg) {
+void printbuffer_write(char *str, int *row, int *column, RGB fg, RGB bg) {
     int i;
     int pos = (*column) + ((*row) * max_column);
     int len = strlen(str);
@@ -98,8 +102,8 @@ void write_buffer(char *str, int *row, int *column, RGB fg, RGB bg) {
     // we reached end of string and everything went well
 }
 
-void write_buffer_default(char *str, int *row, int *column) {
-    write_buffer(str, row, column, RGB(0,0,0), trans);
+void printbuffer_write_default(char *str, int *row, int *column) {
+    printbuffer_write(str, row, column, RGB(0,0,0), trans);
 }
 
 // c is the character you want to load
@@ -117,7 +121,7 @@ int load_xbm_char(unsigned char bits[], char c, int x, int y, int w, int h) {
 
 
 // this calls matrix_set
-void draw_buffer(unsigned char bits[], int font_width, int font_height){
+void printbuffer_draw(unsigned char bits[], int font_width, int font_height){
     int x;
     int y;
     int row;
@@ -139,7 +143,6 @@ void draw_buffer(unsigned char bits[], int font_width, int font_height){
     oscore_mutex_unlock(buffer_busy);
 }
 
-// TODO: replace bits with included font
-void draw_buffer_default(unsigned char bits[]){
-    draw_buffer(bits, font_width_def, font_height_def);
+void printbuffer_draw_default(){
+    printbuffer_draw(foxel35_bits, font_width_def, font_height_def);
 }
