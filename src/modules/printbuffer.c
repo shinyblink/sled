@@ -111,23 +111,100 @@ static int detect_unicode(char *str, int* i){
         }
     }
     // replace with similar characters in our font
-    if(strcmp(uc, "│") == 0){
+    if(strcmp(uc, "│") == 0 || strcmp(uc, "┃") == 0){
         str[*i] = 'x';
         flags |= printbuffer_flag_altchar;
-    } else if(strcmp(uc, "─") == 0){
+    } else if(strcmp(uc, "─") == 0 || strcmp(uc, "━") == 0){
         str[*i] = 'q';
         flags |= printbuffer_flag_altchar;
-    } else if(strcmp(uc, "┌") == 0){
+    } else if(strcmp(uc, "┌") == 0 || strcmp(uc, "┏") == 0){
         str[*i] = 'l';
         flags |= printbuffer_flag_altchar;
-    } else if(strcmp(uc, "┐") == 0){
+    } else if(strcmp(uc, "┐") == 0 || strcmp(uc, "┓") == 0){
         str[*i] = 'k';
         flags |= printbuffer_flag_altchar;
-    } else if(strcmp(uc, "└") == 0){
+    } else if(strcmp(uc, "└") == 0 || strcmp(uc, "┗") == 0){
         str[*i] = 'm';
         flags |= printbuffer_flag_altchar;
-    } else if(strcmp(uc, "┘") == 0){
+    } else if(strcmp(uc, "┘") == 0 || strcmp(uc, "┛") == 0){
         str[*i] = 'j';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "║") == 0){
+        str[*i] = 'X';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "═") == 0){
+        str[*i] = 'Q';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╔") == 0){
+        str[*i] = 'L';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╗") == 0){
+        str[*i] = 'K';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╚") == 0){
+        str[*i] = 'M';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╝") == 0){
+        str[*i] = 'J';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╭") == 0){
+        str[*i] = '<';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╮") == 0){
+        str[*i] = ';';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╰") == 0){
+        str[*i] = '=';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "╯") == 0){
+        str[*i] = ':';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "▀") == 0){
+        str[*i] = '!';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "▄") == 0){
+        str[*i] = '"';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "█") == 0){
+        str[*i] = '#';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "░") == 0){
+        str[*i] = 'b';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "▒") == 0){
+        str[*i] = 'a';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "▓") == 0){
+        str[*i] = 'c';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "🙂") == 0 || strcmp(uc, "😊") == 0){
+        str[*i] = '1';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "🙁") == 0 || strcmp(uc, "😞") == 0){
+        str[*i] = '2';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "😐") == 0){
+        str[*i] = '3';
+        flags |= printbuffer_flag_altchar;
+    }
+    // powerline
+    else if(strcmp(uc, "") == 0){
+        str[*i] = '$';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "") == 0){
+        str[*i] = '%';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "") == 0){
+        str[*i] = '&';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "") == 0){
+        str[*i] = '\'';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "") == 0){
+        str[*i] = ')';
+        flags |= printbuffer_flag_altchar;
+    } else if(strcmp(uc, "") == 0){
+        str[*i] = '(';
         flags |= printbuffer_flag_altchar;
     }
     return flags;

@@ -243,6 +243,18 @@ static int interpret_sgr(char *str, int i) {
                 case 27:
                     flags &= ~flag_inverse;
                     break;
+                case 39:
+                    if(flags&flag_inverse)
+                        bg = fg_default;
+                    else
+                        fg = fg_default;
+                    break;
+                case 49:
+                    if(flags&flag_inverse)
+                        fg = bg_default;
+                    else
+                        bg = bg_default;
+                    break;
                 default:
                     printf("Unhandled escape code %d\n", code);
                     break;
