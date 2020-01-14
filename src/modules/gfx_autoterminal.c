@@ -49,7 +49,8 @@ static oscore_time nexttick;
 static int moduleno;
 static int max_row;
 static int max_column;
-static int active_shell = 0;
+// this is accessed by multiple threads
+static volatile int active_shell = 0;
 static char **type_buffer;
 static int type_pos;
 static int type_index;
@@ -62,6 +63,7 @@ static int current_row = 0;
 static int current_column = 0;
 static char *shell;
 static int flags = 0;
+static oscore_task child;
 
 static int shift_color(int value, int shift) {
     if (shift < 0) {
@@ -512,6 +514,10 @@ void reset(int _modno) {
 
 int draw(int _modno, int argc, char *argv[]) {
     if (active_shell == 0) {
+        if(child){
+            oscore_task_join(child);
+            child = NULL;
+        }
         // we are through with all commands
         if (type_index > max_index)
             return 1;
@@ -530,7 +536,7 @@ int draw(int _modno, int argc, char *argv[]) {
             active_shell = 1;
             type_index++;
             type_pos = 0;
-            oscore_task_create("shell", launch, type_buffer[type_index - 1]);
+            child = oscore_task_create("shell", launch, type_buffer[type_index - 1]);
         }
     }
 
@@ -543,6 +549,10 @@ int draw(int _modno, int argc, char *argv[]) {
 }
 
 void deinit(int _modno) {
+    if(child){
+        oscore_task_join(child);
+        child = NULL;
+    }
     free(shell);
     for (type_index = 0; type_index < max_index; type_index++) {
         free(type_buffer[type_index]);
