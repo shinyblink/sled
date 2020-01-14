@@ -397,7 +397,9 @@ static void *launch(void *type_buffer) {
                 escape_code = 0;
             }
         } else {
-            if (ch == 0x1B) {
+            if (ch == '\b') {
+                // ignore bell
+            } else if (ch == 0x1B) {
                 escape_code = 1;
             } else {
                 tmpbuffer[0] = (unsigned char)ch;

@@ -189,16 +189,16 @@ static int detect_unicode(char *str, int *i) {
     } else if (strcmp(uc, "😐") == 0) {
         str[*i] = '6';
         flags |= printbuffer_flag_altchar;
-    } else if (strcmp(uc, "⮞") == 0) {
+    } else if (strcmp(uc, "⮞") == 0 || strcmp(uc, "→") == 0) {
         str[*i] = '+';
         flags |= printbuffer_flag_altchar;
-    } else if (strcmp(uc, "⮜") == 0) {
+    } else if (strcmp(uc, "⮜") == 0 || strcmp(uc, "←") == 0) {
         str[*i] = ',';
         flags |= printbuffer_flag_altchar;
-    } else if (strcmp(uc, "⮝") == 0) {
+    } else if (strcmp(uc, "⮝") == 0 || strcmp(uc, "↑") == 0) {
         str[*i] = '-';
         flags |= printbuffer_flag_altchar;
-    } else if (strcmp(uc, "⮟") == 0) {
+    } else if (strcmp(uc, "⮟") == 0 || strcmp(uc, "↓") == 0) {
         str[*i] = '.';
         flags |= printbuffer_flag_altchar;
     } else if (strcmp(uc, "♠") == 0) {
@@ -252,15 +252,16 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
         switch (str2[i]) {
         case '\n':
             (*row)++;
-            while (*row > max_row) {
+            pos += max_column;
+            while (*row >= max_row) {
                 (*row)--;
                 scroll_up(fg, bg);
+                pos -= max_column;
             }
-            pos = ((pos / max_column) + 1) * max_column;
             break;
         case '\r':
+            pos -= *column;
             *column = 0;
-            pos = ((pos / max_column) + 1) * max_column;
             break;
         default:
             if (pos >= 0) {
