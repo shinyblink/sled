@@ -419,6 +419,7 @@ static void *launch(void *type_buffer) {
                           max_row * font_height};
     grandchild = forkpty(&fd, NULL, NULL, &win);
     if (grandchild == 0) {
+        chdir("scripts");
         char *args[] = {shell, "-c", command, NULL};
         execv(args[0], args);
     }
@@ -499,7 +500,7 @@ int init(int modno, char *argstr) {
     char *from_int = malloc(10 * sizeof(char));
     max_row = matrix_gety() / font_height;
     max_column = matrix_getx() / font_width;
-    setenv("TERMINFO", "./terminfo/", 1);
+    setenv("TERMINFO", "../terminfo/", 1);
     setenv("TERM", "autoterminal", 1);
     snprintf(from_int, 10, "%d", max_row);
     setenv("LINES", from_int, 1);

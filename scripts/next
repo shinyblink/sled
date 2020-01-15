@@ -1,0 +1,8 @@
+#!/bin/sh
+fish="$(dirname "$0")/../sled.fish"
+if [ $# == 1 ]; then
+	sleep $1
+fi
+if [ -p "$fish" ]; then
+	echo '/next' > $fish
+fi
