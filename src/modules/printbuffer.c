@@ -263,6 +263,17 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
             pos -= *column;
             *column = 0;
             break;
+        case '\b': // backspace
+            if(pos > 0)
+                pos--;
+            break;
+        case '\t':{
+            // tab to every 8 spaces
+            // calculate current column
+            int spaces = pos % max_column;
+            spaces = 8 - (spaces % 8);
+            pos += spaces;
+            break;}
         default:
             if (pos >= 0) {
                 buffer[pos].flags = flags | detect_unicode(str2, &i);

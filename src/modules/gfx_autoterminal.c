@@ -61,6 +61,8 @@ static RGB fg = fg_default;
 static RGB bg = bg_default;
 static int current_row = 0;
 static int current_column = 0;
+static int current_row_store = 0;
+static int current_column_store = 0;
 static char *shell;
 static int flags = 0;
 static oscore_task child;
@@ -269,7 +271,7 @@ static int interpret_sgr(char *str, int i) {
     return i;
 }
 
-static void parse_csi(char *str, int end) {
+static void parse_csi(char *str, int end, FILE *cout) {
     int i = 1; // skip [
     int j = 0;
     int j_len = 0;
@@ -302,6 +304,33 @@ static void parse_csi(char *str, int end) {
         if (current_column < 0)
             current_column = 0;
         break;
+    case 'E':
+        parse_sgr_value(str, i, &code, 1);
+        current_row += code;
+        if (current_row > max_row)
+            current_row = max_row;
+        current_column = 0;
+        break;
+    case 'F':
+        parse_sgr_value(str, i, &code, 1);
+        current_row -= code;
+        if (current_row < 0)
+            current_row = 0;
+        current_column = 0;
+        break;
+    case 'S'://scroll up
+        parse_sgr_value(str, i, &code, 1);
+        current_row -= code;
+        if (current_row < 0)
+            current_row = 0;
+        int tmp_row;
+        int tmp_column = max_column-1;
+        for (; code > 0; --code){
+            tmp_row = max_row-1;
+            printbuffer_write("\n", &tmp_row, &tmp_column, fg, bg, 0);
+        }
+        break;
+    case 'f':
     case 'H': // cursor position
         i = parse_sgr_value(str, i, &code, 1);
         current_row = code - 1;
@@ -312,6 +341,10 @@ static void parse_csi(char *str, int end) {
     case 'G': // cursor horizontal absolute
         parse_sgr_value(str, i, &code, 1);
         current_column = code - 1;
+        break;
+    case 'd': // cursor horizontal absolute
+        parse_sgr_value(str, i, &code, 1);
+        current_row = code - 1;
         break;
     case 'K': // erase line
         parse_sgr_value(str, i, &code, 0);
@@ -350,6 +383,27 @@ static void parse_csi(char *str, int end) {
         }
         printbuffer_clear(j, j_len, fg, bg);
         break;
+    case 'u': // restore cursor
+        current_row = current_row_store;
+        current_column = current_column_store;
+        break;
+    case 's': // store cursor
+        current_row_store = current_row;
+        current_column_store = current_column;
+        break;
+    case 'n':
+        parse_sgr_value(str, i, &code, 0);
+        if(code == 6){
+            char response[27] = ";;";
+            snprintf(response, 27, "\033[%d;%dR", current_row+1, current_column+1);
+            printf("Type into Terminal: \\E%s\n", response+1);
+            fputs(response, cout);
+        } else {
+            printf("Invalid h SGR %d\n", code);
+        }
+        break;
+    //and ?25h to show cursor
+    //and ?25l to hide cursor
     default:
         printf("Unhandled CSI type %c\n", str[end]);
     }
@@ -365,7 +419,7 @@ static void *launch(void *type_buffer) {
         char *args[] = {shell, "-c", command, NULL};
         execv(args[0], args);
     }
-    FILE *cout = fdopen(fd, "r");
+    FILE *cout = fdopen(fd, "r+");
     // according to man console_codes ESC [ has a maximum of 16 parameters
     // and since 255; is the maximum int value, that makes 16*4
     char *tmpbuffer = malloc(16 * 4 * sizeof(char));
@@ -386,7 +440,7 @@ static void *launch(void *type_buffer) {
             } else { // exit escape code parsing
                 tmpbuffer[escape_code] = 0;
                 if (tmpbuffer[0] == '[') {
-                    parse_csi(tmpbuffer, escape_code - 1);
+                    parse_csi(tmpbuffer, escape_code - 1, cout);
                 } else if (tmpbuffer[0] == '(') {
                     if (tmpbuffer[1] == '0') {
                         flags |= flag_altchar;
@@ -399,7 +453,7 @@ static void *launch(void *type_buffer) {
                 escape_code = 0;
             }
         } else {
-            if (ch == '\b') {
+            if (ch == '\a') {
                 // ignore bell
             } else if (ch == 0x1B) {
                 escape_code = 1;
