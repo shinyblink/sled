@@ -50,7 +50,7 @@ void printbuffer_clear(int from, int to, RGB fg, RGB bg) {
     oscore_mutex_unlock(buffer_busy);
 }
 
-void printbuffer_clear_default() {
+void printbuffer_reset() {
     printbuffer_clear(0, max_row * max_column, trans, trans);
 }
 

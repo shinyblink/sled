@@ -29,6 +29,7 @@
 
 #include <oscore.h>
 #include <pty.h>
+#include <signal.h>
 
 const int font_width = 4;
 const int font_height = 6;
@@ -66,6 +67,7 @@ static int current_column_store = 0;
 static char *shell;
 static int flags = 0;
 static oscore_task child;
+static volatile pid_t grandchild = 0;
 
 static int shift_color(int value, int shift) {
     if (shift < 0) {
@@ -415,7 +417,8 @@ static void *launch(void *type_buffer) {
     int fd;
     struct winsize win = {max_row, max_column, max_column * font_width,
                           max_row * font_height};
-    if (forkpty(&fd, NULL, NULL, &win) == 0) {
+    grandchild = forkpty(&fd, NULL, NULL, &win);
+    if (grandchild == 0) {
         char *args[] = {shell, "-c", command, NULL};
         execv(args[0], args);
     }
@@ -484,12 +487,15 @@ static void *launch(void *type_buffer) {
     }
     fclose(cout);
     free(tmpbuffer);
+    grandchild = 0;
     active_shell = 0;
     return 0;
 }
 
 int init(int modno, char *argstr) {
     moduleno = modno;
+    child = 0;
+    grandchild = 0;
     char *from_int = malloc(10 * sizeof(char));
     max_row = matrix_gety() / font_height;
     max_column = matrix_getx() / font_width;
@@ -556,6 +562,16 @@ int init(int modno, char *argstr) {
 }
 
 void reset(int _modno) {
+    if(grandchild){
+        kill(grandchild, SIGTERM);
+    }
+    grandchild = 0;
+    if(child){
+        oscore_task_join(child);
+        child = NULL;
+    }
+    child = 0;
+    active_shell = 0;
     type_index = 0;
     type_pos = 0;
     current_row = 0;
@@ -603,10 +619,15 @@ int draw(int _modno, int argc, char *argv[]) {
 }
 
 void deinit(int _modno) {
+    if(grandchild){
+        kill(grandchild, SIGTERM);
+    }
+    grandchild = 0;
     if(child){
         oscore_task_join(child);
         child = NULL;
     }
+    child = 0;
     free(shell);
     for (type_index = 0; type_index < max_index; type_index++) {
         free(type_buffer[type_index]);

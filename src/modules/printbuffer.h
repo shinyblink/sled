@@ -4,7 +4,7 @@
 
 void printbuffer_clear(int from, int to, RGB fg, RGB bg);
 
-void printbuffer_clear_default();
+void printbuffer_reset();
 
 void printbuffer_init(int row, int column, RGB fg, RGB bg);
 
