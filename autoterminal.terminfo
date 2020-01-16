@@ -1,0 +1,18 @@
+autoterminal|autoterminal module for sled,
+	bce, msgr,
+	colors#0x100, cols#8, it#8, lines#3, pairs#0x10000,
+	acsc=++\,\,--..00``aaffgghhiijjkkllmmnnooppqqrrssttuuvvwwxxyyzz{{||}}~~,
+	blink=\E[5m, bold=\E[1m, clear=\E[H\E[2J, cr=\r,
+	cub=\E[%p1%dD, cub1=\E[D, cud=\E[%p1%dB, cud1=\E[B,
+	cuf=\E[%p1%dC, cuf1=\E[C, cup=\E[%i%p1%d;%p2%dH,
+	cuu=\E[%p1%dA, cuu1=\E[A, dim=\E[2m, dl1=\E[2K, ed=\E[J,
+	el=\E[K, el1=\E[1K, home=\E[H, hpa=\E[%i%p1%dG, ht=^I,
+	ind=\n, indn=\E[%p1%dS, nel=\E[E, op=\E[39;49m, rc=\E[u,
+	rev=\E[7m, rmacs=\E(B, rmso=\E[27m, sc=\E[s,
+	setab=\E[%?%p1%{8}%<%t4%p1%d%e%p1%{16}%<%t10%p1%{8}%-%d%e48;5;%p1%d%;m,
+	setaf=\E[%?%p1%{8}%<%t3%p1%d%e%p1%{16}%<%t9%p1%{8}%-%d%e38;5;%p1%d%;m,
+	sgr=%?%p9%t\E(0%e\E(B%;\E[0%?%p6%t;1%;%?%p5%t;2%;%?%p2%t;4%;%?%p1%p3%|%t;7%;%?%p4%t;5%;m,
+	sgr0=\E(B\E[m, smacs=\E(0, smso=\E[7m, u7=\E[6n,
+	vpa=\E[%i%p1%dd,
+# cvvis civis cnorm for cursor visibility
+# flash can be used as visual bell

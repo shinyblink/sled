@@ -98,7 +98,7 @@ CPPFLAGS += -Wall
 
 # NOTE: This is overridable because a nonposix user might also not be able to rely on -lm.
 # In this case, it's their problem as to how to get the maths routines into the system...
-LIBS ?= -lm
+LIBS ?= -lm -lutil
 
 ifeq ($(STATIC),0)
  OS := $(shell uname)
@@ -134,8 +134,8 @@ HEADERS += src/taskpool.h src/ext/farbherd.h
 # NOTE FROM THE FUTURE: Or do we???
 # If we're dynamically linking, we want the modules to refer to them if needed.
 
-ML_SOURCES := src/modules/text.c
-ML_HEADERS := src/modules/text.h src/modules/font.h
+ML_SOURCES := src/modules/text.c src/modules/printbuffer.c
+ML_HEADERS := src/modules/text.h src/modules/printbuffer.h src/modules/font.h
 
 ifeq ($(STATIC),0)
  # User's selected module set gets compiled dynamically (including outmod),
@@ -168,11 +168,12 @@ include Makefiles/card10.GNUmakefile
 
 # --- All/Cleaning begins here ---
 
-all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF)
+all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF) terminfo/a/autoterminal
 
 clean: FORCE
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o static/modwraps/*.incs src/slloadcore.gen.c
 	rm -f src/modules/mod_dl.c.libs
+	rm -rf terminfo/
 
 default_sledconf: FORCE
 	[ -e sledconf ] || cp Makefiles/sledconf.default sledconf
@@ -198,8 +199,10 @@ src/slloadcore.gen.c: src/plugin.h static/k2link
 static/modwraps/%.c: src/modules/%.c
 	./static/k2wrap $*
 
-# --- Platform-specific module library rules begin here ---
+terminfo/a/autoterminal: autoterminal.terminfo
+	tic -o terminfo $<
 
+# --- Platform-specific module library rules begin here ---
 ifeq ($(OS),Linux)
 src/modules/mod_dl.c.libs:
 	echo -ldl > src/modules/mod_dl.c.libs
