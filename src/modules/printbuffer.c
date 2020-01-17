@@ -243,9 +243,16 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
                        int flags) {
     int i;
     int pos = (*column) + ((*row) * max_column);
+    if(str == NULL || row == NULL || column == NULL){
+        return;
+    }
     int len = strlen(str);
+    if(len <= 0){
+        return;
+    }
     // it's possible that we can't change str
-    char *str2 = malloc(len * sizeof(char));
+    // +1 because of \n
+    char *str2 = malloc((len+1) * sizeof(char));
     strcpy(str2, str);
     oscore_mutex_lock(buffer_busy);
     for (i = 0; i < len; ++i) {
@@ -253,11 +260,6 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
         case '\n':
             (*row)++;
             pos += max_column;
-            while (*row >= max_row) {
-                (*row)--;
-                scroll_up(fg, bg);
-                pos -= max_column;
-            }
             break;
         case '\r':
             pos -= *column;
@@ -284,6 +286,11 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
             (*column)++;
             pos++;
             break;
+        }
+        while (*row >= max_row) {
+            (*row)--;
+            scroll_up(fg, bg);
+            pos -= max_column;
         }
     }
     oscore_mutex_unlock(buffer_busy);
