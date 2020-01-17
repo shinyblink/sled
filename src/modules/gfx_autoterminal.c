@@ -34,7 +34,8 @@
 const int font_width = 4;
 const int font_height = 6;
 
-#define FRAMETIME (T_SECOND / 8)
+#define FRAMETIME (T_SECOND / 64)
+#define TYPEDELAY (8)
 #define FRAMES (TIME_SHORT)
 
 #define font_width 4
@@ -50,6 +51,7 @@ static oscore_time nexttick;
 static int moduleno;
 static int max_row;
 static int max_column;
+static int type_counter = 0;
 // this is accessed by multiple threads
 static volatile int active_shell = 0;
 static char **type_buffer;
@@ -593,29 +595,33 @@ int draw(int _modno, int argc, char *argv[]) {
             oscore_task_join(child);
             child = NULL;
         }
-        // we are through with all commands
-        if (type_index > max_index)
-            return 1;
-        // this happens right after other thread finished
-        if (type_pos == 0) { // prepare next line or exit
-            printbuffer_write("$ ", &current_row, &current_column, fg, bg, 0);
+        if(type_counter <= 0){
+            // we are through with all commands
+            if (type_index > max_index)
+                return 1;
+            // this happens right after other thread finished
+            if (type_pos == 0) { // prepare next line or exit
+                printbuffer_write("$ ", &current_row, &current_column, fg, bg, 0);
+            }
+            if (type_pos < strlen(type_buffer[type_index])) {
+                char ch[2];
+                ch[0] = type_buffer[type_index][type_pos];
+                ch[1] = 0;
+                printbuffer_write(ch, &current_row, &current_column, fg, bg, 0);
+                type_pos++;
+            } else {
+                current_column = 0;
+                active_shell = 1;
+                type_index++;
+                type_pos = 0;
+                child = oscore_task_create("shell", launch, type_buffer[type_index - 1]);
+            }
+            type_counter = TYPEDELAY;
         }
-        if (type_pos < strlen(type_buffer[type_index])) {
-            char ch[2];
-            ch[0] = type_buffer[type_index][type_pos];
-            ch[1] = 0;
-            printbuffer_write(ch, &current_row, &current_column, fg, bg, 0);
-            type_pos++;
-        } else {
-            current_column = 0;
-            active_shell = 1;
-            type_index++;
-            type_pos = 0;
-            child = oscore_task_create("shell", launch, type_buffer[type_index - 1]);
-        }
+        --type_counter;
     }
 
-    printbuffer_draw(foxel35_bits, font_width, font_height, 4);
+    printbuffer_draw(foxel35_bits, font_width, font_height, 4 * TYPEDELAY);
 
     matrix_render();
     nexttick += (FRAMETIME);
