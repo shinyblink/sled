@@ -56,8 +56,8 @@ static char **type_buffer;
 static int type_pos;
 static int type_index;
 static int max_index;
-static const RGB fg_default = RGB(247, 127, 190);
-static const RGB bg_default = RGB(50, 50, 50);
+static const RGB fg_default = RGB(255, 255, 255);
+static const RGB bg_default = RGB(0, 0, 0);
 static RGB fg = fg_default;
 static RGB bg = bg_default;
 static int current_row = 0;
@@ -580,6 +580,10 @@ void reset(int _modno) {
     fg = fg_default;
     bg = bg_default;
     printbuffer_clear(0, max_row * max_column, fg, bg);
+    //clear unused space
+    for (int y = max_row * font_height; y < matrix_gety(); ++y)
+        for (int x = 0; x < matrix_getx(); ++x)
+            matrix_set(x,y,RGB(0, 0, 0));
     nexttick = udate();
 }
 
