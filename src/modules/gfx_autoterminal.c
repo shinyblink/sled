@@ -34,7 +34,8 @@
 const int font_width = 4;
 const int font_height = 6;
 
-#define FRAMETIME (T_SECOND / 8)
+#define FRAMETIME (T_SECOND / 32)
+#define TYPEDELAY (4)
 #define FRAMES (TIME_SHORT)
 
 #define font_width 4
@@ -50,14 +51,15 @@ static oscore_time nexttick;
 static int moduleno;
 static int max_row;
 static int max_column;
+static int type_counter = 0;
 // this is accessed by multiple threads
 static volatile int active_shell = 0;
 static char **type_buffer;
 static int type_pos;
 static int type_index;
 static int max_index;
-static const RGB fg_default = RGB(247, 127, 190);
-static const RGB bg_default = RGB(50, 50, 50);
+static const RGB fg_default = RGB(255, 255, 255);
+static const RGB bg_default = RGB(0, 0, 0);
 static RGB fg = fg_default;
 static RGB bg = bg_default;
 static int current_row = 0;
@@ -493,26 +495,11 @@ static void *launch(void *type_buffer) {
     return 0;
 }
 
-int init(int modno, char *argstr) {
-    moduleno = modno;
-    child = 0;
-    grandchild = 0;
-    char *from_int = malloc(10 * sizeof(char));
-    max_row = matrix_gety() / font_height;
-    max_column = matrix_getx() / font_width;
-    setenv("TERMINFO", "../terminfo/", 1);
-    setenv("TERM", "autoterminal", 1);
-    snprintf(from_int, 10, "%d", max_row);
-    setenv("LINES", from_int, 1);
-    snprintf(from_int, 10, "%d", max_column);
-    setenv("COLUMNS", from_int, 1);
-    max_index = 1;
-    shell = malloc(30 * sizeof(char));
-    strcpy(shell, "/bin/sh");
-    // read script
+static int read_script(char *script){
     FILE *file;
-
-    file = fopen("scripts/autoterminal.sh", "r");
+    char name[] = "scripts/autoterminal_XXXXX.sh";
+    snprintf(name, strlen(name), "scripts/autoterminal_%s.sh", script);
+    file = fopen(name, "r");
     if (file) {
         // last line endns with eof and not new line
         int ch;
@@ -545,11 +532,34 @@ int init(int modno, char *argstr) {
             first_line = 0;
         };
         fclose(file);
+        type_pos = 0;
+        max_index = type_index - 1;
+        type_index = 0;
+        return 0;
+    }else{
+        return 1;
     }
+    
+}
 
-    type_pos = 0;
-    max_index = type_index - 1;
-    type_index = 0;
+int init(int modno, char *argstr) {
+    moduleno = modno;
+    child = 0;
+    grandchild = 0;
+    char *from_int = malloc(10 * sizeof(char));
+    max_row = matrix_gety() / font_height;
+    max_column = matrix_getx() / font_width;
+    setenv("TERMINFO", "../terminfo/", 1);
+    setenv("TERM", "autoterminal", 1);
+    snprintf(from_int, 10, "%d", max_row);
+    setenv("LINES", from_int, 1);
+    snprintf(from_int, 10, "%d", max_column);
+    setenv("COLUMNS", from_int, 1);
+    max_index = 1;
+    shell = malloc(30 * sizeof(char));
+    strcpy(shell, "/bin/sh");
+    // read script
+    read_script("1");
 
     printbuffer_init(max_row, max_column, fg_default, bg_default);
 
@@ -580,38 +590,57 @@ void reset(int _modno) {
     fg = fg_default;
     bg = bg_default;
     printbuffer_clear(0, max_row * max_column, fg, bg);
+    //clear unused space
+    for (int y = max_row * font_height; y < matrix_gety(); ++y)
+        for (int x = 0; x < matrix_getx(); ++x)
+            matrix_set(x,y,RGB(0, 0, 0));
     nexttick = udate();
 }
 
 int draw(int _modno, int argc, char *argv[]) {
+    if(argc == 2 && strcmp(argv[0], "script") == 0 && strlen(argv[1]) <= 5){
+        read_script(argv[1]);
+    }
+    if(argc == 2 && strcmp(argv[0], "execute") == 0){
+        read_script(argv[1]);
+        max_index = 1;
+        type_index = 0;
+        type_buffer = malloc(max_index * sizeof(char *));
+        type_buffer[0] = malloc((strlen(argv[1]) + 1) * sizeof(char*));
+        strcpy(type_buffer[0], argv[1]);
+    }
     if (active_shell == 0) {
         if(child){
             oscore_task_join(child);
             child = NULL;
         }
-        // we are through with all commands
-        if (type_index > max_index)
-            return 1;
-        // this happens right after other thread finished
-        if (type_pos == 0) { // prepare next line or exit
-            printbuffer_write("$ ", &current_row, &current_column, fg, bg, 0);
+        if(type_counter <= 0){
+            // we are through with all commands
+            if (type_index > max_index)
+                return 1;
+            // this happens right after other thread finished
+            if (type_pos == 0) { // prepare next line or exit
+                printbuffer_write("$ ", &current_row, &current_column, fg, bg, 0);
+            }
+            if (type_pos < strlen(type_buffer[type_index])) {
+                char ch[2];
+                ch[0] = type_buffer[type_index][type_pos];
+                ch[1] = 0;
+                printbuffer_write(ch, &current_row, &current_column, fg, bg, 0);
+                type_pos++;
+            } else {
+                current_column = 0;
+                active_shell = 1;
+                type_index++;
+                type_pos = 0;
+                child = oscore_task_create("shell", launch, type_buffer[type_index - 1]);
+            }
+            type_counter = TYPEDELAY;
         }
-        if (type_pos < strlen(type_buffer[type_index])) {
-            char ch[2];
-            ch[0] = type_buffer[type_index][type_pos];
-            ch[1] = 0;
-            printbuffer_write(ch, &current_row, &current_column, fg, bg, 0);
-            type_pos++;
-        } else {
-            current_column = 0;
-            active_shell = 1;
-            type_index++;
-            type_pos = 0;
-            child = oscore_task_create("shell", launch, type_buffer[type_index - 1]);
-        }
+        --type_counter;
     }
 
-    printbuffer_draw(foxel35_bits, font_width, font_height, 4);
+    printbuffer_draw(foxel35_bits, font_width, font_height, 4 * TYPEDELAY);
 
     matrix_render();
     nexttick += (FRAMETIME);
