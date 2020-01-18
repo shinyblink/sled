@@ -348,7 +348,7 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                     if (blink && (buffer[pos].flags & printbuffer_flag_blink)) {
                         color = (bit == 1 ? buffer[pos].bg : buffer[pos].fg);
                     }
-                    matrix_set((column * 4) + x, (row * 6) + y, color);
+                    matrix_set((column * font_width) + x, (row * font_height) + y, color);
                 }
             }
             pos++;

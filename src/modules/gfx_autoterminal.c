@@ -22,6 +22,8 @@
 #include <types.h>
 
 #include "foxel35.xbm"
+//special font for programs who use half block unicode
+#include "microfont.xbm"
 #include "printbuffer.h"
 
 #include <sys/types.h>
@@ -31,15 +33,9 @@
 #include <pty.h>
 #include <signal.h>
 
-const int font_width = 4;
-const int font_height = 6;
-
 #define FRAMETIME (T_SECOND / 32)
 #define TYPEDELAY (4)
 #define FRAMES (TIME_SHORT)
-
-#define font_width 4
-#define font_height 6
 
 #define flag_intense 1
 #define flag_faint (1 << 1)
@@ -47,6 +43,9 @@ const int font_height = 6;
 #define flag_blink (1 << 3)
 #define flag_altchar (1 << 4)
 
+static int font_width;
+static int font_height;
+static int font;
 static oscore_time nexttick;
 static int moduleno;
 static int max_row;
@@ -546,6 +545,9 @@ int init(int modno, char *argstr) {
     moduleno = modno;
     child = 0;
     grandchild = 0;
+    font_width = 4;
+    font_height = 6;
+    font = 0;//foxel36
     char *from_int = malloc(10 * sizeof(char));
     max_row = matrix_gety() / font_height;
     max_column = matrix_getx() / font_width;
@@ -587,6 +589,9 @@ void reset(int _modno) {
     type_pos = 0;
     current_row = 0;
     current_column = 0;
+    font_width = 4;
+    font_height = 6;
+    font = 0;
     fg = fg_default;
     bg = bg_default;
     printbuffer_clear(0, max_row * max_column, fg, bg);
@@ -608,6 +613,22 @@ int draw(int _modno, int argc, char *argv[]) {
         type_buffer = malloc(max_index * sizeof(char *));
         type_buffer[0] = malloc((strlen(argv[1]) + 1) * sizeof(char*));
         strcpy(type_buffer[0], argv[1]);
+    }
+    if(argc == 2 && strcmp(argv[0], "font") == 0){
+        if(strcmp(argv[1], "microfont")){
+            printf("microfont!\n");
+            font = 1;
+            font_width = 1;
+            font_height = 2;
+        }else{
+            font = 0;
+            font_width = 4;
+            font_height = 6;
+        }
+        max_row = matrix_gety() / font_height;
+        max_column = matrix_getx() / font_width;
+        printbuffer_deinit();
+        printbuffer_init(max_row, max_column, fg_default, bg_default);
     }
     if (active_shell == 0) {
         if(child){
@@ -639,8 +660,10 @@ int draw(int _modno, int argc, char *argv[]) {
         }
         --type_counter;
     }
-
-    printbuffer_draw(foxel35_bits, font_width, font_height, 4 * TYPEDELAY);
+    unsigned char * font_bits = foxel35_bits;
+    if(font == 1)
+        font_bits = microfont_bits;
+    printbuffer_draw(font_bits, font_width, font_height, 4 * TYPEDELAY);
 
     matrix_render();
     nexttick += (FRAMETIME);
