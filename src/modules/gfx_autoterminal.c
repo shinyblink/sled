@@ -34,8 +34,8 @@
 const int font_width = 4;
 const int font_height = 6;
 
-#define FRAMETIME (T_SECOND / 64)
-#define TYPEDELAY (8)
+#define FRAMETIME (T_SECOND / 32)
+#define TYPEDELAY (4)
 #define FRAMES (TIME_SHORT)
 
 #define font_width 4
