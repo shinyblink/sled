@@ -611,7 +611,7 @@ int draw(int _modno, int argc, char *argv[]) {
             } else if (argc - i >= 2 && strcmp(argv[i], "execute") == 0) {
                 printf("Execute \"%s\"\n", argv[i + 1]);
                 read_script(argv[i + 1]);
-                max_index = 1;
+                max_index = 0;
                 type_index = 0;
                 type_buffer = malloc(max_index * sizeof(char *));
                 type_buffer[0] =
