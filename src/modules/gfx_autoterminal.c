@@ -589,9 +589,6 @@ void reset(int _modno) {
     type_pos = 0;
     current_row = 0;
     current_column = 0;
-    font_width = 4;
-    font_height = 6;
-    font = 0;
     fg = fg_default;
     bg = bg_default;
     printbuffer_clear(0, max_row * max_column, fg, bg);
