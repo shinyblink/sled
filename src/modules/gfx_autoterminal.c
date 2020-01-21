@@ -22,6 +22,8 @@
 #include <types.h>
 
 #include "foxel35.xbm"
+// special font for programs who use half block unicode
+#include "microfont.xbm"
 #include "printbuffer.h"
 
 #include <sys/types.h>
@@ -31,15 +33,9 @@
 #include <pty.h>
 #include <signal.h>
 
-const int font_width = 4;
-const int font_height = 6;
-
 #define FRAMETIME (T_SECOND / 32)
 #define TYPEDELAY (4)
 #define FRAMES (TIME_SHORT)
-
-#define font_width 4
-#define font_height 6
 
 #define flag_intense 1
 #define flag_faint (1 << 1)
@@ -47,6 +43,9 @@ const int font_height = 6;
 #define flag_blink (1 << 3)
 #define flag_altchar (1 << 4)
 
+static int font_width;
+static int font_height;
+static int font;
 static oscore_time nexttick;
 static int moduleno;
 static int max_row;
@@ -322,15 +321,15 @@ static void parse_csi(char *str, int end, FILE *cout) {
             current_row = 0;
         current_column = 0;
         break;
-    case 'S'://scroll up
+    case 'S': // scroll up
         parse_sgr_value(str, i, &code, 1);
         current_row -= code;
         if (current_row < 0)
             current_row = 0;
         int tmp_row;
-        int tmp_column = max_column-1;
-        for (; code > 0; --code){
-            tmp_row = max_row-1;
+        int tmp_column = max_column - 1;
+        for (; code > 0; --code) {
+            tmp_row = max_row - 1;
             printbuffer_write("\n", &tmp_row, &tmp_column, fg, bg, 0);
         }
         break;
@@ -397,17 +396,18 @@ static void parse_csi(char *str, int end, FILE *cout) {
         break;
     case 'n':
         parse_sgr_value(str, i, &code, 0);
-        if(code == 6){
+        if (code == 6) {
             char response[27] = ";;";
-            snprintf(response, 27, "\033[%d;%dR", current_row+1, current_column+1);
-            printf("Type into Terminal: \\E%s\n", response+1);
+            snprintf(response, 27, "\033[%d;%dR", current_row + 1,
+                     current_column + 1);
+            printf("Type into Terminal: \\E%s\n", response + 1);
             fputs(response, cout);
         } else {
             printf("Invalid h SGR %d\n", code);
         }
         break;
-    //and ?25h to show cursor
-    //and ?25l to hide cursor
+    // and ?25h to show cursor
+    // and ?25l to hide cursor
     default:
         printf("Unhandled CSI type %c\n", str[end]);
     }
@@ -495,7 +495,7 @@ static void *launch(void *type_buffer) {
     return 0;
 }
 
-static int read_script(char *script){
+static int read_script(char *script) {
     FILE *file;
     char name[] = "scripts/autoterminal_XXXXX.sh";
     snprintf(name, strlen(name), "scripts/autoterminal_%s.sh", script);
@@ -536,16 +536,18 @@ static int read_script(char *script){
         max_index = type_index - 1;
         type_index = 0;
         return 0;
-    }else{
+    } else {
         return 1;
     }
-    
 }
 
 int init(int modno, char *argstr) {
     moduleno = modno;
     child = 0;
     grandchild = 0;
+    font_width = 4;
+    font_height = 6;
+    font = 0; // foxel36
     char *from_int = malloc(10 * sizeof(char));
     max_row = matrix_gety() / font_height;
     max_column = matrix_getx() / font_width;
@@ -573,11 +575,11 @@ int init(int modno, char *argstr) {
 }
 
 void reset(int _modno) {
-    if(grandchild){
+    if (grandchild) {
         kill(grandchild, SIGTERM);
     }
     grandchild = 0;
-    if(child){
+    if (child) {
         oscore_task_join(child);
         child = NULL;
     }
@@ -590,37 +592,65 @@ void reset(int _modno) {
     fg = fg_default;
     bg = bg_default;
     printbuffer_clear(0, max_row * max_column, fg, bg);
-    //clear unused space
+    // clear unused space
     for (int y = max_row * font_height; y < matrix_gety(); ++y)
         for (int x = 0; x < matrix_getx(); ++x)
-            matrix_set(x,y,RGB(0, 0, 0));
+            matrix_set(x, y, RGB(0, 0, 0));
     nexttick = udate();
 }
 
 int draw(int _modno, int argc, char *argv[]) {
-    if(argc == 2 && strcmp(argv[0], "script") == 0 && strlen(argv[1]) <= 5){
-        read_script(argv[1]);
-    }
-    if(argc == 2 && strcmp(argv[0], "execute") == 0){
-        read_script(argv[1]);
-        max_index = 1;
-        type_index = 0;
-        type_buffer = malloc(max_index * sizeof(char *));
-        type_buffer[0] = malloc((strlen(argv[1]) + 1) * sizeof(char*));
-        strcpy(type_buffer[0], argv[1]);
+    if (argc > 0) {
+        int i;
+        for (i = 0; i < argc; ++i) {
+            if (argc - i >= 2 && strcmp(argv[i], "script") == 0 &&
+                strlen(argv[i + 1]) <= 5) {
+                printf("Load script terminal_%s.sh\n", argv[i + 1]);
+                read_script(argv[i + 1]);
+                ++i;
+            } else if (argc - i >= 2 && strcmp(argv[i], "execute") == 0) {
+                printf("Execute \"%s\"\n", argv[i + 1]);
+                read_script(argv[i + 1]);
+                max_index = 0;
+                type_index = 0;
+                type_buffer = malloc(max_index * sizeof(char *));
+                type_buffer[0] =
+                    malloc((strlen(argv[i + 1]) + 1) * sizeof(char *));
+                strcpy(type_buffer[0], argv[i + 1]);
+                ++i;
+            } else if (argc - i >= 2 && strcmp(argv[i], "font") == 0) {
+                printf("Load font \"%s\"\n", argv[i + 1]);
+                if (strcmp(argv[i + 1], "microfont") == 0) {
+                    printf("Load microfont!\n");
+                    font = 1;
+                    font_width = 1;
+                    font_height = 2;
+                } else {
+                    font = 0;
+                    font_width = 4;
+                    font_height = 6;
+                }
+                max_row = matrix_gety() / font_height;
+                max_column = matrix_getx() / font_width;
+                printbuffer_deinit();
+                printbuffer_init(max_row, max_column, fg_default, bg_default);
+                ++i;
+            }
+        }
     }
     if (active_shell == 0) {
-        if(child){
+        if (child) {
             oscore_task_join(child);
             child = NULL;
         }
-        if(type_counter <= 0){
+        if (type_counter <= 0) {
             // we are through with all commands
             if (type_index > max_index)
                 return 1;
             // this happens right after other thread finished
             if (type_pos == 0) { // prepare next line or exit
-                printbuffer_write("$ ", &current_row, &current_column, fg, bg, 0);
+                printbuffer_write("$ ", &current_row, &current_column, fg, bg,
+                                  0);
             }
             if (type_pos < strlen(type_buffer[type_index])) {
                 char ch[2];
@@ -633,14 +663,17 @@ int draw(int _modno, int argc, char *argv[]) {
                 active_shell = 1;
                 type_index++;
                 type_pos = 0;
-                child = oscore_task_create("shell", launch, type_buffer[type_index - 1]);
+                child = oscore_task_create("shell", launch,
+                                           type_buffer[type_index - 1]);
             }
             type_counter = TYPEDELAY;
         }
         --type_counter;
     }
-
-    printbuffer_draw(foxel35_bits, font_width, font_height, 4 * TYPEDELAY);
+    unsigned char *font_bits = foxel35_bits;
+    if (font == 1)
+        font_bits = microfont_bits;
+    printbuffer_draw(font_bits, font_width, font_height, 4 * TYPEDELAY);
 
     matrix_render();
     nexttick += (FRAMETIME);
@@ -649,11 +682,11 @@ int draw(int _modno, int argc, char *argv[]) {
 }
 
 void deinit(int _modno) {
-    if(grandchild){
+    if (grandchild) {
         kill(grandchild, SIGTERM);
     }
     grandchild = 0;
-    if(child){
+    if (child) {
         oscore_task_join(child);
         child = NULL;
     }
