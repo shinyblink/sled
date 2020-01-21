@@ -83,7 +83,7 @@ void reset(int _modno) {
 		}
 
 		struct sockaddr_in *addr = (struct sockaddr_in *)curr->ifa_addr;
-		if(inet_ntop(curr->ifa_addr->sa_family, &(addr->sin_addr), buff, INET6_ADDRSTRLEN) != NULL) {
+		if(curr->ifa_addr && inet_ntop(curr->ifa_addr->sa_family, &(addr->sin_addr), buff, INET6_ADDRSTRLEN) != NULL) {
 			displayed_interface_count++;
 
 			snprintf(displaybuff, columncount, "%s", curr->ifa_name);
