@@ -7,11 +7,11 @@
 // a lot different terminals.
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
-// 
+//
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
 // copyright notice and this permission notice appear in all copies.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
 // WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -34,19 +34,21 @@
 // not sure which i like more..
 #define TERM_CHAR "●"
 //#define TERM_CHAR "o"
+#define HALFBLOCKS
 
 // Escapes.
 #define ESC "\x1B["
 #define MOVETO "%i;%iH"
 #define HIDECURSOR "?25l"
 #define SHOWCURSOR "?25h"
-#define TRUECOLOR "38;2;%i;%i;%im"
+#define TRUECOLOR_FG "38;2;%i;%i;%im"
+#define TRUECOLOR_BG "48;2;%i;%i;%im"
 #define NOCOLOR "0m"
 
 static int term_w, term_h;
 static RGB* term_buf;
 
-#define PPOS(x, y) (x + (y * term_w))
+#define PPOS(x, y) ((x) + ((y) * term_w))
 
 int init (int moduleno, char* argstr) {
 	if (argstr)
@@ -55,7 +57,11 @@ int init (int moduleno, char* argstr) {
 	struct winsize winsz;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsz);
 	term_w = winsz.ws_col;
+#ifndef HALFBLOCKS
 	term_h = winsz.ws_row - 1; // last two rows for status messages.
+#else
+	term_h = ((winsz.ws_row - 1) & ~1) * 2;
+#endif
 
 	if (!(term_w && term_h)) {
 		eprintf("Not a terminal, stupid!\n");
@@ -93,13 +99,26 @@ int clear(int _modno) {
 int render(void) {
 	int x, y;
 	fprintf(stdout, ESC MOVETO, 0, 0);
+#ifndef HALFBLOCKS
 	for (y = 0; y < term_h; y++) {
 		for (x = 0; x < term_w; x++) {
 			RGB px = term_buf[PPOS(x, y)];
-			fprintf(stdout, ESC TRUECOLOR TERM_CHAR, px.red, px.green, px.blue);
+			fprintf(stdout, ESC TRUECOLOR_FG TERM_CHAR, px.red, px.green, px.blue);
 		}
+		printf("\n");
 	}
 	fprintf(stdout, ESC MOVETO ESC NOCOLOR, term_h + 1, 0);
+#else
+	for (y = 0; y < term_h; y += 2) {
+		for (x = 0; x < term_w; x++) {
+			RGB px_upper = term_buf[PPOS(x, y)];
+			RGB px_lower = term_buf[PPOS(x, y + 1)];
+			fprintf(stdout, ESC TRUECOLOR_FG ESC TRUECOLOR_BG "▀", px_upper.red, px_upper.green, px_upper.blue, px_lower.red, px_lower.green, px_lower.blue);
+		}
+		printf("\n");
+	}
+	fprintf(stdout, ESC MOVETO ESC NOCOLOR, term_h/2 + 1, 0);
+#endif
 	fflush(stdout);
 	return 0;
 }
