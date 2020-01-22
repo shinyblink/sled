@@ -60,7 +60,7 @@ int init (int moduleno, char* argstr) {
 #ifndef HALFBLOCKS
 	term_h = winsz.ws_row - 1; // last two rows for status messages.
 #else
-	term_h = ((winsz.ws_row - 1) & ~1) * 2;
+	term_h = (winsz.ws_row - 1) * 2;
 #endif
 
 	if (!(term_w && term_h)) {
