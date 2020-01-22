@@ -261,6 +261,24 @@ If you want to build a specific module later on, you can do the same but with ju
 module you wanna build. It'll get added to the same directory where the others are.
 Or, if you are particularly lazy, just add the module name to the make invocation.
 
+## FISh
+The `sled.fish` FiFo supports the following commands:
+
+| Command | Action |
+| --- | --- |
+| `/blank` | Blank the output |
+| `/error42` | Exit the program |
+| `/next` | Jump to the next effect |
+| `/then <modulename> [parameters]` | Schedule the given module or command with optional parameters |
+
+Examples:
+```bash
+echo '/next' > sled.fish
+echo '/then /blank' > sled.fish
+echo '/then autoterminal execute htop' > sled.fish
+echo '/then text "Hello World"' > sled.fish
+```
+
 ## License
 Most non-trivial files contain an explicit statement regarding the license.
 
