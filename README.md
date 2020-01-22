@@ -266,10 +266,11 @@ The `sled.fish` FiFo supports the following commands:
 
 | Command | Action |
 | --- | --- |
+| `<modulename> [parameters]` | Run the module with optional arguments directly |
 | `/blank` | Blank the output |
 | `/error42` | Exit the program |
 | `/next` | Jump to the next effect |
-| `/then <modulename> [parameters]` | Schedule the given module or command with optional parameters |
+| `/then <modulename/command> [parameters]` | Schedule the given module or command with optional parameters after the current one |
 
 Examples:
 ```bash
@@ -277,7 +278,10 @@ echo '/next' > sled.fish
 echo '/then /blank' > sled.fish
 echo '/then autoterminal execute htop' > sled.fish
 echo '/then text "Hello World"' > sled.fish
+echo 'text "Hello World"' > sled.fish
 ```
+
+Running `echo 'text Ipsum' > sled.fish` has the same effext as `echo -e "/then text Ipsum\n/next" > sled.fish`.
 
 ## License
 Most non-trivial files contain an explicit statement regarding the license.
