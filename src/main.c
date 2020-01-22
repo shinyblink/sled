@@ -237,6 +237,10 @@ int sled_main(int argc, char** argv) {
 		}
 		case 'f': {
 			// Prepend flt_ here. Be careful with this...
+			if (!optarg) {
+				printf("sled: Missing filter argument. RIP.\n");
+				exit(1);
+			}
 			char* modname = malloc((strlen(optarg) + 5) * sizeof(char));
 			assert(modname);
 			strcpy(modname, "flt_");
