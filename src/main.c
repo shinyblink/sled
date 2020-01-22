@@ -181,7 +181,7 @@ int usage(char* name) {
 static struct option longopts[] = {
 	{ "modpath", required_argument, NULL, 'm' },
 	{ "output",  required_argument, NULL, 'o' },
-	{ "filter",  optional_argument, NULL, 'f' },
+	{ "filter",  required_argument, NULL, 'f' },
 	{ NULL,      0,                 NULL, 0},
 };
 
@@ -237,10 +237,6 @@ int sled_main(int argc, char** argv) {
 		}
 		case 'f': {
 			// Prepend flt_ here. Be careful with this...
-			if (!optarg) {
-				printf("sled: Missing filter argument. RIP.\n");
-				exit(1);
-			}
 			char* modname = malloc((strlen(optarg) + 5) * sizeof(char));
 			assert(modname);
 			strcpy(modname, "flt_");
