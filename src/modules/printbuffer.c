@@ -339,14 +339,15 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
     oscore_mutex_lock(buffer_busy);
     for (row = 0; row < max_row; ++row)
         for (column = 0; column < max_column; ++column) {
+            struct font_char const b= buffer[pos];
             for (y = 0; y < font_height; ++y) {
                 for (x = 0; x < font_width; ++x) {
-                    bit = load_xbm_char(bits, buffer[pos].c, x, y, font_width,
-                                        font_height, buffer[pos].flags);
-                    color = (bit == 1 ? buffer[pos].fg : buffer[pos].bg);
+                    bit = load_xbm_char(bits, b.c, x, y, font_width,
+                                        font_height, b.flags);
+                    color = (bit == 1 ? b.fg : b.bg);
                     // invert if blinking
-                    if (blink && (buffer[pos].flags & printbuffer_flag_blink)) {
-                        color = (bit == 1 ? buffer[pos].bg : buffer[pos].fg);
+                    if (blink && (b.flags & printbuffer_flag_blink)) {
+                        color = (bit == 1 ? b.bg : b.fg);
                     }
                     matrix_set((column * font_width) + x, (row * font_height) + y, color);
                 }
