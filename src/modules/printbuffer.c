@@ -344,10 +344,12 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                 for (x = 0; x < font_width; ++x) {
                     bit = load_xbm_char(bits, b.c, x, y, font_width,
                                         font_height, b.flags);
-                    color = (bit == 1 ? b.fg : b.bg);
                     // invert if blinking
                     if (blink && (b.flags & printbuffer_flag_blink)) {
                         color = (bit == 1 ? b.bg : b.fg);
+                    }
+                    else {
+                        color = (bit == 1 ? b.fg : b.bg);
                     }
                     matrix_set((column * font_width) + x, (row * font_height) + y, color);
                 }
