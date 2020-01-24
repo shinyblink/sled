@@ -50,13 +50,13 @@ int init(int moduleno, char* argstr) {
 }
 
 void reset(int _modno) {
-	text_free(rendered);
+	text_free(&rendered);
 	text_position = 0;
 }
 
 int draw(int _modno, int argc, char* argv[]) {
 	if (argc != 0) {
-		text_free(rendered);
+		text_free(&rendered);
 		// this always sets involved values to 0 or a valid value.
 		text_position = 0;
 		rendered = text_render(argv[0]);
@@ -75,8 +75,7 @@ int draw(int _modno, int argc, char* argv[]) {
 		// Add "center text & quit early" here
 	} else if (text_position == (rendered->len + TEXT_GAP)) {
 		text_position = 0;
-		text_free(rendered);
-		rendered = NULL;
+		text_free(&rendered);
 		return 1;
 	}
 
@@ -98,5 +97,5 @@ int draw(int _modno, int argc, char* argv[]) {
 
 void deinit(int _modno) {
 	// This acts conditionally on rendered being non-NULL.
-	text_free(rendered);
+	text_free(&rendered);
 }

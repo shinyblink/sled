@@ -135,6 +135,6 @@ void deinit(int _modno) {
 	// This acts conditionally on rendered being non-NULL.
 	int i;
 	for (i = 0; i < NUMTEXT; i++) {
-		text_free(rendered[i]);
+		text_free(&rendered[i]);
 	}
 }

@@ -70,10 +70,13 @@ text* text_render(const char * txt) {
 	return rendered;
 }
 
-void text_free(text* rendered) {
-	if (rendered) {
-		if (rendered->buffer)
-			free(rendered->buffer);
-		free(rendered);
+void text_free(text** rendered) {
+	if (*rendered) {
+		if ((*rendered)->buffer) {
+			free((*rendered)->buffer);
+			(*rendered)->buffer = NULL;
+		}
+		free(*rendered);
+		*rendered = NULL;
 	}
 }
