@@ -40,7 +40,7 @@ static const char *ignored_interfaces;
 static void reset_lines(void)
 {
 	for(int i = 0; i < linecount; i++) {
-		text_free(lines[i]);
+		text_free(&lines[i]);
 		lines[i] = NULL;
 	}
 }
@@ -136,4 +136,5 @@ int draw(int _modno, int argc, char **argv) {
 void deinit(int _modno) {
 	reset_lines();
 	free(lines);
+	lines = NULL;
 }

@@ -20,4 +20,4 @@ byte text_point(text* rendered, int x, int y);
 text* text_render(const char* txt);
 // Frees rendered text. Do it. Don't forget to, leaks a bad, mmkay?
 // Does nothing if called with NULL.
-void text_free(text* rendered);
+void text_free(text** rendered);
