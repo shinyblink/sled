@@ -243,6 +243,8 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
                        int flags) {
     int i;
     int pos = (*column) + ((*row) * max_column);
+    // Q: Where is `column <= max_column` ensured?  A: This is not
+    // handled. Rows simply overflow into the next row.
     if(str == NULL || row == NULL || column == NULL){
         return;
     }
@@ -301,6 +303,9 @@ void printbuffer_write_default(const char *str, int *row, int *column) {
     printbuffer_write(str, row, column, RGB(0, 0, 0), trans, 0);
 }
 
+static int const texture_char_per_col= 16;
+static int const texture_char_per_row= 16;
+
 // c is the character you want to load
 // x and y are pixel inside the character
 // xbm must have 16 characters per row
@@ -313,45 +318,51 @@ int load_xbm_char(unsigned char bits[], unsigned char c, int x, int y, int w,
     if (flags & printbuffer_flag_altchar) {
         c += 128;
     }
-    int offset_x = (c % 16) * w;
-    int offset_y = (c / 16) * h;
+    int offset_x = (c % texture_char_per_row) * w;
+    int offset_y = (c / texture_char_per_col) * h;
     int total_x = offset_x + x;
     int total_y = offset_y + y;
-    int pos = total_y * (w * 16) + total_x;
+    int pos = total_y * (w * texture_char_per_row) + total_x;
     return (((bits[pos / 8]) >> ((pos % 8))) & 1);
 }
 
 // this calls matrix_set
 void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                       int blink_delay) {
-    int x;
-    int y;
-    int row;
-    int column;
-    int pos = 0;
-    int bit;
-    RGB color;
     blink_counter--;
     if (blink_counter <= 0) {
         blink = !blink; // toggle
         blink_counter = blink_delay;
     }
     oscore_mutex_lock(buffer_busy);
-    for (row = 0; row < max_row; ++row)
-        for (column = 0; column < max_column; ++column) {
+    int pos = 0;
+    for (int row = 0; row < max_row; ++row)
+        for (int column = 0; column < max_column; ++column) {
             struct font_char const b= buffer[pos];
-            for (y = 0; y < font_height; ++y) {
-                for (x = 0; x < font_width; ++x) {
-                    bit = load_xbm_char(bits, b.c, x, y, font_width,
-                                        font_height, b.flags);
+            unsigned char const c=
+                b.c >= 128 ? 0x1a /* substitute character */ :
+                (b.flags & printbuffer_flag_altchar) ? (b.c + 128) : b.c;
+
+            int const origin_x = (c % texture_char_per_col) * font_width;
+            int const origin_y = (c / texture_char_per_row) * font_height;
+            int const matrix_x_offset= column * font_width;
+            for (int y = 0; y < font_height; ++y) {
+                int const bit_i_offset =
+                    (origin_y + y) * (font_width * texture_char_per_row) +
+                    origin_x;
+                int const matrix_y= row * font_height + y;
+                for (int x = 0; x < font_width; ++x) {
+                    int const bit_i = bit_i_offset + x;
+                    int const fg = ((bits[bit_i / 8]) >> (bit_i % 8)) & 1;
+                    RGB color;
                     // invert if blinking
                     if (blink && (b.flags & printbuffer_flag_blink)) {
-                        color = (bit == 1 ? b.bg : b.fg);
+                        color = fg ? b.bg : b.fg;
                     }
                     else {
-                        color = (bit == 1 ? b.fg : b.bg);
+                        color = fg ? b.fg : b.bg;
                     }
-                    matrix_set((column * font_width) + x, (row * font_height) + y, color);
+                    matrix_set(matrix_x_offset + x, matrix_y, color);
                 }
             }
             pos++;
