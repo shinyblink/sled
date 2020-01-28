@@ -1,0 +1,19 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, macos-latest] # why is there no macOS version tag??? anyway, as of 28.01.2020, macos-latest is 10.15 Catalina. Don't @ me if this breaks
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Prepare CI config
+      run: cp Makefiles/sledconf.ci ./sledconf
+    - name: Build
+      run: make
+    - name: Test
+      run: ./sled
