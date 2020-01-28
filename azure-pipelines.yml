@@ -11,10 +11,12 @@ pr:
 
 strategy:
   matrix:
-    linux:
+    ubuntu-1604:
       imageName: 'ubuntu-16.04'
+    ubuntu-1804:
+      imageName: 'ubuntu-18.04'
     mac:
-      imageName: 'macos-10.13'
+      imageName: 'macos-10.14'
 
 pool:
   vmImage: $(imageName)
