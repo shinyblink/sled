@@ -41,6 +41,7 @@ static int blink_counter;
 #define texture_char_per_col (16)
 #define texture_char_per_row (16)
 //-> 256 characters in total
+#define printbuffer_flag_invoverride (1 << 2)
 
 void printbuffer_clear(int from, int to, RGB fg, RGB bg) {
     int i;
@@ -164,15 +165,51 @@ static int detect_unicode(char *str, int *i) {
     } else if (strcmp(uc, "╯") == 0) {
         str[*i] = ':';
         flags |= printbuffer_flag_altchar;
-    } else if (strcmp(uc, "▀") == 0) {
-        str[*i] = '!';
+    } else if (strcmp(uc, "▞") == 0) {
+        str[*i] = 'H';
         flags |= printbuffer_flag_altchar;
-    } else if (strcmp(uc, "▄") == 0) {
+    } else if (strcmp(uc, "▚") == 0) {
+        str[*i] = 'H';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
+    } else if (strcmp(uc, "▛") == 0) {
+        str[*i] = ' ';
+        flags |= printbuffer_flag_altchar;
+    } else if (strcmp(uc, "▗") == 0) {
+        str[*i] = ' ';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
+    } else if (strcmp(uc, "▙") == 0) {
         str[*i] = '"';
         flags |= printbuffer_flag_altchar;
-    } else if (strcmp(uc, "█") == 0) {
+    } else if (strcmp(uc, "▝") == 0) {
+        str[*i] = '"';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
+    } else if (strcmp(uc, "▜") == 0) {
+        str[*i] = '!';
+        flags |= printbuffer_flag_altchar;
+    } else if (strcmp(uc, "▖") == 0) {
+        str[*i] = '!';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
+    } else if (strcmp(uc, "▟") == 0) {
         str[*i] = '#';
         flags |= printbuffer_flag_altchar;
+    } else if (strcmp(uc, "▘") == 0) {
+        str[*i] = '#';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
+    } else if (strcmp(uc, "▌") == 0) {
+        str[*i] = 'F';
+        flags |= printbuffer_flag_altchar;
+    } else if (strcmp(uc, "▐") == 0) {
+        str[*i] = 'F';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
+    } else if (strcmp(uc, "▄") == 0) {
+        str[*i] = 'B';
+        flags |= printbuffer_flag_altchar;
+    } else if (strcmp(uc, "▀") == 0) {
+        str[*i] = 'B';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
+    } else if (strcmp(uc, "█") == 0) {
+        str[*i] = ' ';
+        flags |= printbuffer_flag_invoverride;
     } else if (strcmp(uc, "░") == 0) {
         str[*i] = 'b';
         flags |= printbuffer_flag_altchar;
@@ -180,8 +217,8 @@ static int detect_unicode(char *str, int *i) {
         str[*i] = 'a';
         flags |= printbuffer_flag_altchar;
     } else if (strcmp(uc, "▓") == 0) {
-        str[*i] = 'c';
-        flags |= printbuffer_flag_altchar;
+        str[*i] = 'b';
+        flags |= printbuffer_flag_altchar | printbuffer_flag_invoverride;
     } else if (strcmp(uc, "🙂") == 0 || strcmp(uc, "😊") == 0 ||
                strcmp(uc, "☺") == 0) {
         str[*i] = '4';
@@ -351,6 +388,10 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                         bg = merge_colors(&bg, &pixel);
                     }
                     RGB color;
+                    // internal inverting for complementary symbols
+                    if (b.flags & printbuffer_flag_invoverride) {
+                        fg = !fg;
+                    }
                     // invert if blinking
                     if (blink && (b.flags & printbuffer_flag_blink)) {
                         // invert

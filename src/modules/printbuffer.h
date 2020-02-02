@@ -12,8 +12,9 @@ void printbuffer_init_default();
 
 void printbuffer_deinit();
 
-#define printbuffer_flag_blink 1
+#define printbuffer_flag_blink (1)
 #define printbuffer_flag_altchar (1 << 1)
+// (1 << 2) is hidden
 
 // if last column is reached automatic \n\r is done
 void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
