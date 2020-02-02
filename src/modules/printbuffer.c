@@ -306,24 +306,15 @@ void printbuffer_write_default(const char *str, int *row, int *column) {
     printbuffer_write(str, row, column, RGB(0, 0, 0), trans, 0);
 }
 
-// c is the character you want to load
-// x and y are pixel inside the character
-// xbm must have 16 characters per row
-// xbm must contain 128 characters
-int load_xbm_char(unsigned char bits[], unsigned char c, int x, int y, int w,
-                  int h, int flags) {
-    // filter out illegal characters
-    if (c >= 128)
-        c = 0x1a; // substitute character
-    if (flags & printbuffer_flag_altchar) {
-        c += 128;
-    }
-    int offset_x = (c % texture_char_per_row) * w;
-    int offset_y = (c / texture_char_per_col) * h;
-    int total_x = offset_x + x;
-    int total_y = offset_y + y;
-    int pos = total_y * (w * texture_char_per_row) + total_x;
-    return (((bits[pos / 8]) >> ((pos % 8))) & 1);
+static RGB merge_colors(const RGB *a, const RGB *b) {
+    if (a->alpha == 255)
+        return RGB(a->red, a->green, a->blue);
+    if (a->alpha == 0)
+        return RGB(b->red, b->green, b->blue);
+    const int red = (a->red * a->alpha) + (b->red * (255 - a->alpha));
+    const int green = (a->green * a->alpha) + (b->green * (255 - a->alpha));
+    const int blue = (a->blue * a->alpha) + (b->blue * (255 - a->alpha));
+    return RGB(red / 255, green / 255, blue / 255);
 }
 
 void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
@@ -352,14 +343,25 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                 int const matrix_y = row * font_height + y;
                 for (int x = 0; x < font_width; ++x) {
                     int const bit_i = bit_i_offset + x;
-                    int const fg = ((bits[bit_i / 8]) >> (bit_i % 8)) & 1;
+                    int fg = ((bits[bit_i / 8]) >> (bit_i % 8)) & 1;
+                    // we need to store it because it could be transparent
+                    RGB bg = b.bg;
+                    if (bg.alpha < 255) {
+                        RGB pixel = matrix_get(matrix_x_offset + x, matrix_y);
+                        bg = merge_colors(&bg, &pixel);
+                    }
                     RGB color;
                     // invert if blinking
                     if (blink && (b.flags & printbuffer_flag_blink)) {
-                        color = fg ? b.bg : b.fg;
-                    } else {
-                        color = fg ? b.fg : b.bg;
+                        // invert
+                        fg = !fg;
                     }
+                    if (fg) {
+                        color = merge_colors(&(b.fg), &bg);
+                    } else {
+                        color = bg;
+                    }
+                    // only show colors with full alpha
                     matrix_set(matrix_x_offset + x, matrix_y, color);
                 }
             }
