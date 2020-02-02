@@ -1,6 +1,7 @@
 // Print strings to an internal buffer and draw that to the matrix.
 //
 // Copyright (c) 2019/2020, Sebastian "basxto" Riedel <git@basxto.de>
+// Copyright (c) 2020, Rainer Blome <rainer.blome@gmx.de>
 //
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
@@ -35,8 +36,11 @@ static int max_column;
 static RGB trans = {0, 0, 0, 0};
 static int blink;
 static int blink_counter;
-#define font_width_def 4
-#define font_height_def 6
+#define font_width_def (4)
+#define font_height_def (6)
+#define texture_char_per_col (16)
+#define texture_char_per_row (16)
+//-> 256 characters in total
 
 void printbuffer_clear(int from, int to, RGB fg, RGB bg) {
     int i;
@@ -243,18 +247,16 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
                        int flags) {
     int i;
     int pos = (*column) + ((*row) * max_column);
-    // Q: Where is `column <= max_column` ensured?  A: This is not
-    // handled. Rows simply overflow into the next row.
-    if(str == NULL || row == NULL || column == NULL){
+    if (str == NULL || row == NULL || column == NULL) {
         return;
     }
     int len = strlen(str);
-    if(len <= 0){
+    if (len <= 0) {
         return;
     }
     // it's possible that we can't change str
-    // +1 because of \n
-    char *str2 = malloc((len+1) * sizeof(char));
+    // +1 because of \0
+    char *str2 = malloc((len + 1) * sizeof(char));
     strcpy(str2, str);
     oscore_mutex_lock(buffer_busy);
     for (i = 0; i < len; ++i) {
@@ -268,16 +270,17 @@ void printbuffer_write(const char *str, int *row, int *column, RGB fg, RGB bg,
             *column = 0;
             break;
         case '\b': // backspace
-            if(pos > 0)
+            if (pos > 0)
                 pos--;
             break;
-        case '\t':{
+        case '\t': {
             // tab to every 8 spaces
             // calculate current column
             int spaces = pos % max_column;
             spaces = 8 - (spaces % 8);
             pos += spaces;
-            break;}
+            break;
+        }
         default:
             if (pos >= 0) {
                 buffer[pos].flags = flags | detect_unicode(str2, &i);
@@ -303,9 +306,6 @@ void printbuffer_write_default(const char *str, int *row, int *column) {
     printbuffer_write(str, row, column, RGB(0, 0, 0), trans, 0);
 }
 
-static int const texture_char_per_col= 16;
-static int const texture_char_per_row= 16;
-
 // c is the character you want to load
 // x and y are pixel inside the character
 // xbm must have 16 characters per row
@@ -326,7 +326,6 @@ int load_xbm_char(unsigned char bits[], unsigned char c, int x, int y, int w,
     return (((bits[pos / 8]) >> ((pos % 8))) & 1);
 }
 
-// this calls matrix_set
 void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                       int blink_delay) {
     blink_counter--;
@@ -338,19 +337,19 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
     int pos = 0;
     for (int row = 0; row < max_row; ++row)
         for (int column = 0; column < max_column; ++column) {
-            struct font_char const b= buffer[pos];
-            unsigned char const c=
-                b.c >= 128 ? 0x1a /* substitute character */ :
-                (b.flags & printbuffer_flag_altchar) ? (b.c + 128) : b.c;
-
+            struct font_char const b = buffer[pos];
+            unsigned char const c =
+                (b.c >= 128)
+                    ? 0x1a /* substitute character */
+                    : (b.flags & printbuffer_flag_altchar) ? (b.c + 128) : b.c;
             int const origin_x = (c % texture_char_per_col) * font_width;
             int const origin_y = (c / texture_char_per_row) * font_height;
-            int const matrix_x_offset= column * font_width;
+            int const matrix_x_offset = column * font_width;
             for (int y = 0; y < font_height; ++y) {
                 int const bit_i_offset =
                     (origin_y + y) * (font_width * texture_char_per_row) +
                     origin_x;
-                int const matrix_y= row * font_height + y;
+                int const matrix_y = row * font_height + y;
                 for (int x = 0; x < font_width; ++x) {
                     int const bit_i = bit_i_offset + x;
                     int const fg = ((bits[bit_i / 8]) >> (bit_i % 8)) & 1;
@@ -358,8 +357,7 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                     // invert if blinking
                     if (blink && (b.flags & printbuffer_flag_blink)) {
                         color = fg ? b.bg : b.fg;
-                    }
-                    else {
+                    } else {
                         color = fg ? b.fg : b.bg;
                     }
                     matrix_set(matrix_x_offset + x, matrix_y, color);

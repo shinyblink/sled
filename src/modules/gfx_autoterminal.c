@@ -37,11 +37,13 @@
 #define TYPEDELAY (4)
 #define FRAMES (TIME_SHORT)
 
-#define flag_intense 1
+#define flag_intense (1)
 #define flag_faint (1 << 1)
 #define flag_inverse (1 << 2)
 #define flag_blink (1 << 3)
 #define flag_altchar (1 << 4)
+#define fg_default (RGB(255, 255, 255))
+#define bg_default (RGB(0, 0, 0))
 
 static int font_width;
 static int font_height;
@@ -57,10 +59,8 @@ static char **type_buffer;
 static int type_pos;
 static int type_index;
 static int max_index;
-static const RGB fg_default = RGB(255, 255, 255);
-static const RGB bg_default = RGB(0, 0, 0);
-static RGB fg = RGB(255, 255, 255); //fg_default;
-static RGB bg = RGB(0, 0, 0); //bg_default;
+static RGB fg = fg_default;
+static RGB bg = bg_default;
 static int current_row = 0;
 static int current_column = 0;
 static int current_row_store = 0;
