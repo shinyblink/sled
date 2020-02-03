@@ -180,7 +180,7 @@ static void randomize(void) {
 	}
 }
 
-static float get_force(const force_curve const * fc, const float distance){
+static float get_force(force_curve const *const fc, float const distance){
     if (distance > maxrange) return 0.0;
     if (distance < FERMIOTIC_RANGE) return FERMIOTIC_FORCE;
     float r1,r2,f1,f2;
