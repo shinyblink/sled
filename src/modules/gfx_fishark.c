@@ -1,6 +1,5 @@
 // Rough implementation of https://en.wikipedia.org/wiki/Wa-Tor
 // Inspired by Android implementation https://github.com/aperifons/wa-tor
-// Movement and reproduction is a bit simplified
 //
 // Copyright (c) 2020, Sebastian "basxto" Riedel <git@basxto.de>
 //
@@ -97,7 +96,6 @@ void move_fishark() {
 			if (cell > (1 + SHARK_STARVE)) {
 				table_copy[(y * width) + x] = 0;
 			} else if (cell > 0) {
-				int rand = randn(8);
 				int x_new = x;
 				int y_new = y;
 				if (cell > 1) {
@@ -116,29 +114,15 @@ void move_fishark() {
 						//let shark starve a bit
 						table_copy[(y * width) + x]++;
 					}
-					//convert random number to coordinates
-					// 1 0 2
-					// 3 X 4
-					// 5 7 6
-					if (rand <= 2) {
-						--y_new;
-					}
-					if (rand >= 5) {
-						++y_new;
-					}
-					if (rand > 0 && rand < 7) {
-						if (rand % 2) {
-							++x_new;
-						} else {
-							--x_new;
-						}
-					}
-
-					//reset coordinates if coordinate already taken
-					if (point_free(x_new, y_new) > 0) {
-						x_new = x;
-						y_new = y;
-					}
+					int tries = randn(8) + 1;
+					// find free cell
+					for(int i = -1; i < 2; ++i)
+						for(int j = -1; j < 2; ++j)
+							if(tries > 0 && point_free(x + i, y + j) == 0) {
+								x_new = x + i;
+								y_new = y + j;
+								tries--;
+							}
 				} else {
 					//shark found a fish
 					table_copy[(y * width) + x] = 2;
