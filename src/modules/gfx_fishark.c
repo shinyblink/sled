@@ -1,4 +1,6 @@
-// Port of https://github.com/aperifons/wa-tor
+// Rough implementation of https://en.wikipedia.org/wiki/Wa-Tor
+// Inspired by Android implementation https://github.com/aperifons/wa-tor
+// Movement and reproduction is a bit simplified
 //
 // Copyright (c) 2020, Sebastian "basxto" Riedel <git@basxto.de>
 //
@@ -46,11 +48,11 @@ void reset(int _modno) {
 	int rand;
 	for (int i = 0; i < width * height; ++i) {
 		rand = randn(100);
-		if (rand < 95)
+		if (rand < 90)
 			table[i] = 0;
 		else if (rand > 98) //1%
 			table[i] = 2;	//shark
-		else				//4%
+		else				//9%
 			table[i] = 1;	// fish
 		table_copy[i] = 0;
 	}
@@ -89,12 +91,14 @@ void move_fishark() {
 				int x_new = x;
 				int y_new = y;
 				if (cell > 1) {
+					int tries = randn(8) + 1;
 					// find fish
 					for(int i = -1; i < 2; ++i)
 						for(int j = -1; j < 2; ++j)
-							if(point_free(x + i, y + j) == 1) {
+							if(tries > 0 && point_free(x + i, y + j) == 1) {
 								x_new = x + i;
 								y_new = y + j;
+								tries--;
 							}
 				}
 				if (x_new == x && y_new == y) {
@@ -157,7 +161,7 @@ int draw(int _modno, int argc, char *argv[]) {
 	matrix_clear();
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
-			RGB col = RGB(255, 255, 255);
+			RGB col = RGB(0, 0, 255);
 			int index = (width * y) + x;
 			if (table[index] == 1) {
 				//fish
