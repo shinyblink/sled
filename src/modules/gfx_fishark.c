@@ -61,15 +61,25 @@ void reset(int _modno) {
 // 0 both free
 // 1 one has a fish
 int point_free(int x, int y) {
+	if (y < 0)
+		y = height + y;
+	else
+		y = y % height;
+	if (x < 0)
+		x = width + x;
+	else
+		x = x % width;
 	int index = (y * width) + x;
 	return table[index] | table_copy[index];
 }
 
 void move_point(int oldx, int oldy, int x, int y) {
-	table[(oldy * width) + oldx] = 0;
-	table[(y * width) + x] = table_copy[(oldy * width) + oldx];
-	table_copy[(oldy * width) + oldx] = 0;
-	table_copy[(y * width) + x] = 0;
+	int old = (oldy * width) + oldx;
+	int new = (y * width) + x;
+	table[old] = 0;
+	table[new] = table_copy[old];
+	table_copy[old] = 0;
+	table_copy[new] = 0;
 }
 
 void move_fishark() {
@@ -123,14 +133,6 @@ void move_fishark() {
 							--x_new;
 						}
 					}
-					if (y_new < 0)
-						y_new = height - y_new;
-					else
-						y_new = y_new % height;
-					if (x_new < 0)
-						x_new = width - x_new;
-					else
-						x_new = x_new % width;
 
 					//reset coordinates if coordinate already taken
 					if (point_free(x_new, y_new) > 0) {
@@ -141,6 +143,14 @@ void move_fishark() {
 					//shark found a fish
 					table_copy[(y * width) + x] = 2;
 				}
+				if (y_new < 0)
+					y_new = height + y_new;
+				else
+					y_new = y_new % height;
+				if (x_new < 0)
+					x_new = width + x_new;
+				else
+					x_new = x_new % width;
 				move_point(x, y, x_new, y_new);
 				//reproduce to old cell
 				if (x != x_new && y != y_new) {
