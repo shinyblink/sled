@@ -24,10 +24,14 @@
 
 
 #define STEPS 4 // fair to assume most matrices can be divided by 4.
-#define FRAMETIME (T_SECOND / STEPS)
+#define FRAMETIME (T_SECOND / 20)
 #define FRAMES (TIME_SHORT * STEPS)
 #define STEP_X (matrix_getx() / STEPS / 2)
 #define STEP_Y (matrix_gety() / STEPS / 2)
+
+#define FISH_REPRODUCE (6)
+#define SHARK_REPRODUCE (5)
+#define SHARK_STARVE (4)
 
 static int modno;
 static int step = 0;
@@ -39,6 +43,7 @@ static int* table;
 static int* table_copy;
 static int width;
 static int height;
+static int counter = SHARK_REPRODUCE * FISH_REPRODUCE;
 
 int init(int moduleno, char* argstr) {
 	width = matrix_getx();
@@ -53,10 +58,10 @@ void reset(int _modno) {
 	nexttick = udate();
 	int rand;
 	for(int i = 0; i < width*height; ++i){
-		rand = randn(10);
-		if(rand < 7)
+		rand = randn(100);
+		if(rand < 95)
 			table[i] = 0;
-		else if(rand >= 9)
+		else if(rand > 98)
 			table[i] = 2; //shark
 		else
 			table[i] = 1; // fish
@@ -78,20 +83,32 @@ void move_point(int oldx, int oldy, int x, int y){
 	table_copy[(y*width) + x] = 0;
 }
 
+void reproduce_fishark(){
+
+}
+
 void move_fishark(){
 	int* tmp = table_copy;
 	table_copy = table;
 	table = tmp;
+
+	counter--;
+	if(counter < 0)
+		counter = (SHARK_REPRODUCE * FISH_REPRODUCE) -1;
 // 1 0 2
 // 3 X 4
 // 5 7 6
 	for(int y = 0; y < height; ++y){
 		for(int x = 0; x < width; ++x){
-			if(table_copy[(y * width) + x] > 0){
+			int cell = table_copy[(y * width) + x];
+			if(cell > (1 + SHARK_STARVE)){
+				table_copy[(y * width) + x] = 0;
+			}else
+			if(cell > 0){
 				int rand = randn(8);
 				int x_new = x;
 				int y_new = y;
-				if(table_copy[(y * width) + x] > 1){
+				if(cell > 1){
 					if(point_free(x - 1 ,y - 1) == 1){
 						x_new = x - 1;
 						y_new = y - 1;
@@ -130,6 +147,10 @@ void move_fishark(){
 					}
 				}
 				if(x_new == x && y_new == y){
+					if(cell > 1){
+						//let shark starve a bit
+						table_copy[(y*width) + x]++;
+					}
 					if( rand <= 2){
 						--y_new;
 					}
@@ -154,8 +175,19 @@ void move_fishark(){
 						x_new = x;
 						y_new = y;
 					}
+				}else{
+					//shark found a fish
+					table_copy[(y*width) + x] = 2;
 				}
 				move_point(x, y, x_new, y_new);
+				if(x != x_new && y != y_new){
+					if(cell == 1 && (counter % FISH_REPRODUCE) == 0){
+						table[(y*width) + x] = 1;	
+					}
+					if(cell > 1 && (counter % SHARK_REPRODUCE) == 0){
+						table[(y*width) + x] = 2;	
+					}
+				}
 			}
 		}
 	}
@@ -171,7 +203,7 @@ int draw(int _modno, int argc, char* argv[]) {
 			if(table[index] == 1){
 				col = RGB(0,255,0);
 			} else if(table[index] > 1) {
-				col = RGB(255,0,0);
+				col = RGB(255/(table[index]-1),0,0);
 			}
 			matrix_set(x,y,col);
 		}
@@ -184,4 +216,7 @@ int draw(int _modno, int argc, char* argv[]) {
 	return 0;
 }
 
-void deinit(int _modno) {}
+void deinit(int _modno) {
+	free(table);
+	free(table_copy);
+}
