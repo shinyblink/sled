@@ -13,7 +13,7 @@ GFXMODS_AVAILABLE += gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_AVAILABLE += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 GFXMODS_AVAILABLE += gfx_no13 gfx_candyswarm gfx_ursuppe2 gfx_rule90
 GFXMODS_AVAILABLE += gfx_maze gfx_invfourier gfx_colorwheel gfx_snek
-GFXMODS_AVAILABLE += gfx_autoterminal gfx_fishark
+GFXMODS_AVAILABLE += gfx_autoterminal gfx_wator
 
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 
@@ -39,7 +39,6 @@ FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90
 FLTMODS_DEFAULT += flt_smapper flt_channel_reorder
 
 MODULES_DEFAULT += $(BGMMODS_DEFAULT) $(FLTMODS_DEFAULT) $(GFXMODS_DEFAULT) mod_farbherd
-#MODULES_DEFAULT += gfx_fishark
 
 # Include local configuration.
 ifneq (,$(wildcard sledconf))
