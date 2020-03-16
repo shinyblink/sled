@@ -50,9 +50,8 @@ void reset(int _modno) {
 	fishs = 0;
 	sharks = 0;
 	nexttick = udate();
-	int rand;
 	for (int i = 0; i < width * height; ++i) {
-		rand = randn(100);
+		int rand = randn(100);
 		if (rand < 90)
 			table[i] = 0;
 		else if (rand > 98) {	//1%
@@ -68,7 +67,7 @@ void reset(int _modno) {
 
 // 0 both free
 // 1 one has a fish
-int point_free(int x, int y) {
+static int point_free(int x, int y) {
 	if (y < 0)
 		y = height + y;
 	else
@@ -81,7 +80,7 @@ int point_free(int x, int y) {
 	return table[index] | table_copy[index];
 }
 
-void move_point(int oldx, int oldy, int x, int y) {
+static void move_point(int oldx, int oldy, int x, int y) {
 	int old = (oldy * width) + oldx;
 	int new = (y * width) + x;
 	table[old] = 0;
@@ -90,7 +89,7 @@ void move_point(int oldx, int oldy, int x, int y) {
 	table_copy[new] = 0;
 }
 
-void move_fishark() {
+static void move_fishark() {
 	int *tmp = table_copy;
 	table_copy = table;
 	table = tmp;
