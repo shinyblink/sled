@@ -54,11 +54,11 @@ void reset(int _modno) {
 		int rand = randn(100);
 		if (rand < 90)
 			table[i] = 0;
-		else if (rand > 98) {	//1%
-			table[i] = 2;		//shark
+		else if (rand > 98) {//1%
+			table[i] = 2;//shark
 			sharks++;
-		} else {				//9%
-			table[i] = 1;		// fish
+		} else {//9%
+			table[i] = 1;//fish
 			fishs++;
 		}
 		table_copy[i] = 0;
