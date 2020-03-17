@@ -46,7 +46,7 @@ int init(int moduleno, char *argstr) {
 }
 
 void reset(int _modno) {
-	frames = 20 * 60 * 3;//3min
+	frames = 20 * 60 * 3; // 3min
 	fishs = 0;
 	sharks = 0;
 	nexttick = udate();
@@ -54,11 +54,13 @@ void reset(int _modno) {
 		int rand = randn(100);
 		if (rand < 90)
 			table[i] = 0;
-		else if (rand > 98) {//1%
-			table[i] = 2;//shark
+		else if (rand > 98) {
+			// 1% shark
+			table[i] = 2;
 			sharks++;
-		} else {//9%
-			table[i] = 1;//fish
+		} else {
+			// 9% fish
+			table[i] = 1;
 			fishs++;
 		}
 		table_copy[i] = 0;
@@ -120,7 +122,7 @@ static void move_fishark() {
 				}
 				if (x_new == x && y_new == y) {
 					if (cell > 1) {
-						//let shark starve a bit
+						// let shark starve a bit
 						table_copy[(y * width) + x]++;
 					}
 					int tries = randn(8) + 1;
@@ -133,7 +135,7 @@ static void move_fishark() {
 								tries--;
 							}
 				} else {
-					//shark found a fish
+					// shark found a fish
 					table_copy[(y * width) + x] = 2;
 					fishs--;
 				}
@@ -146,7 +148,7 @@ static void move_fishark() {
 				else
 					x_new = x_new % width;
 				move_point(x, y, x_new, y_new);
-				//reproduce to old cell
+				// reproduce to old cell
 				if (x != x_new && y != y_new) {
 					if (cell == 1 && (counter % FISH_REPRODUCE) == 0) {
 						table[(y * width) + x] = 1;
@@ -170,10 +172,10 @@ int draw(int _modno, int argc, char *argv[]) {
 			RGB col = RGB(0, 0, 255);
 			int index = (width * y) + x;
 			if (table[index] == 1) {
-				//fish
+				// fish
 				col = RGB(0, 255, 0);
 			} else if (table[index] > 1) {
-				//shark with darker color if starving
+				// shark with darker color if starving
 				col = RGB(255 / (table[index] - 1), 0, 0);
 			}
 			matrix_set(x, y, col);
