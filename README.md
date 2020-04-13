@@ -253,6 +253,8 @@ They are the following:
 
 * `gfx_colorwheel`: Plots polynomials on the complex plane. by @cyriax0
 
+* `gfx_noisewarp`: Coherent noise. by @cyriax0
+
 ---
 
 If you want to only build a specific set of modules, change the "MODULES" array in your `sledconf` file.
