@@ -21,7 +21,7 @@ FLTMODS_AVAILABLE += flt_debug flt_gamma_correct flt_flip_x flt_flip_y flt_scale
 FLTMODS_AVAILABLE += flt_rot_90 flt_smapper flt_channel_reorder
 
 OUTMODS_AVAILABLE := out_dummy out_sdl2 out_rpi_ws2812b out_udp out_fb out_rpi_hub75
-OUTMODS_AVAILABLE += out_sf75_bi_spidev out_ansi
+OUTMODS_AVAILABLE += out_sf75_bi_spidev out_ansi out_pixelflut
 
 # List of modules to compile.
 GFXMODS_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
