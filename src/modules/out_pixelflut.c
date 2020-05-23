@@ -34,8 +34,8 @@
 #include <assert.h>
 
 #define BUFLEN 1024
-#define TILE_PLAIN 1
-#define TILE_SNAKE 2
+#define STRATEGY_LINEAR 0
+#define STRATEGY_RANDOM 2
 
 static int sock = -1;
 struct sockaddr_in sio;
@@ -54,6 +54,8 @@ static byte* buffer;
 static char* message;
 static uint32_t* shufflemap; 
 
+static int strategy = STRATEGY_LINEAR;
+
 void shuffle(uint32_t *array, size_t n)
 {
     if (n > 1) 
@@ -70,7 +72,7 @@ void shuffle(uint32_t *array, size_t n)
 }
 
 int clear(int _modno) {
-	memset(&message[0], '\n', NUMPIX*CHARS_PER_PIXEL);
+	memset(&buffer[0], '\0', NUMPIX*3);
 	return 0;
 };
 
@@ -138,11 +140,11 @@ int init (int moduleno, char* argstr) {
 
 	
 	if ((xd = strsep(&data, "+")) == NULL) { // can't find anything after ,
-		eprintf("Pixelflut argstring doesn't contain X size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
+		eprintf("Pixelflut argstring doesn't contain X offset. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 3;
 	}
 	if ((yd = strsep(&data, ",")) == NULL) { // can't find anything after ,
-		eprintf("Pixelflut argstring doesn't contain Y size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
+		eprintf("Pixelflut argstring doesn't contain Y offset. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 3;
 	}
 	X_OFFSET = util_parse_int(xd);
@@ -155,9 +157,15 @@ int init (int moduleno, char* argstr) {
 		Y_OFFSET = 240;
 	}
 
+	char* strategy_str = data;
+	strategy = STRATEGY_LINEAR;
+	if(data != 0) {
+		if (strcmp(strategy_str, "random") == 0) strategy = STRATEGY_RANDOM;
+		if (strcmp(strategy_str, "linear") == 0) strategy = STRATEGY_LINEAR;
+	}
 	// Allocate the message buffer.
 	buffer = calloc((NUMPIX * 3), 1);
-	message = calloc((NUMPIX * CHARS_PER_PIXEL) + 1, 1);
+	message = calloc((NUMPIX * CHARS_PER_PIXEL) + 2, 1);
 	assert(message); // 2lazy to handle it properly.
 	assert(buffer);
 	clear(0);
@@ -166,6 +174,10 @@ int init (int moduleno, char* argstr) {
 	free(argstr);
 	
 	shufflemap = calloc(NUMPIX, 4);
+	assert(shufflemap);
+	for( int i = 0; i < NUMPIX; i++ ) {
+		shufflemap[i] = i;
+	}
 	shuffle(shufflemap, NUMPIX);
 	
 	if( connect(sock, (struct sockaddr*)&sio, sizeof(sio)) != 0 ) {
@@ -189,9 +201,14 @@ int ppos(int x, int y) {
 	assert(x < X_SIZE);
 	assert(y < Y_SIZE);
 	return (x + (y*X_SIZE));
-//	int ret = shufflemap[(x + (y * X_SIZE))];
-//	assert(ret < NUMPIX);
-//	return ret;
+}
+
+int rx(int pos) {
+	return (pos % X_SIZE);
+}
+
+int ry(int pos) {
+	return (pos/X_SIZE);
 }
 
 int set(int _modno, int x, int y, RGB color) {
@@ -219,13 +236,28 @@ RGB get(int _modno, int x, int y) {
 }
 
 int render(void) {
-	
+	int p, ap, bpos, ax, ay, mpos;
 	for( int y = 0; y < Y_SIZE; y++) {
 		for(int x = 0; x < X_SIZE; x++) {
-			int p = ppos(x,y);
-			int bpos = p * 3;
-			int mpos = p * CHARS_PER_PIXEL;
-			snprintf(&(message[mpos]), CHARS_PER_PIXEL+1, "PX %04d %04d %02x%02x%02x\n", x+X_OFFSET, y+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+			switch(strategy) {
+				case STRATEGY_LINEAR :
+					p = ppos(x,y);
+					ap = shufflemap[p];
+					bpos = ap * 3;
+					ax = rx(ap);
+					ay = ry(ap);
+					mpos = p * CHARS_PER_PIXEL;
+					//eprintf("x:%4d y:%4d -> p:%5d -> (bpos:%5d, mpos:%5d) -> ap:%5d -> (ax:%4d ay%4d)\n", x,y,p,bpos,mpos,ap,ax,ay);
+					snprintf(&(message[mpos]), CHARS_PER_PIXEL+1, "PX %04d %04d %02x%02x%02x\n", ax+X_OFFSET, ay+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+					break;
+				case STRATEGY_RANDOM :
+					p = ppos(x,y);
+					bpos = p * 3;
+					mpos = p * CHARS_PER_PIXEL;
+					//eprintf("x:%4d y:%4d -> p:%5d -> (bpos:%5d, mpos:%5d) -> ap:%5d -> (ax:%4d ay%4d)\n", x,y,p,bpos,mpos,ap,ax,ay);
+					snprintf(&(message[mpos]), CHARS_PER_PIXEL+1, "PX %04d %04d %02x%02x%02x\n", x+X_OFFSET, y+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+					break;
+			}
 		}
 	}
 	

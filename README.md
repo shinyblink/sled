@@ -172,6 +172,12 @@ Compile with simply `make`.
   * UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
   * An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
 
+* `out_pixelflut`
+  * Streaming onto a pixelflut server.
+  * You need to specify the server on the command line, e.g. `./sled -o pixelflut:192.168.69.42:1234,320x240+640+480`
+  * Option string format is: `pixelflut:[IP_ADDR]:[PORT],[SIZE_X]x[SIZE_Y]+[OFFSET_X]+[OFFSET_Y],[STRATEGY]`
+    * where STRATEGY is either `linear` or `random`
+
 * `out_rpi_hub75`
   * A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
   * Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
