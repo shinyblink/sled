@@ -240,7 +240,7 @@ int render(void) {
 	for( int y = 0; y < Y_SIZE; y++) {
 		for(int x = 0; x < X_SIZE; x++) {
 			switch(strategy) {
-				case STRATEGY_LINEAR :
+				case STRATEGY_RANDOM :
 					p = ppos(x,y);
 					ap = shufflemap[p];
 					bpos = ap * 3;
@@ -250,7 +250,7 @@ int render(void) {
 					//eprintf("x:%4d y:%4d -> p:%5d -> (bpos:%5d, mpos:%5d) -> ap:%5d -> (ax:%4d ay%4d)\n", x,y,p,bpos,mpos,ap,ax,ay);
 					snprintf(&(message[mpos]), CHARS_PER_PIXEL+1, "PX %04d %04d %02x%02x%02x\n", ax+X_OFFSET, ay+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
 					break;
-				case STRATEGY_RANDOM :
+				case STRATEGY_LINEAR :
 					p = ppos(x,y);
 					bpos = p * 3;
 					mpos = p * CHARS_PER_PIXEL;
