@@ -42,12 +42,15 @@ struct sockaddr_in sio;
 static int port;
 static int X_SIZE;
 static int Y_SIZE;
+static int X_OFFSET;
+static int Y_OFFSET;
 
 #define NUMPIX (X_SIZE * Y_SIZE)
 #define CHARS_PER_PIXEL 20
 
 // Message will be:
 // 0xAA <R,G,B bytes..> <2 bytes checksum, unsigned short, hi, low>
+static byte* buffer;
 static char* message;
 static uint32_t* shufflemap; 
 
@@ -82,60 +85,81 @@ int init (int moduleno, char* argstr) {
 
 	// Parse string. This sucks.
 	if (argstr == NULL) {
-		eprintf("Pixelflut argstring not set. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring not set. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 3;
 	}
 	char* data = argstr;
 	char* ip = data;
 	char* portstr;
 	if (strsep(&data, ":") == NULL) {
-		eprintf("Pixelflut argstring doesn't contain a port seperator. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring doesn't contain a port seperator. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 3;
 	}
 	if ((portstr = strsep(&data, ",")) == NULL) { // can't find anything after : before ,
-		eprintf("Pixelflut argstring doesn't contain port. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring doesn't contain port. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 3;
 	}
 
 	if (inet_aton(ip, &sio.sin_addr) == 0) {
-		eprintf("Pixelflut argstring doesn't contain a valid IP. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring doesn't contain a valid IP. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 4;
 	}
 
 	char* xd;
 	if ((xd = strsep(&data, "x")) == NULL) { // can't find anything after ,
-		eprintf("Pixelflut argstring doesn't contain X size. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring doesn't contain X size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 3;
 	}
 
 	port = util_parse_int(portstr);
 	if (port == 0) {
-		eprintf("Pixelflut argstring doesn't contain a valid port. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring doesn't contain a valid port. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 4;
 	}
 	sio.sin_port = htons(port);
 
 	char* yd;
-	if ((yd = strsep(&data, ",")) == NULL) { // can't find anything after ,
-		eprintf("Pixelflut argstring doesn't contain Y size. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+	if ((yd = strsep(&data, "+")) == NULL) { // can't find anything after ,
+		eprintf("Pixelflut argstring doesn't contain Y size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 3;
 	}
 
 	X_SIZE = util_parse_int(xd);
 	if (X_SIZE == 0) {
-		eprintf("Pixelflut argstring doesn't contain a X matrix size. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring doesn't contain a X matrix size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 4;
 	}
 
 	Y_SIZE = util_parse_int(yd);
 	if (Y_SIZE == 0) {
-		eprintf("Pixelflut argstring doesn't contain a Y matrix size. Example: -o pixelflut:192.168.69.42:1234,1024x768\n");
+		eprintf("Pixelflut argstring doesn't contain a Y matrix size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
 		return 4;
 	}
 
+	
+	if ((xd = strsep(&data, "+")) == NULL) { // can't find anything after ,
+		eprintf("Pixelflut argstring doesn't contain X size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
+		return 3;
+	}
+	if ((yd = strsep(&data, ",")) == NULL) { // can't find anything after ,
+		eprintf("Pixelflut argstring doesn't contain Y size. Example: -o pixelflut:192.168.69.42:1234,320x240+640+480\n");
+		return 3;
+	}
+	X_OFFSET = util_parse_int(xd);
+	if (X_OFFSET < 0) {
+		X_OFFSET = 320;
+	}
+
+	Y_OFFSET = util_parse_int(yd);
+	if (Y_OFFSET < 0) {
+		Y_OFFSET = 240;
+	}
+
 	// Allocate the message buffer.
+	buffer = calloc((NUMPIX * 3), 1);
 	message = calloc((NUMPIX * CHARS_PER_PIXEL) + 1, 1);
 	assert(message); // 2lazy to handle it properly.
+	assert(buffer);
 	clear(0);
 
 	// Free stuff.
@@ -176,8 +200,10 @@ int set(int _modno, int x, int y, RGB color) {
 	assert(x < X_SIZE);
 	assert(y < Y_SIZE);
 	
-	int pos = (ppos(x, y) * CHARS_PER_PIXEL);
-	sprintf(&(message[pos]), "PX %04d %04d %02x%02x%02x\n", x, y, color.red, color.green, color.blue);
+	int pos = (ppos(x, y) * 3);
+	buffer[pos+0] = color.red;
+	buffer[pos+1] = color.green;
+	buffer[pos+2] = color.blue;
 	
 	return 0;
 }
@@ -188,12 +214,21 @@ RGB get(int _modno, int x, int y) {
 	assert(x < X_SIZE);
 	assert(y < Y_SIZE);
 
-	return RGB(0,0,0);
+	int pos = (ppos(x, y) * 3);
+	return RGB(buffer[pos+0],buffer[pos+1],buffer[pos+2]);
 }
 
 int render(void) {
-	// send udp packet.
-	//eprintf("%s---\n", message);
+	
+	for( int y = 0; y < Y_SIZE; y++) {
+		for(int x = 0; x < X_SIZE; x++) {
+			int p = ppos(x,y);
+			int bpos = p * 3;
+			int mpos = p * CHARS_PER_PIXEL;
+			snprintf(&(message[mpos]), CHARS_PER_PIXEL+1, "PX %04d %04d %02x%02x%02x\n", x+X_OFFSET, y+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+		}
+	}
+	
 	send(sock, &message[0], (NUMPIX*CHARS_PER_PIXEL)+1, 0);
 	clear(0);
 	return 0;
@@ -211,4 +246,6 @@ void wait_until_break(int _modno) {
 void deinit(int _modno) {
 	close(sock);
 	free(message);
+	free(buffer);
+	free(shufflemap);
 }
