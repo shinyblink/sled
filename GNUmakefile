@@ -13,7 +13,7 @@ GFXMODS_AVAILABLE += gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_AVAILABLE += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 GFXMODS_AVAILABLE += gfx_no13 gfx_candyswarm gfx_ursuppe2 gfx_rule90
 GFXMODS_AVAILABLE += gfx_maze gfx_invfourier gfx_colorwheel gfx_snek
-GFXMODS_AVAILABLE += gfx_autoterminal gfx_wator gfx_noisewarp
+GFXMODS_AVAILABLE += gfx_autoterminal gfx_wator gfx_noisewarp gfx_test
 
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 
