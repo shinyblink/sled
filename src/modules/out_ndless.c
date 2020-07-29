@@ -2,12 +2,14 @@
 // does not support the flipped LCD on Rev W and later yet
 
 // -- std
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 // -- sled
-#include <colors.h>
-#include <timers.h>
-#include <types.h>
+#include "../colors.h"
+#include "../timers.h"
+#include "../types.h"
 // -- ndls
 #include <libndls.h>
 
