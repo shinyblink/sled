@@ -1,0 +1,61 @@
+# Configuration for Ndless on nSpire
+
+# MANDATORY:
+# point this to your ndless-sdk directory
+#NDLESS_SDK :=
+
+
+   ####################
+   # General settings #
+   ####################
+
+## executable name
+PROJECT := sled
+
+## Debug mode
+## 0 -> Compile with optimization and without debug symbols
+## 1 -> Compile without optimization and with debug symbols and define DEBUG
+DEBUG := 0
+
+## We can't link dynamically for ndless, so this has to be 1
+STATIC := 1
+
+PLATFORM := ndless
+
+DEFAULT_OUTMOD := nspire
+
+DEFAULT_MODULEDIR := "./modules"
+
+
+
+   ##########################
+   # Module build selection #
+   ##########################
+
+## required output module
+MODULES := out_$(DEFAULT_OUTMOD)
+
+## single modules for testing purposes
+#MODULES += gfx_clock
+#MODULES += gfx_twinkle
+
+## Build all filter modules
+MODULES += $(FLTMODS_DEFAULT)
+
+## Build all gfx modules (from GNUmakefile)
+## Comment this out if you want to build only single modules
+MODULES += $(GFXMODS_DEFAULT)
+
+   ############################
+   # Output size configuraion #
+   ############################
+
+MATRIX_X := 320
+MATRIX_Y := 240
+
+   ####################
+   # Build Settings #
+   ####################
+
+CFLAGS := -g -flto
+CFLAGS += -O3
