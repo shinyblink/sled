@@ -22,7 +22,7 @@ static scr_type_t screen_type;
 int init(void) {
 	frameBuffer = malloc(WORLD_X * WORLD_Y * sizeof(uint16_t));
 	if (!frameBuffer) {
-		printf("out_ndless ran out of memory allocating buffer\n");
+		show_msgbox("sled", "Couldn't allocate frame buffer");
 		return 1;
 	}
 
