@@ -61,6 +61,7 @@ void reset(int _modno) {
 }
 
 void draw_letter(text * letter, int x_offset, int y_offset) {
+    RGB bg_color = matrix_get(x_offset, y_offset);
     for (int y = y_offset; y < matrix_gety(); y++) {
         for (int x = x_offset; x < matrix_getx(); x++) {
             byte v = text_point(letter, x - x_offset, y - y_offset);
@@ -69,7 +70,7 @@ void draw_letter(text * letter, int x_offset, int y_offset) {
             if (v == 0)
                 continue;
 
-            RGB color = RGB(v, v, v);
+            RGB color = RGBlerp(v, bg_color, RGB(0xFF, 0xFF, 0xFF));
             matrix_set(x, y, color);
         }
     }
