@@ -16,81 +16,82 @@
 #define WORLD_X 320
 #define WORLD_Y 240
 
-static byte * frameBuffer;
+static uint16_t * frameBuffer;
+static scr_type_t screen_type;
 
 int init(void) {
-    frameBuffer = malloc(WORLD_X * WORLD_Y * sizeof(uint16_t));
-    if (!frameBuffer) {
-        printf("out_ndless ran out of memory allocating buffer\n");
-        free(frameBuffer);
-        return 1;
-    }
-    return 0;
+	frameBuffer = malloc(WORLD_X * WORLD_Y * sizeof(uint16_t));
+	if (!frameBuffer) {
+		printf("out_ndless ran out of memory allocating buffer\n");
+		return 1;
+	}
+
+	// LCD sanity check.
+	screen_type = lcd_type();
+	if (screen_type != SCR_320x240_565) {
+		free(frameBuffer);
+		show_msgbox("sled", "Can't run on classic nSpire calculators.");
+		return 1;
+	}
+	if (!lcd_init(SCR_320x240_565)) {
+		show_msgbox("sled", "Failed to initialize screen.");
+		free(frameBuffer);
+		return 1;
+	}
+
+	if (screen_type != SCR_320x240_565) {
+		show_msgbox("sled", "Scaling to non-native LCD.");
+	}
+
+	return 0;
 }
 
 int getx(int _modno) {
-    return WORLD_X;
+	return WORLD_X;
 }
 int gety(int _modno) {
-    return WORLD_Y;
+	return WORLD_Y;
 }
 
 int set(int _modno, int x, int y, RGB color) {
-    // no bounds check for performance, yolo
-
-    uint16_t rgb565 = RGB2RGB565(color);
-
-    byte high, low;
-    high = rgb565 >> 8;
-    low = rgb565 & 0xFF;
-    frameBuffer[((x + (y * WORLD_X)) * sizeof(uint16_t)) + 0] = high;
-    frameBuffer[((x + (y * WORLD_X)) * sizeof(uint16_t)) + 1] = low;
-
-    return 0;
+	// no bounds check for performance, yolo
+	uint16_t rgb565 = RGB2RGB565(color);
+	frameBuffer[(x + (y * WORLD_X))] = rgb565;
+	return 0;
 }
 
 RGB get(int _modno, int x, int y) {
-    // no bounds check, yolo
-
-    byte high, low;
-    high = frameBuffer[((x + (y * WORLD_X)) * sizeof(uint16_t)) + 0];
-    low = frameBuffer[((x + (y * WORLD_X)) * sizeof(uint16_t)) + 1];
-
-    uint16_t rgb565 = (high << 8) | (low & 0xFF);
-
-    RGB color = RGB5652RGB(rgb565);
-
-    return color;
+	// no bounds check, yolo
+	uint16_t rgb565 = frameBuffer[(x + (y * WORLD_X))];
+	return RGB5652RGB(rgb565);
 }
 
 int clear(int _modno) {
-    memset(frameBuffer, 0, WORLD_X * WORLD_Y * sizeof(uint16_t));
-    return 0;
+	memset(frameBuffer, 0, WORLD_X * WORLD_Y * sizeof(uint16_t));
+	return 0;
 };
 
 int render(void) {
-    lcd_blit(frameBuffer, SCR_320x240_565);
+	if (any_key_pressed()) {
+		// check for {"esc", "menu", "home"} keys to exit
+		if (isKeyPressed(KEY_NSPIRE_ESC) || isKeyPressed(KEY_NSPIRE_MENU) || isKeyPressed(KEY_NSPIRE_HOME))
+			timers_doquit();
+	}
 
-    if (any_key_pressed()) {
-        // check for {"esc", "menu", "home"} keys to exit
-        if (isKeyPressed(KEY_NSPIRE_ESC) ||
-            isKeyPressed(KEY_NSPIRE_MENU) ||
-            isKeyPressed(KEY_NSPIRE_HOME))
-            timers_doquit();
-    }
-
-    return 0;
+	lcd_blit(frameBuffer, screen_type);
+	return 0;
 }
 
 oscore_time wait_until(int _modno, oscore_time desired_usec) {
-    // Hey, we can just delegate work to someone else. Yay!
-    return timers_wait_until_core(desired_usec);
+	// Hey, we can just delegate work to someone else. Yay!
+	return timers_wait_until_core(desired_usec);
 }
 
 void wait_until_break(int _modno) {
-    timers_wait_until_break_core();
+	timers_wait_until_break_core();
 }
 
 void deinit(int _modno) {
-    free(frameBuffer);
+	free(frameBuffer);
+	lcd_init(SCR_TYPE_INVALID); // Reset LCD.
 }
