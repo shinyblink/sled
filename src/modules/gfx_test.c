@@ -60,11 +60,11 @@ void reset(int _modno) {
     text_position = 0;
 }
 
-void draw_letter(text * letter, int x_offset, int y_offset) {
+void draw_letter(text * letter, int x_offset, int y_offset, int scale) {
     RGB bg_color = matrix_get(x_offset, y_offset);
     for (int y = y_offset; y < matrix_gety(); y++) {
         for (int x = x_offset; x < matrix_getx(); x++) {
-            byte v = text_point(letter, x - x_offset, y - y_offset);
+            byte v = text_point(letter, (x - x_offset) / scale, (y - y_offset) / scale);
 
             // don't render black, we want to keep our background!
             if (v == 0)
@@ -126,9 +126,11 @@ int draw(int _modno, int argc, char* argv[]) {
     int x_sixth = matrix_getx() / 6;
     int y_offset = matrix_gety() / 2;
 
-    draw_letter(r_text, x_sixth * 1, y_offset);
-    draw_letter(g_text, x_sixth * 3, y_offset);
-    draw_letter(b_text, x_sixth * 5, y_offset);
+    int scale = 1;
+
+    draw_letter(r_text, x_sixth * 1, y_offset, scale);
+    draw_letter(g_text, x_sixth * 3, y_offset, scale);
+    draw_letter(b_text, x_sixth * 5, y_offset, scale);
 
     matrix_render();
     text_position++;
