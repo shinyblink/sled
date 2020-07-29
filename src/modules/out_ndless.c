@@ -1,4 +1,5 @@
 // output module for the nSpire CX with ndless
+// does not support the flipped LCD on Rev W and later yet
 
 // -- std
 #include <stdlib.h>

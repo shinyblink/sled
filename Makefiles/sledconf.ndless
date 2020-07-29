@@ -22,7 +22,7 @@ STATIC := 1
 
 PLATFORM := ndless
 
-DEFAULT_OUTMOD := nspire
+DEFAULT_OUTMOD := ndless
 
 DEFAULT_MODULEDIR := "./modules"
 
