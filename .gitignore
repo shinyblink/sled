@@ -30,6 +30,9 @@ sled.map
 src/modules/out_ctru.shbin
 src/modules/out_ctru_shbin*
 
+# ndless build output
+sled.tns
+
 # CLion
 .idea/
 /compile_commands.json
