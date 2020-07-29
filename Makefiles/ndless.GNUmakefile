@@ -1,6 +1,6 @@
 ifeq ($(PLATFORM),ndless)
 
-# we only support dynamic linking
+# we only support static linking
 STATIC := 1
 
 CC := $(NDLESS_SDK)/bin/nspire-gcc
@@ -20,5 +20,8 @@ $(PROJECT).tns: $(PROJECT)
 
 $(PROJECT).prg.tns: $(PROJECT).tns
 	$(MAKE_PRG) $^ $@
+
+# Set the RGB565 helper library order to BGR.
+CPPFLAGS += -DRGB565_ORDER_BGR
 
 endif

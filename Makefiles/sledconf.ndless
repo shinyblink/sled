@@ -21,11 +21,7 @@ DEBUG := 0
 STATIC := 1
 
 PLATFORM := ndless
-
 DEFAULT_OUTMOD := ndless
-
-DEFAULT_MODULEDIR := "./modules"
-
 
 
    ##########################
@@ -40,22 +36,15 @@ MODULES := out_$(DEFAULT_OUTMOD)
 #MODULES += gfx_twinkle
 
 ## Build all filter modules
-MODULES += $(FLTMODS_DEFAULT)
+#MODULES += $(FLTMODS_DEFAULT)
 
 ## Build all gfx modules (from GNUmakefile)
 ## Comment this out if you want to build only single modules
 MODULES += $(GFXMODS_DEFAULT)
 
-   ############################
-   # Output size configuraion #
-   ############################
-
-MATRIX_X := 320
-MATRIX_Y := 240
-
    ####################
    # Build Settings #
    ####################
 
-CFLAGS := -g -flto
-CFLAGS += -O3
+CFLAGS := -Ofast -g -flto
+LDFLAGS := -flto
