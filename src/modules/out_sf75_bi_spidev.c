@@ -103,7 +103,7 @@ int set(int _modno, int x, int y, RGB color) {
 int clear(int _modno) {
 	int i = 0;
 	while (matrices[i].filename) {
-		memset(matrices[i].buf, 0, matrices[i].w * matrices[i].h);
+		memset(matrices[i].buf, 0, matrices[i].w * matrices[i].h * 2);
 		i++;
 	}
 	return 0;
