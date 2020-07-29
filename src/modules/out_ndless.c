@@ -13,14 +13,18 @@
 // -- ndls
 #include <libndls.h>
 
-#define WORLD_X 320
-#define WORLD_Y 240
+#define LCD_X 320
+#define LCD_Y 240
 
-static uint16_t * frameBuffer;
+#ifndef SCALE_FACTOR
+#define SCALE_FACTOR 2
+#endif
+
+static uint16_t* frameBuffer;
 static scr_type_t screen_type;
 
 int init(void) {
-	frameBuffer = malloc(WORLD_X * WORLD_Y * sizeof(uint16_t));
+	frameBuffer = malloc(LCD_X * LCD_Y * sizeof(uint16_t));
 	if (!frameBuffer) {
 		show_msgbox("sled", "Couldn't allocate frame buffer");
 		return 1;
@@ -47,27 +51,33 @@ int init(void) {
 }
 
 int getx(int _modno) {
-	return WORLD_X;
+	return LCD_X / SCALE_FACTOR;
 }
 int gety(int _modno) {
-	return WORLD_Y;
+	return LCD_Y / SCALE_FACTOR;
 }
+
+
+#define PPOS(x, y) ((x) + ((y) * LCD_X))
 
 int set(int _modno, int x, int y, RGB color) {
 	// no bounds check for performance, yolo
 	uint16_t rgb565 = RGB2RGB565(color);
-	frameBuffer[(x + (y * WORLD_X))] = rgb565;
+
+	for (int yo = 0; yo < SCALE_FACTOR; yo++)
+		for (int xo = 0; xo < SCALE_FACTOR; xo++)
+			frameBuffer[PPOS((x * SCALE_FACTOR) + xo, (y * SCALE_FACTOR) + yo)] = rgb565;
 	return 0;
 }
 
 RGB get(int _modno, int x, int y) {
 	// no bounds check, yolo
-	uint16_t rgb565 = frameBuffer[(x + (y * WORLD_X))];
+	uint16_t rgb565 = frameBuffer[PPOS(x * SCALE_FACTOR, y * SCALE_FACTOR)];
 	return RGB5652RGB(rgb565);
 }
 
 int clear(int _modno) {
-	memset(frameBuffer, 0, WORLD_X * WORLD_Y * sizeof(uint16_t));
+	memset(frameBuffer, 0, LCD_X * LCD_Y * sizeof(uint16_t));
 	return 0;
 };
 
