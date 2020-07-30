@@ -24,8 +24,6 @@ int main(int argc, char** argv) {
 // so, we ripped off msleep with a different load value.
 // didn't make much of a difference though.
 int usleep(useconds_t __useconds) {
-    printf("usleep: %u %u\n", __useconds, __useconds / 1000);
-
     // see http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0271d/CHDFDDCF.html
     volatile unsigned *load = (unsigned*)0x900D0000;
     volatile unsigned *control = (unsigned*)0x900D0008;
