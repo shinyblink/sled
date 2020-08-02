@@ -76,10 +76,10 @@ RGB get(int _modno, int x, int y) {
 	return RGB5652RGB(rgb565);
 }
 
-int clear(int _modno) {
+int clear(__unused int _modno) {
 	memset(frameBuffer, 0, LCD_X * LCD_Y * sizeof(uint16_t));
 	return 0;
-};
+}
 
 int render(int moduleno) {
 	if (any_key_pressed()) {
