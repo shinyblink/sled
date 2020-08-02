@@ -23,7 +23,7 @@
 static uint16_t* frameBuffer;
 static scr_type_t screen_type;
 
-int init(void) {
+int init(int moduleno, char * argstr) {
 	frameBuffer = malloc(LCD_X * LCD_Y * sizeof(uint16_t));
 	if (!frameBuffer) {
 		show_msgbox("sled", "Couldn't allocate frame buffer");
@@ -81,7 +81,7 @@ int clear(int _modno) {
 	return 0;
 };
 
-int render(void) {
+int render(int moduleno) {
 	if (any_key_pressed()) {
 		// check for {"esc", "menu", "home"} keys to exit
 		if (isKeyPressed(KEY_NSPIRE_ESC) || isKeyPressed(KEY_NSPIRE_MENU) || isKeyPressed(KEY_NSPIRE_HOME))
