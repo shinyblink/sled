@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
 // h a c k because ndless only has msleep
 // so, we ripped off msleep with a different load value.
 // didn't make much of a difference though.
-int usleep(useconds_t __useconds) {
+int nanosleep(useconds_t __useconds) {
     // see http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.ddi0271d/CHDFDDCF.html
     volatile unsigned *load = (unsigned*)0x900D0000;
     volatile unsigned *control = (unsigned*)0x900D0008;
@@ -68,7 +68,7 @@ int oscore_event_wait_until(oscore_event ev, oscore_time desired_usec) {
 		return tnow;
 	oscore_time sleeptime = desired_usec - tnow;
 
-	usleep(sleeptime);
+	nanosleep(sleeptime);
 	return 0;
 
 }
