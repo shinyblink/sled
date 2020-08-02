@@ -33,6 +33,7 @@ jobs:
           repository: ndless-nspire/Ndless
           path: ndless
           submodules: 'recursive'
+          fetch-depth: 0 # submodule checkout breaks with depth=1
       - name: Set up ndless toolchain
         working-directory: ndless/ndless-sdk/toolchain
         run: ./build_toolchain.sh
