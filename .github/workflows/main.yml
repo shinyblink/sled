@@ -49,3 +49,8 @@ jobs:
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         working-directory: ndless/ndless-sdk/toolchain
         run: ./build_toolchain.sh
+
+      ## ndless SDK
+      - name: Build ndless SDK
+        run: make
+        working-directory: ndless
