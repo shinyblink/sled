@@ -17,3 +17,22 @@ jobs:
       run: make
     - name: Test
       run: ./sled
+  
+  nspire:
+    runs-on: ubuntu-18.04
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: main
+
+      - name: Checkout ndless toolchain
+        uses: actions/checkout@v2
+        with:
+          repository: ndless-nspire/Ndless
+          path: ndless
+          submodules: 'recursive'
+      - name: Set up ndless toolchain
+        working-directory: ndless/ndless-sdk/toolchain
+        run: ./build_toolchain.sh
