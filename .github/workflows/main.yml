@@ -27,6 +27,8 @@ jobs:
         with:
           path: main
 
+      - name: Install ndless dependencies
+        run: sudo apt install -y libmpfr-dev libmpc-dev
       - name: Checkout ndless toolchain
         uses: actions/checkout@v2
         with:
