@@ -1,6 +1,6 @@
 # sled: The satanic LED controller
 
-[![Build Status](https://travis-ci.com/shinyblink/sled.svg?branch=master)](https://travis-ci.com/shinyblink/sled) [![builds.sr.ht status](https://builds.sr.ht/~vifino/sled.svg)](https://builds.sr.ht/~vifino/sled?) [![Join the chat at https://gitter.im/shinyblink/sled](https://badges.gitter.im/shinyblink/sled.svg)](https://gitter.im/shinyblink/sled?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![GitHub Actions CI](https://github.com/shinyblink/sled/workflows/CI/badge.svg) [![Travis CI](https://travis-ci.com/shinyblink/sled.svg?branch=master)](https://travis-ci.com/shinyblink/sled) [![builds.sr.ht CI](https://builds.sr.ht/~vifino/sled.svg)](https://builds.sr.ht/~vifino/sled?) [![Join the chat at https://gitter.im/shinyblink/sled](https://badges.gitter.im/shinyblink/sled.svg)](https://gitter.im/shinyblink/sled?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Modular LED Matrix controller.
 
