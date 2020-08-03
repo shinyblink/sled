@@ -24,7 +24,7 @@
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (TIME_MEDIUM * FPS) * 10
+#define FRAMES (TIME_LONG * FPS)
 
 // calculate and print timing information
 #define SORT_TIMING
@@ -174,6 +174,11 @@ int draw(int _modno, int argc, char* argv[]) {
 
 	matrix_render();
 
+    if (frame >= FRAMES) {
+        frame = 0;
+        return 1;
+    }
+
     if (frame % (FPS*5)==0){
         random_settings();
     }
@@ -181,10 +186,6 @@ int draw(int _modno, int argc, char* argv[]) {
 	frame++;
 	nexttick += FRAMETIME;
 	timer_add(nexttick, modno, 0, NULL);
-	if (frame >= FRAMES){
-        frame = 0;
-		return 1;
-	}
 	return 0;
 }
 
