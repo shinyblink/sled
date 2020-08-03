@@ -66,7 +66,6 @@ jobs:
         run: |
           cp Makefiles/sledconf.ndless sledconf
           echo '::set-env name=NDLESS_SDK::../ndless/ndless-sdk'
-          sed -i 's/DEFAULT_OUTMOD := ndless/DEFAULT_OUTMOD := dummy/' sledconf
       
       - name: Build sled
         working-directory: sled
