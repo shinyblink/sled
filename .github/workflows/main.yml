@@ -51,6 +51,6 @@ jobs:
         run: ./build_toolchain.sh
 
       ## ndless SDK
-      - name: Build ndless SDK
-        run: make
-        working-directory: ndless
+      #- name: Build ndless SDK
+      #  run: make
+      #  working-directory: ndless
