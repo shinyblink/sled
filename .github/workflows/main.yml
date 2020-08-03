@@ -44,7 +44,7 @@ jobs:
         with:
           path: ndless/ndless-sdk/toolchain/install
           # gcc/binutils/etc versions are in build_toolchain.sh
-          key: ${{ runner.os }}-${{ env.NDLESS_SHA }}
+          key: ${{ runner.os }}-${{ hashFiles('ndless/ndless-sdk/toolchain/build_toolchain.sh') }}
       - name: Install ndless toolchain dependencies
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         run: sudo apt install -y libmpfr-dev libmpc-dev
@@ -58,7 +58,7 @@ jobs:
         id: sdk-cache
         with:
           path: ndless/ndless-sdk
-          key: ${{ runner.os }}-${{ steps.ndless-sha.sha }}
+          key: ${{ runner.os }}-${{ env.NDLESS_SHA }}
       - name: Add toolchain to path
         if: steps.sdk-cache.outputs.cache-hit != 'true'
         run: echo "::add-path::$GITHUB_WORKSPACE/ndless/ndless-sdk/toolchain/install/bin"
