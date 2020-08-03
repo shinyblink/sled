@@ -70,3 +70,4 @@ jobs:
       
       - name: Build sled
         working-directory: sled
+        run: make
