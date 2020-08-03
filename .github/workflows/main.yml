@@ -49,10 +49,12 @@ jobs:
         if: steps.toolchain-cache.outputs.cache-hit != 'true'
         working-directory: ndless/ndless-sdk/toolchain
         run: ./build_toolchain.sh
+      
       - name: Add toolchain to path
         run: echo "::add-path::$GITHUB_WORKSPACE/ndless/ndless-sdk/toolchain/install/bin"
       - name: Add SDK to path
         run: echo "::add-path::$GITHUB_WORKSPACE/ndless/ndless-sdk/bin"
+      
       # ndless SDK
       - name: Install ndless SDK dependencies
         run: sudo apt install -y libboost-program-options-dev
@@ -70,3 +72,9 @@ jobs:
       - name: Build sled
         working-directory: sled
         run: make
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: sled for ndless
+          path: sled.tns
