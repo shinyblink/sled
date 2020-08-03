@@ -1,4 +1,6 @@
-# sled: The satanic LED controller. [![Build Status](https://travis-ci.com/shinyblink/sled.svg?branch=master)](https://travis-ci.com/shinyblink/sled) [![Build Status](https://dev.azure.com/shinyblink/sled/_apis/build/status/shinyblink.sled?branchName=master)](https://dev.azure.com/shinyblink/sled/_build/latest?definitionId=1&branchName=master) [![builds.sr.ht status](https://builds.sr.ht/~vifino/sled.svg)](https://builds.sr.ht/~vifino/sled?) [![Join the chat at https://gitter.im/shinyblink/sled](https://badges.gitter.im/shinyblink/sled.svg)](https://gitter.im/shinyblink/sled?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+# sled: The satanic LED controller.
+
+[![Build Status](https://travis-ci.com/shinyblink/sled.svg?branch=master)](https://travis-ci.com/shinyblink/sled) [![builds.sr.ht status](https://builds.sr.ht/~vifino/sled.svg)](https://builds.sr.ht/~vifino/sled?) [![Join the chat at https://gitter.im/shinyblink/sled](https://badges.gitter.im/shinyblink/sled.svg)](https://gitter.im/shinyblink/sled?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Modular LED Matrix controller.
 
@@ -67,20 +69,20 @@ Also try it with different output sizes. `MATRIX_X` and `MATRIX_Y` can be used t
 
 Check that:
 
-* [ ] It compiles after a `make clean`
+  * [ ] It compiles after a `make clean`
 
-* [ ] It works with other modules and quits after a reasonable time
+  * [ ] It works with other modules and quits after a reasonable time
 
-* [ ] It works with different display sizes
-  * [ ] not 2^n
-  * [ ] Landscape
-  * [ ] Portrait
-  * [ ] small sizes (<=16x16)
-  * [ ] big sizes (>=256x256)
+  * [ ] It works with different display sizes
+    * [ ] not 2^n
+    * [ ] Landscape
+    * [ ] Portrait
+    * [ ] small sizes (<=16x16)
+    * [ ] big sizes (>=256x256)
 
-* [ ] It has a short description
+  * [ ] It has a short description
 
-* [ ] It's well formatted (no mixed tabs/spaces) (have you considered `astyle`)
+  * [ ] It's well formatted (no mixed tabs/spaces) (have you considered `astyle`)
 
 ## Hardware
 
@@ -113,9 +115,9 @@ Note: If you have HUB75 LED panels that use for example the FM6126A shift regist
 ## Building Options
 
 Common:
-* Some C99 compiler
-* Some libc
-* GNU Make
+  * Some C99 compiler
+  * Some libc
+  * GNU Make
 
 Platforms might need additional dependencies, check below.
 
@@ -123,70 +125,70 @@ Your local SLED configuration is in `sledconf`, which is thus .gitignore'd by de
 Examples are given in the Makefiles directory, check `sledconf.*`.
 It can override various settings:
 
-* `PROJECT`
-  * The name of the final binary.
-  * Defaults to 'sled'.
+  * `PROJECT`
+    * The name of the final binary.
+    * Defaults to 'sled'.
 
-* `PLATFORM`
-  * The platform being compiled for.
-  * Defaults to 'unix'.
-  * See src/os_unix.c and similar.
+  * `PLATFORM`
+    * The platform being compiled for.
+    * Defaults to 'unix'.
+    * See src/os_unix.c and similar.
 
-* `DEBUG`
-  * Set to 1 to add debug information to all files and disable -O2.
-  * Defaults to 0.
+  * `DEBUG`
+    * Set to 1 to add debug information to all files and disable -O2.
+    * Defaults to 0.
 
-* `CFLAGS`
-  * Defaults to `-O2 -march=native` or `-march=native -Og -ggdb` dependent on `DEBUG`.
+  * `CFLAGS`
+    * Defaults to `-O2 -march=native` or `-march=native -Og -ggdb` dependent on `DEBUG`.
 
-* `STATIC`
-  * Set to 1 to use static linking.
-  * Set to 0 to use -ldl based linking.
-  * Defaults to 0.
+  * `STATIC`
+    * Set to 1 to use static linking.
+    * Set to 0 to use -ldl based linking.
+    * Defaults to 0.
 
-* `DEFAULT_OUTMOD`
-  * The default -o parameter.
-  * Defaults to "sdl2".
+  * `DEFAULT_OUTMOD`
+    * The default -o parameter.
+    * Defaults to "sdl2".
 
-* `DEFAULT_MODULEDIR`
-  * The default -m parameter.
-  * Defaults to "./modules".
+  * `DEFAULT_MODULEDIR`
+    * The default -m parameter.
+    * Defaults to "./modules".
 
-* `MODULES`
-  * The modules being compiled.
-  * `MODULES_AVAILABLE` contains all available GFX modules.
-  * Default is this & DEFAULT_OUTMOD prefixed with `out_`.
+  * `MODULES`
+    * The modules being compiled.
+    * `MODULES_AVAILABLE` contains all available GFX modules.
+    * Default is this & DEFAULT_OUTMOD prefixed with `out_`.
 
 Compile with simply `make`.
 
 ## Output modules
 
-* `out_sdl2`
-  * SDL2-based virtual matrix for development.
+  * `out_sdl2`
+    * SDL2-based virtual matrix for development.
 
-* `out_rpi_ws2812b`
-  * Uses [rpi_ws281x](https://github.com/jgarff/rpi_ws281x) to drive the strips.
-  * Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
+  * `out_rpi_ws2812b`
+    * Uses [rpi_ws281x](https://github.com/jgarff/rpi_ws281x) to drive the strips.
+    * Uses PCM, DMA channel 10 and SoC pin 21/RPI header pin 40 by default.
 
-* `out_udp`
-  * UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
-  * An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
+  * `out_udp`
+    * UDP output following the protocol of CalcProgrammer1/KeyboardVisualizer's LED strip output.
+    * An ESP8266 Arduino sketch will be uploaded here soon. In the meantime, CalcProgrammer1's repository has a compatible sketch, I believe.
 
-* `out_pixelflut`
-  * Streaming onto a pixelflut server.
-  * You need to specify the server on the command line, e.g. `./sled -o pixelflut:192.168.69.42:1234,320x240+640+480`
-  * Option string format is: `pixelflut:[IP_ADDR]:[PORT],[SIZE_X]x[SIZE_Y]+[OFFSET_X]+[OFFSET_Y],[STRATEGY]`
-    * where STRATEGY is either `linear` or `random`
+  * `out_pixelflut`
+    * Streaming onto a pixelflut server.
+    * You need to specify the server on the command line, e.g. `./sled -o pixelflut:192.168.69.42:1234,320x240+640+480`
+    * Option string format is: `pixelflut:[IP_ADDR]:[PORT],[SIZE_X]x[SIZE_Y]+[OFFSET_X]+[OFFSET_Y],[STRATEGY]`
+      * where STRATEGY is either `linear` or `random`
 
-* `out_rpi_hub75`
-  * A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
-  * Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
-  * Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
+  * `out_rpi_hub75`
+    * A backend that drives HUB75-style matrices using https://github.com/hzeller/rpi-rgb-led-matrix
+    * Does *not* use `MATRIX_X`/`MATRIX_Y`, as that's a bit more complicated.
+    * Instead, use `./sled -o "rpi_hub75:--led-rows=32 --led-cols=64 --led-multiplexing=1 --led-chain=2 --led-pixel-mapper=U-mapper"`, for example. Arguments are explained at the library's project page.
 
-* `out_mpsse_spi`
-  * Uses [libmpsse](https://github.com/devttys0/libmpsse/) to speak SPI using USB FTDI chips utilizing the FTDI MPSSE engine.
-  * Use this to speak with [@smunaut's RGB matrix driver for iCEBreaker FPGA boards](https://github.com/smunaut/ice40-playground/tree/master/projects/rgb_panel).
-  * Also does not use `MATRIX_X`/`MATRIX_Y`.
+  * `out_mpsse_spi`
+    * Uses [libmpsse](https://github.com/devttys0/libmpsse/) to speak SPI using USB FTDI chips utilizing the FTDI MPSSE engine.
+    * Use this to speak with [@smunaut's RGB matrix driver for iCEBreaker FPGA boards](https://github.com/smunaut/ice40-playground/tree/master/projects/rgb_panel).
+    * Also does not use `MATRIX_X`/`MATRIX_Y`.
 
 ## Modules
 
