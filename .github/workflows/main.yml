@@ -77,12 +77,13 @@ jobs:
       - name: Prepare sledconf
         working-directory: sled
         run: |
-          cp Makefiles/sledconf.ndless sledconf
-          echo '::set-env name=NDLESS_SDK::../ndless/ndless-sdk'
+          ln -s Makefiles/sledconf.ndless sledconf
       
       - name: Build sled
         working-directory: sled
         run: make
+        env:
+          NDLESS_SDK: ../ndless/ndless-sdk
       
       - name: Upload artifact
         uses: actions/upload-artifact@v2
