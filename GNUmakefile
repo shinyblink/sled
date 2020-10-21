@@ -74,9 +74,9 @@ DEFAULT_MODULEDIR ?= "./modules"
 
 MODULES ?= $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
 # Explicitly dynamic modules
-MODULES_DYNAMIC ?= 
+MODULES_DYNAMIC ?=
 # Explicitly static modules
-MODULES_STATIC ?= 
+MODULES_STATIC ?=
 
 # Those backends that emulate a matrix should use a matrix of this size.
 
@@ -166,6 +166,7 @@ ML_OBJECTS := $(ML_SOURCES:.c=.o)
 # --- Include other makefiles ---
 include Makefiles/3ds.GNUmakefile
 include Makefiles/card10.GNUmakefile
+include Makefiles/esp32.GNUmakefile
 
 # --- All/Cleaning begins here ---
 
@@ -174,7 +175,7 @@ all: $(PROJECT) $(MODULES_DYNAMIC_SO) $(COPY_SLEDCONF) terminfo/a/autoterminal
 clean: FORCE
 	rm -f $(PROJECT) $(OBJECTS) modules/*.so src/modules/*.o static/modwraps/*.c static/modwraps/*.o static/modwraps/*.incs src/slloadcore.gen.c
 	rm -f src/modules/mod_dl.c.libs
-	rm -rf terminfo/
+	rm -f libsled.a
 
 default_sledconf: FORCE
 	[ -e sledconf ] || cp Makefiles/sledconf.default sledconf

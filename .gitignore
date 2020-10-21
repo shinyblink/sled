@@ -3,6 +3,7 @@ sledconf
 
 # build output
 *.o
+*.a
 *.so
 /modules
 sled

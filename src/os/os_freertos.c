@@ -2,22 +2,26 @@
 #include "../oscore.h"
 #include "../main.h"
 #include "../timers.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "semphr.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
 #include <sys/time.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <stdlib.h>
 #include <inttypes.h>
 
 #include <stdio.h>
 
-#define STACK_DEPTH 16384
-#define TASK_PRIORITY 10
+#define BUSY_WAIT 1
 #define USEC_CONST 1000 * 1000
-
-#define NCPUS 1
+#define STACK_DEPTH 16384
+#define TASK_PRIORITY configMAX_PRIORITIES -1
+#define N_CPUCORES 1
+// Set to 0 for handling this externally
 #define USE_TASKS 0
+// Ticks is waaay faster on some devices
+#define USE_TICKS 1
 
 static void sled_task(void* pvParameters) {
 	if (sled_main(0, NULL)) {
@@ -64,32 +68,19 @@ int oscore_event_wait_until(oscore_event ev, oscore_time desired_usec) {
 		return 0;
 	}
 
-	if (desired_usec == 1) {
-		oscore_task_yield();
-
-		printf("desired_usec is 1. wtf?\n");
-	} else {
-		printf("desired_usec is %" PRIu64 ".\n", desired_usec);
-	}
-
 	oscore_time waketick = oscore_udate();
 	if (waketick >= desired_usec) {
 		printf("timer is late, waketick: %" PRIu64 ", desired: %" PRIu64 "\n", waketick, desired_usec);
 		return waketick;
 	}
-	oscore_time diff = desired_usec-waketick;
-	printf("diff is %" PRIu64 ".\n", diff);
-	// make the minimum time to wait 5ms.
-	// TODO: should be removed once we know what's going on.
-	if (diff <= 5000) diff = 5000;
 
-	TickType_t wait = pdMS_TO_TICKS(diff / 1000);
-	if (xSemaphoreTake(ev, wait) == pdTRUE) {
-		printf("INTERRUPT!\n");
-		return 1; // we got an interrupt
+	TickType_t wait = BUSY_WAIT ? 0 : (TickType_t)((desired_usec-waketick) / 1000) / portTICK_PERIOD_MS;
+	while (oscore_udate() < desired_usec) {
+		if (xSemaphoreTake(ev, wait) == pdTRUE) {
+			return 1;
+		}
 	}
-	printf("Timeout.");
-	return 0; // timeout
+	return 0;
 }
 
 void oscore_event_signal(oscore_event ev) {
@@ -102,9 +93,15 @@ void oscore_event_free(oscore_event ev) {
 }
 
 // Time keeping.
-// FreeRTOS provides a tick count
+// FreeRTOS provides a tick count, but it's less accurate.
 oscore_time oscore_udate(void) {
-	return ((1000 * 1000 * 1000) / configTICK_RATE_HZ) * (oscore_time)xTaskGetTickCount();
+	if (USE_TICKS) {
+		return (USEC_CONST / configTICK_RATE_HZ) * (oscore_time)xTaskGetTickCount();
+	}
+	oscore_task_yield();
+	struct timeval tv;
+	gettimeofday(&tv, NULL);
+	return (T_SECOND * tv.tv_sec + tv.tv_usec);
 }
 
 // Below: Stubs and untestet stuff. Danger zone!
@@ -134,7 +131,7 @@ int oscore_ncpus(void) {
 	esp_chip_info(&chip_info);
 	return chip_info.cores;
 #endif
-	return NCPUS;
+	return N_CPUCORES;
 }
 
 
