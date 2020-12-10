@@ -33,7 +33,6 @@
 #include <util.h>
 #include <assert.h>
 
-#define BUFLEN 1024
 #define TILE_PLAIN 1
 #define TILE_SNAKE 2
 
@@ -201,13 +200,15 @@ int init (int moduleno, char* argstr) {
 		}
 
 		// This migt be a necessary hack if the OS decides to buffer data
-		// I think this might only be needed for TCP connections... ~esden
-		//int flag = 1;
-		//setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
-	}
+		// Mind you according to the internet this is not a reliable solution.
+		// The OS might or might not respect this setting.
+		if (nettype == NET_TCP) {
+			int flag = 1;
+			setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char *) &flag, sizeof(int));
+		}
 
 	// Open a Unix socket
-	if (nettype == NET_SOCK) {
+	} else {
 		memset((char *) &sio_unix, 0, sizeof(struct sockaddr_un));
 		sio_unix.sun_family = AF_UNIX;
 		strncpy(sio_unix.sun_path, ip_sock_str, strnlen(ip_sock_str, 107));
@@ -236,7 +237,8 @@ int gety(int _modno) {
 	return Y_SIZE;
 }
 
-int ppos(int x, int y) {
+// Pixel position calculation used only locally within the module
+static inline int ppos(int x, int y) {
 	assert(x >= 0);
 	assert(y >= 0);
 	assert(x < X_SIZE);
@@ -277,7 +279,6 @@ RGB get(int _modno, int x, int y) {
 }
 
 int clear(int _modno) {
-	// message[1] to skip a byte (the 0xAA);
 	memset(&message[0], '\0', NUMPIX * 3);
 	return 0;
 };
