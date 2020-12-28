@@ -231,6 +231,7 @@ int draw(int _modno, int argc, char* argv[]) {
             color.red = color.red * 230/256;
             color.green = color.green * 230/256;
             color.blue = color.blue * 230/256;
+            color.alpha = 255;
             matrix_set(x,y,color);
         }
     }
@@ -251,6 +252,7 @@ int draw(int _modno, int argc, char* argv[]) {
         c.red = _min(c.red +this_color.red/5,255);
         c.green = _min(c.green + this_color.green/5,255);
         c.blue = _min(c.blue + this_color.blue/5,255);
+        c.alpha = 255;
         matrix_set(x,y,c);
     }
 

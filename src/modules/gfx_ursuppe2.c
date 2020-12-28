@@ -301,6 +301,7 @@ int draw(int argc, char* argv[]) {
                 color.red = color.red * TRAIL_LENGTH/256;
                 color.green = color.green * TRAIL_LENGTH/256;
                 color.blue = color.blue * TRAIL_LENGTH/256;
+                color.alpha = 255;
                 matrix_set(x,y,color);
             }
         }
@@ -323,6 +324,7 @@ int draw(int argc, char* argv[]) {
             c.red = _min(c.red +color.red/5,255);
             c.green = _min(c.green + color.green/5,255);
             c.blue = _min(c.blue + color.blue/5,255);
+            c.alpha = 255;
             matrix_set(x,y,c);
         } else {
             mset(x,y,color);
