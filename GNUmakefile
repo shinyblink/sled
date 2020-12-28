@@ -217,9 +217,9 @@ libsled.a: $(OBJECTS) $(ML_OBJECTS)
 
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
- sled: $(OBJECTS)
+ $(PROJECT): $(OBJECTS)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true` $(LIBS)
 else
- sled: $(OBJECTS) $(ML_OBJECTS)
+ $(PROJECT): $(OBJECTS) $(ML_OBJECTS)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true`
 endif
