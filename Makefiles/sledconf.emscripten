@@ -1,0 +1,86 @@
+# SLED configuration for emscripten/WASM builds
+
+
+## NOTICE:
+## Use `make clean` after you modified this file
+##
+
+   ###########################
+   # Platform specific flags #
+   ###########################
+
+CC := emcc
+
+## ASYNCIFY is needed to allow for yielding in wasm,
+## or else we would block the entire browser thread while running
+CFLAGS := -s ASYNCIFY=1
+## to minimize performance losses by ASYNCIFY, optimize a lot
+CFLAGS += -flto -O3
+## For debugging, uncomment the following, and adjust the base URL to your web server
+#CFLAGS += -g4 --source-map-base <base url>
+
+
+   ####################
+   # General settings #
+   ####################
+
+## executable name
+## emcc determines what to output based on the file extension.
+## In this case, we will get a sled.wasm (the compiled module) and a sled.js (runtime code to handle the module easily)
+PROJECT := sled.js
+
+## Debug mode
+## 0 -> Compile with optimization and without debug symbols
+## 1 -> Compile without optimization and with debug symbols and define DEBUG
+DEBUG := 0
+
+## Static vs. Dynamic linking
+## 0 -> dynamic linking (use system libs)
+## 1 -> static linking (bundle libs into exe)
+STATIC := 1
+
+## Which platform to use (from src/os/os_*)
+PLATFORM := emscripten
+
+## Which output module to us (from src/modules/out_*)
+DEFAULT_OUTMOD := emscripten_canvas2d
+
+## Directory to put modules into
+DEFAULT_MODULEDIR := "./modules"
+
+
+   ##########################
+   # Module build selection #
+   ##########################
+
+## required output module
+MODULES := out_$(DEFAULT_OUTMOD)
+
+## single modules for testing purposes
+#MODULES += gfx_clock
+MODULES += gfx_test
+#MODULES += gfx_twinkle
+
+## Build all background and filter modules
+#MODULES += $(BGMMODS_DEFAULT)
+#MODULES += $(FLTMODS_DEFAULT)
+
+## Build all gfx modules (from GNUmakefile)
+## Comment this out if you want to build only single modules
+#MODULES += $(GFXMODS_DEFAULT)
+
+BROKEN_MODULES := gfx_math_sinpi gfx_sinematrix gfx_affinematrix gfx_matrix gfx_sinefield gfx_golc
+
+# some tested modules
+MODULES += gfx_math_sinpi gfx_wator
+MODULES += gfx_twinkle gfx_gol gfx_rainbow gfx_plasma
+MODULES += gfx_balls gfx_clock gfx_error gfx_partirush gfx_cube
+
+
+
+   ############################
+   # Output size configuraion #
+   ############################
+
+## X and Y dimensions are determined by the canvas size at runtime,
+## so they are not explicitly configured here
