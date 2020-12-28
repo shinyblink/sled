@@ -23,9 +23,7 @@ RGB HSV2RGB(HSV hsv)
 
     if (hsv.s == 0)
     {
-        rgb.red = hsv.v;
-        rgb.green = hsv.v;
-        rgb.blue = hsv.v;
+        rgb = RGB(hsv.v, hsv.v, hsv.v);
         return rgb;
     }
 
@@ -39,34 +37,22 @@ RGB HSV2RGB(HSV hsv)
     switch (region)
     {
         case 0:
-            rgb.red = hsv.v;
-						rgb.green = t;
-						rgb.blue = p;
+            rgb = RGB(hsv.v, t, p);
             break;
         case 1:
-            rgb.red = q;
-						rgb.green = hsv.v;
-						rgb.blue = p;
+            rgb = RGB(q, hsv.v, p);
             break;
         case 2:
-            rgb.red = p;
-						rgb.green = hsv.v;
-						rgb.blue = t;
+            rgb = RGB(p, hsv.v, t);
             break;
         case 3:
-            rgb.red = p;
-						rgb.green = q;
-						rgb.blue = hsv.v;
+            rgb = RGB(p, q, hsv.v);
             break;
         case 4:
-            rgb.red = t;
-						rgb.green = p;
-						rgb.blue = hsv.v;
+            rgb = RGB(t, p, hsv.v);
             break;
         default:
-            rgb.red = hsv.v;
-						rgb.green = p;
-						rgb.blue = q;
+            rgb = RGB(hsv.v, p, q);
             break;
     }
 
