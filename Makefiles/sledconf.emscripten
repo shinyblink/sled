@@ -26,17 +26,8 @@ EM_PROJECT := sled
 ## 1 -> Compile without optimization and with debug symbols and define DEBUG
 DEBUG := 0
 
-## Static vs. Dynamic linking
-## 0 -> dynamic linking (use system libs)
-## 1 -> static linking (bundle libs into exe)
-## static is the only sensible option here
-STATIC := 1
-
 ## Which platform to use (from src/os/os_*)
 PLATFORM := emscripten
-
-## Which output module to use (from src/modules/out_*)
-DEFAULT_OUTMOD := emscripten_canvas2d
 
 
    ###########################
