@@ -166,6 +166,7 @@ ML_OBJECTS := $(ML_SOURCES:.c=.o)
 # --- Include other makefiles ---
 include Makefiles/3ds.GNUmakefile
 include Makefiles/card10.GNUmakefile
+include Makefiles/emscripten.GNUmakefile
 
 # --- All/Cleaning begins here ---
 

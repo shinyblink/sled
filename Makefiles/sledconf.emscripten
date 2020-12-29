@@ -5,29 +5,12 @@
 ## Use `make clean` after you modified this file
 ##
 
-   ###########################
-   # Platform specific flags #
-   ###########################
-
-CC := emcc
-
-## ASYNCIFY is needed to allow for yielding in wasm,
-## or else we would block the entire browser thread while running
-CFLAGS := -s ASYNCIFY=1
-## to minimize performance losses by ASYNCIFY, optimize a lot
-CFLAGS += -flto -O3
-## For debugging, uncomment the following, and adjust the base URL to your web server
-#CFLAGS += -g4 --source-map-base <base url>
-
-
    ####################
    # General settings #
    ####################
 
 ## executable name
-## emcc determines what to output based on the file extension.
-## In this case, we will get a sled.wasm (the compiled module) and a sled.js (runtime code to handle the module easily)
-PROJECT := sled.js
+EM_PROJECT := sled
 
 ## Debug mode
 ## 0 -> Compile with optimization and without debug symbols
@@ -45,6 +28,14 @@ PLATFORM := emscripten
 
 ## Which output module to use (from src/modules/out_*)
 DEFAULT_OUTMOD := emscripten_canvas2d
+
+
+   ###########################
+   # Platform specific flags #
+   ###########################
+
+## For debugging, uncomment the following, and adjust the base URL to your web server
+#CFLAGS += -g4 --source-map-base <base url>
 
 
    ##########################
