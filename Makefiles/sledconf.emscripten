@@ -58,7 +58,7 @@ MODULES := out_$(DEFAULT_OUTMOD)
 
 ## single modules for testing purposes
 #MODULES += gfx_clock
-MODULES += gfx_test
+#MODULES += gfx_test
 #MODULES += gfx_twinkle
 
 ## Build all background and filter modules
@@ -69,14 +69,26 @@ MODULES += gfx_test
 ## Comment this out if you want to build only single modules
 #MODULES += $(GFXMODS_DEFAULT)
 
-BROKEN_MODULES := gfx_math_sinpi gfx_sinematrix gfx_affinematrix gfx_matrix gfx_sinefield gfx_golc
+BROKEN_MODULES := gfx_ursuppe2
 
-# some tested modules
-MODULES += gfx_math_sinpi gfx_wator
-MODULES += gfx_twinkle gfx_gol gfx_rainbow gfx_plasma
-MODULES += gfx_balls gfx_clock gfx_error gfx_partirush gfx_cube
+CANT_COMPILE_MODULES := gfx_tron
+NON_APPLICABLE_MODULES := gfx_ip
 
+# some tested, working modules as of 20201229
+#MODULES += gfx_affinematrix gfx_candyflow gfx_clock gfx_checkerboard gfx_colorwheel
+#MODULES += gfx_disturbedcandy gfx_gol gfx_golc gfx_ghostery gfx_balls gfx_bttrblls
+#MODULES += gfx_clock gfx_partirush gfx_cube gfx_ghostery gfx_glowfield
+#MODULES += gfx_invfourier gfx_mandelbrot gfx_mandelbrot2 gfx_math_sinpi gfx_matrix gfx_maze
+#MODULES += gfx_no13 gfx_noisewarp gfx_partirush gfx_plasma gfx_rainbow gfx_random_rects
+#MODULES += gfx_random_static gfx_reddot gfx_rgbmatrix gfx_rule90
+#MODULES += gfx_sinefield gfx_sinematrix gfx_snek
+#MODULES += gfx_sort1D gfx_sort2D gfx_sparkburn gfx_starfield gfx_testmatrix
+#MODULES += gfx_text gfx_twinkle gfx_ursuppe gfx_wator gfx_xorrid
 
+MODULES += $(GFXMODS_DEFAULT)
+MODULES := $(filter-out $(NON_APPLICABLE_MODULES),$(MODULES))
+MODULES := $(filter-out $(CANT_COMPILE_MODULES),$(MODULES))
+MODULES := $(filter-out $(BROKEN_MODULES),$(MODULES))
 
    ############################
    # Output size configuraion #
