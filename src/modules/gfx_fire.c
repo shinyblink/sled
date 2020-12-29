@@ -59,39 +59,39 @@ void fire_palette_init(void)
 		fire_palette_lut[i + 32].red = i << 3;
 		fire_palette_lut[i + 32].green = 0;
 		fire_palette_lut[i + 32].blue = 64 - (i << 1);
-        fire_palette_lut[i + 32].alpha = 255;
+		fire_palette_lut[i + 32].alpha = 255;
 
 		/* red to yellow */
 		fire_palette_lut[i + 64].red = 255;
 		fire_palette_lut[i + 64].green = i << 3;
 		fire_palette_lut[i + 64].blue = 0;
-        fire_palette_lut[i + 64].alpha = 255;
+		fire_palette_lut[i + 64].alpha = 255;
 
 		/* yellow to white */
 		fire_palette_lut[i + 96].red = 255;
 		fire_palette_lut[i + 96].green = 255;
 		fire_palette_lut[i + 96].blue = i << 2;
-        fire_palette_lut[i + 96].alpha = 255;
+		fire_palette_lut[i + 96].alpha = 255;
 
 		fire_palette_lut[i + 128].red = 255;
 		fire_palette_lut[i + 128].green = 255;
 		fire_palette_lut[i + 128].blue = 64 + (i << 2);
-        fire_palette_lut[i + 128].alpha = 255;
+		fire_palette_lut[i + 128].alpha = 255;
 
 		fire_palette_lut[i + 160].red = 255;
 		fire_palette_lut[i + 160].green = 255;
 		fire_palette_lut[i + 160].blue = 128 + (i << 2);
-        fire_palette_lut[i + 160].alpha = 255;
+		fire_palette_lut[i + 160].alpha = 255;
 
 		fire_palette_lut[i + 192].red = 255;
 		fire_palette_lut[i + 192].green = 255;
 		fire_palette_lut[i + 192].blue = 192 + i;
-        fire_palette_lut[i + 192].alpha = 255;
+		fire_palette_lut[i + 192].alpha = 255;
 
 		fire_palette_lut[i + 224].red = 255;
 		fire_palette_lut[i + 224].green = 255;
 		fire_palette_lut[i + 224].blue = 224 + i;
-        fire_palette_lut[i + 224].alpha = 255;
+		fire_palette_lut[i + 224].alpha = 255;
 	}
 }
 

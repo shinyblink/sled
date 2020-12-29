@@ -29,22 +29,22 @@
 
 // Main entry point.
 int main(int argc, char ** argv) {
-    return sled_main(argc, argv);
+	return sled_main(argc, argv);
 }
 
 // -- event
 oscore_event oscore_event_new(void) {
-    return NULL;
+	return NULL;
 }
 
 int oscore_event_wait_until(oscore_event ev, oscore_time desired_usec) {
-    oscore_time tnow = udate();
-    if (tnow >= desired_usec)
-        return tnow;
-    oscore_time sleeptime = desired_usec - tnow;
+	oscore_time tnow = udate();
+	if (tnow >= desired_usec)
+		return tnow;
+	oscore_time sleeptime = desired_usec - tnow;
 
-    emscripten_sleep(sleeptime / 1000);
-    return 0;
+	emscripten_sleep(sleeptime / 1000);
+	return 0;
 
 }
 
@@ -57,43 +57,43 @@ void oscore_event_free(oscore_event ev) {
 // Time keeping.
 // Note, this should be replaced.
 oscore_time oscore_udate(void) {
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) == -1) {
-        printf("Failed to get the time???\n");
-        exit(1);
-    }
-    return T_SECOND * tv.tv_sec + tv.tv_usec;
+	struct timeval tv;
+	if (gettimeofday(&tv, NULL) == -1) {
+		printf("Failed to get the time???\n");
+		exit(1);
+	}
+	return T_SECOND * tv.tv_sec + tv.tv_usec;
 }
 
 // Threading
 oscore_task oscore_thread_create(const char* name, oscore_task_function func, void* ctx) {
-    // uuh
-    return NULL;
+	// uuh
+	return NULL;
 }
 
 void oscore_task_yield(void) {
-    // ???
-    emscripten_sleep(YIELD_MS);
+	// ???
+	emscripten_sleep(YIELD_MS);
 };
 
 void oscore_task_exit(void * status) {
-    // nope
+	// nope
 };
 
 void * oscore_task_join(oscore_task task) {
-    // ye ok
-    return 0;
+	// ye ok
+	return 0;
 };
 
 int oscore_ncpus(void) {
-    return 1;
+	return 1;
 }
 
 void oscore_task_pin(oscore_task task, int cpu) {}
 
 // -- mutex
 oscore_mutex oscore_mutex_new(void) {
-    return NULL;
+	return NULL;
 }
 
 void oscore_mutex_lock(oscore_mutex m) {
