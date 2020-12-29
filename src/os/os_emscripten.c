@@ -28,8 +28,8 @@
 #define YIELD_MS 1
 
 // Main entry point.
-int main() {
-    return sled_main(0, NULL);
+int main(int argc, char ** argv) {
+    return sled_main(argc, argv);
 }
 
 // -- event
