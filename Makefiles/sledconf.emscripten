@@ -74,17 +74,6 @@ BROKEN_MODULES := gfx_ursuppe2
 CANT_COMPILE_MODULES := gfx_tron
 NON_APPLICABLE_MODULES := gfx_ip
 
-# some tested, working modules as of 20201229
-#MODULES += gfx_affinematrix gfx_candyflow gfx_clock gfx_checkerboard gfx_colorwheel
-#MODULES += gfx_disturbedcandy gfx_gol gfx_golc gfx_ghostery gfx_balls gfx_bttrblls
-#MODULES += gfx_clock gfx_partirush gfx_cube gfx_ghostery gfx_glowfield
-#MODULES += gfx_invfourier gfx_mandelbrot gfx_mandelbrot2 gfx_math_sinpi gfx_matrix gfx_maze
-#MODULES += gfx_no13 gfx_noisewarp gfx_partirush gfx_plasma gfx_rainbow gfx_random_rects
-#MODULES += gfx_random_static gfx_reddot gfx_rgbmatrix gfx_rule90
-#MODULES += gfx_sinefield gfx_sinematrix gfx_snek
-#MODULES += gfx_sort1D gfx_sort2D gfx_sparkburn gfx_starfield gfx_testmatrix
-#MODULES += gfx_text gfx_twinkle gfx_ursuppe gfx_wator gfx_xorrid
-
 MODULES += $(GFXMODS_DEFAULT)
 MODULES := $(filter-out $(NON_APPLICABLE_MODULES),$(MODULES))
 MODULES := $(filter-out $(CANT_COMPILE_MODULES),$(MODULES))
