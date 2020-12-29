@@ -1,5 +1,5 @@
 # SLED configuration for emscripten/WASM builds
-
+# Build requirements: a recent version of the emscripten SDK (emsdk), with emcc in PATH
 
 ## NOTICE:
 ## Use `make clean` after you modified this file
@@ -37,16 +37,14 @@ DEBUG := 0
 ## Static vs. Dynamic linking
 ## 0 -> dynamic linking (use system libs)
 ## 1 -> static linking (bundle libs into exe)
+## static is the only sensible option here
 STATIC := 1
 
 ## Which platform to use (from src/os/os_*)
 PLATFORM := emscripten
 
-## Which output module to us (from src/modules/out_*)
+## Which output module to use (from src/modules/out_*)
 DEFAULT_OUTMOD := emscripten_canvas2d
-
-## Directory to put modules into
-DEFAULT_MODULEDIR := "./modules"
 
 
    ##########################
