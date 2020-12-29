@@ -97,6 +97,6 @@ RGB RGBlerp(byte v, RGB rgbA, RGB rgbB) {
 	rgb.red = (byte) rgbA.red + ((((uint) rgbB.red - rgbA.red) * v) / 255);
 	rgb.green = (byte) rgbA.green + ((((uint) rgbB.green - rgbA.green) * v) / 255);
 	rgb.blue = (byte) rgbA.blue + ((((uint) rgbB.blue - rgbA.blue) * v) / 255);
-	rgb.alpha = 255;
+	rgb.alpha = (byte) rgbA.alpha + ((((uint) rgbB.alpha - rgbA.alpha) * v) / 255);
 	return rgb;
 }
