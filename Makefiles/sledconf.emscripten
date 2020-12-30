@@ -37,6 +37,10 @@ PLATFORM := emscripten
 ## For debugging, uncomment the following, and adjust the base URL to your web server
 #CFLAGS += -g4 --source-map-base <base url>
 
+## should be enough to have these in emscripten.GNUmakefile,
+## but not defining them here breaks the build (see issue #126)
+STATIC := 1
+DEFAULT_OUTMOD := emscripten_canvas2d
 
    ##########################
    # Module build selection #
