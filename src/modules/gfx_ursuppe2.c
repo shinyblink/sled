@@ -284,7 +284,7 @@ static void update(void) {
 	}
 }
 
-void reset(void) {
+void reset(int _modno) {
 	nexttick = udate();
 	matrix_clear();
 	randomize();

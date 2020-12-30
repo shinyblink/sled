@@ -141,7 +141,7 @@ int init(int moduleno, char* argstr) {
 
 static inline int _min(int,int);
 
-void reset(void) {
+void reset(int _modno) {
     matrix_clear();
 	nexttick = udate();
 	frame = 0;
