@@ -291,7 +291,7 @@ void reset(int _modno) {
 	frame = 0;
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 
 	if (USE_TRAILS){
 		for (int x = 0;x < matrix_getx();x++){

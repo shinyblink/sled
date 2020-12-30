@@ -324,7 +324,7 @@ static inline int _min(int x, int y) {
 
 /* central drawing function
  */
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
 	nexttick = udate() + FRAMETIME;
 	perf_start(modno);
 	// compose transformation matrix out of 9 input matrices 
