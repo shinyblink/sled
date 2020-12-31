@@ -4,7 +4,8 @@
 ## How to run:
 ## 1. successfully build sled using this config
 ## 2. get the file src/modules/out_emscripten_canvas2d.html
-## 3. put it into a directory together with sled.js and sled.wasm
+## 2a. optionally: get the file src/modules/out_emscripten_canvas2d.woff
+## 3. put them into a directory together with sled.js and sled.wasm
 ## (4. depending on your browser, pointing it at the files might not satisfy it.
 ##     you will have to serve those files somewhere in that case.
 ##     (static file server is enough, e.g. `python3 -m http.server --bind 127.0.0.1`))
