@@ -50,17 +50,31 @@ void reset(int _modno) {
 int draw(int _modno, int argc, char* argv[]) {
 	float step = (float)(((udate()) >> 16) & 0x00007FFF);
 	//printf("[%8.1f]", step);
-	byte hue = 0;
+	uint8_t hue = 0;
+/*
 	for(int x = 0; x < mx; x++ ) {
 		hue = step + (37 * sinf( ((x*step)/(11*M_PI)) * 0.04 ) );
 		for(int y = 0; y < my; y++ ) {
 			hue += 17 * sinf(y/(5*M_PI));
 			RGB color = HSV2RGB(HSV(
-				(byte)(hue + (byte)step),
-				255, //(byte)(192 - (63*cosf((hue+step)*M_PI*0.004145))),
-				(byte)(255*sinf((hue+step)*M_PI*0.003891))
+				(uint8_t)(hue + (uint8_t)step),
+				255, //(uint8_t)(192 - (63*cosf((hue+step)*M_PI*0.004145))),
+				(uint8_t)(255*sinf((hue+step)*M_PI*0.003891))
 			));
 			matrix_set(x,y,color);
+		}
+	}
+*/
+	for(int x = (-mx/2); x < (mx/2); x++ ) {
+		hue = ((int)(step + (37.0f * sinf( ((x*step)/(11.0f*M_PI)) * 0.04f)))) & 0xFF;
+		for(int y = (-my/2); y < (my/2); y++ ) {
+			hue = ((int)(hue + (17.0f + (x*(8.0f/mx))) * sinf(y/(5.0f*M_PI)))) & 0xFF;
+			RGB color = HSV2RGB(HSV(
+				((int)(hue + (uint8_t)(step))) & 0xFF,
+				255, 
+				((int)(255*sinf(((float)hue+step)*M_PI*0.003891f))) & 0xFF
+			));
+			matrix_set(x+(mx/2),y+(my/2),color);
 		}
 	}
 
