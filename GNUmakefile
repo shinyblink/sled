@@ -6,7 +6,7 @@ GFXMODS_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
 GFXMODS_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma
 GFXMODS_AVAILABLE += gfx_checkerboard gfx_balls gfx_clock gfx_sinematrix
 GFXMODS_AVAILABLE += gfx_error gfx_partirush gfx_matrix gfx_cube gfx_mandelbrot
-GFXMODS_AVAILABLE += gfx_golc gfx_sinefield gfx_affinematrix gfx_ip
+GFXMODS_AVAILABLE += gfx_golc gfx_sinefield gfx_ditherfield gfx_affinematrix gfx_ip
 GFXMODS_AVAILABLE += gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
 GFXMODS_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D
 GFXMODS_AVAILABLE += gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
@@ -166,6 +166,7 @@ ML_OBJECTS := $(ML_SOURCES:.c=.o)
 # --- Include other makefiles ---
 include Makefiles/3ds.GNUmakefile
 include Makefiles/card10.GNUmakefile
+include Makefiles/emscripten.GNUmakefile
 
 # --- All/Cleaning begins here ---
 
@@ -217,9 +218,9 @@ libsled.a: $(OBJECTS) $(ML_OBJECTS)
 
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
- sled: $(OBJECTS)
+ $(PROJECT): $(OBJECTS)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true` $(LIBS)
 else
- sled: $(OBJECTS) $(ML_OBJECTS)
+ $(PROJECT): $(OBJECTS) $(ML_OBJECTS)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true`
 endif

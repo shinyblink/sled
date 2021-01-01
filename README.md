@@ -47,9 +47,9 @@ The old modules will still be in the `modules/` folder and thus will still be lo
 The sources for the modules are located in `src/modules/`. Looking inside a graphic effect module (e.g. `gfx_rainbow.c`) you see that gfx modules provide an interface via four functions.
 ```c
 int init(int moduleno, char* argstr); // Called once at program start
-int deinit(void); // Called once on program exit
-void reset(void); // Called on module change to this module
-int draw(int argc, char* argv[]); // Called once per frame
+int deinit(int moduleno); // Called once on program exit
+void reset(int moduleno); // Called on module change to this module
+int draw(int moduleno, int argc, char* argv[]); // Called once per frame
 ```
 All other functions and variables should be declared `static` and used internally only.
 

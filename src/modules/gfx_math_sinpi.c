@@ -49,7 +49,7 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-RGB white = { .red = 255, .green = 255, .blue = 255 };
+RGB white = RGB(255, 255, 255);
 
 void reset(int _modno) {
 	nexttick = udate();

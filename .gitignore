@@ -30,6 +30,11 @@ sled.map
 src/modules/out_ctru.shbin
 src/modules/out_ctru_shbin*
 
+# emscripten build output
+sled.js
+sled.wasm
+sled.wasm.map
+
 # CLion
 .idea/
 /compile_commands.json

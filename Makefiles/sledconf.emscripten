@@ -1,0 +1,81 @@
+# SLED configuration for emscripten/WASM builds
+# Build requirements: a recent version of the emscripten SDK (emsdk), with emcc in PATH
+
+## How to run:
+## 1. successfully build sled using this config
+## 2. get the file src/modules/out_emscripten_canvas2d.html
+## 2a. optionally: get the file src/modules/out_emscripten_canvas2d.woff
+## 3. put them into a directory together with sled.js and sled.wasm
+## (4. depending on your browser, pointing it at the files might not satisfy it.
+##     you will have to serve those files somewhere in that case.
+##     (static file server is enough, e.g. `python3 -m http.server --bind 127.0.0.1`))
+## 5. navigate to the HTML file in your web browser - sled should start right up!
+
+## NOTICE:
+## Use `make clean` after you modified this file
+##
+
+   ####################
+   # General settings #
+   ####################
+
+## executable name
+EM_PROJECT := sled
+
+## Debug mode
+## 0 -> Compile with optimization and without debug symbols
+## 1 -> Compile without optimization and with debug symbols and define DEBUG
+DEBUG := 0
+
+## Which platform to use (from src/os/os_*)
+PLATFORM := emscripten
+
+
+   ###########################
+   # Platform specific flags #
+   ###########################
+
+## For debugging, uncomment the following, and adjust the base URL to your web server
+#CFLAGS += -g4 --source-map-base <base url>
+
+## should be enough to have these in emscripten.GNUmakefile,
+## but not defining them here breaks the build (see issue #126)
+STATIC := 1
+DEFAULT_OUTMOD := emscripten_canvas2d
+
+   ##########################
+   # Module build selection #
+   ##########################
+
+## required output module
+MODULES := out_$(DEFAULT_OUTMOD)
+
+## single modules for testing purposes
+#MODULES += gfx_clock
+#MODULES += gfx_test
+#MODULES += gfx_twinkle
+
+## Build all background and filter modules
+#MODULES += $(BGMMODS_DEFAULT)
+#MODULES += $(FLTMODS_DEFAULT)
+
+## Build all gfx modules (from GNUmakefile)
+## Comment this out if you want to build only single modules
+#MODULES += $(GFXMODS_DEFAULT)
+
+BROKEN_MODULES := gfx_ursuppe2
+
+CANT_COMPILE_MODULES := gfx_tron
+NON_APPLICABLE_MODULES := gfx_ip
+
+MODULES += $(GFXMODS_DEFAULT)
+MODULES := $(filter-out $(NON_APPLICABLE_MODULES),$(MODULES))
+MODULES := $(filter-out $(CANT_COMPILE_MODULES),$(MODULES))
+MODULES := $(filter-out $(BROKEN_MODULES),$(MODULES))
+
+   ############################
+   # Output size configuraion #
+   ############################
+
+## X and Y dimensions are determined by the canvas size at runtime,
+## so they are not explicitly configured here
