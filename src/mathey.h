@@ -1,3 +1,7 @@
+#pragma once
+#ifndef MATHEY_H
+#define MATHEY_H
+
 #include "types.h"
 #include <math.h>
 #include <stdarg.h>
@@ -40,14 +44,43 @@ typedef struct matrix3_3 {
   float v3_3;
 } matrix3_3;
 
+typedef struct vec4 {
+  float x;
+  float y;
+  float z;
+  float w;
+} vec4;
+
+typedef struct matrix4_4 {
+  float v1_1;
+  float v1_2;
+  float v1_3;
+  float v1_4;
+  float v2_1;
+  float v2_2;
+  float v2_3;
+  float v2_4;
+  float v3_1;
+  float v3_2;
+  float v3_3;
+  float v3_4;
+  float v4_1;
+  float v4_2;
+  float v4_3;
+  float v4_4;
+} matrix4_4;
+
 #define vec2(xv, yv) ((vec2) { .x = (xv), .y = (yv)})
 #define vec3(xv, yv, zv) ((vec3) { .x = (xv), .y = (yv), .z = (zv)})
+#define vec4(xv, yv, zv, wv) ((vec4) { .x = (xv), .y = (yv), .z = (zv), .w = (wv)})
 
 vec2 vadd(vec2 v1, vec2 v2);
 vec2 vmul(vec2 v1, float val);
 vec2 vdiv(vec2 v1, vec2 v2);
 vec2 multm2v2(matrix2_2 m, vec2 v);
+
 matrix2_2 multm2(matrix2_2 m1, matrix2_2 m2);
+
 matrix3_3 multm3(matrix3_3 m1, matrix3_3 m2);
 matrix3_3 identity3();
 matrix3_3 composem3(int n, ...);
@@ -57,6 +90,9 @@ matrix3_3 translation3_v2(vec2 v);
 matrix3_3 translation3_v3(vec3 v);
 matrix3_3 scale3(float x_factor, float y_factor);
 matrix3_3 shear3(float x_shear, float y_shear);
+
+matrix4_4 multm4(matrix4_4 m1, matrix4_4 m2);
+
 vec3 vec2tovec3(vec2 v);
 vec2 vec3tovec2(vec3 a);
 vec3 multm3v3(matrix3_3 m, vec3 v);
@@ -77,3 +113,5 @@ static inline vec2 multm3v2_partxy(matrix3_3 m, vec2 kern_x, float v_y) {
   };
   return r;
 }
+
+#endif

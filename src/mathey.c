@@ -16,11 +16,7 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#include "types.h"
-#include <math.h>
-#include <stdarg.h>
-
-#define sign(x) ((x < 0) ? -1 : ( (x > 0) ? 1 : 0))
+#include "mathey.h"
 
 byte bdiff(byte a, byte b) {
 	if (a > b) return a - b;
@@ -39,37 +35,6 @@ byte bmax(byte a, byte b) {
 inline float square(float x) {
   return x*x;
 }
-
-// Matrix/Vector stuff
-typedef struct vec2 {
-	float x;
-	float y;
-} vec2;
-
-typedef struct matrix2_2 {
-	float v1_1;
-	float v1_2;
-	float v2_1;
-	float v2_2;
-} matrix2_2;
-
-typedef struct vec3 {
-  float x;
-  float y;
-  float z;
-} vec3;
-
-typedef struct matrix3_3 {
-  float v1_1;
-  float v1_2;
-  float v1_3;
-  float v2_1;
-  float v2_2;
-  float v2_3;
-  float v3_1;
-  float v3_2;
-  float v3_3;
-} matrix3_3;
 
 vec2 vadd(vec2 v1, vec2 v2) {
 	vec2 r = {
@@ -126,6 +91,32 @@ matrix3_3 multm3(matrix3_3 m1, matrix3_3 m2) {
       .v3_1 = m1.v3_1*m2.v1_1 + m1.v3_2*m2.v2_1 + m1.v3_3*m2.v3_1,
       .v3_2 = m1.v3_1*m2.v1_2 + m1.v3_2*m2.v2_2 + m1.v3_3*m2.v3_2,
       .v3_3 = m1.v3_1*m2.v1_3 + m1.v3_2*m2.v2_3 + m1.v3_3*m2.v3_3
+    };
+  return r;
+};
+
+matrix4_4 multm4(matrix4_4 m1, matrix4_4 m2) {
+  matrix4_4 r = {
+      .v1_1 = m1.v1_1*m2.v1_1 + m1.v1_2*m2.v2_1 + m1.v1_3*m2.v3_1 + m1.v1_4*m2.v4_1,
+      .v1_2 = m1.v1_1*m2.v1_2 + m1.v1_2*m2.v2_2 + m1.v1_3*m2.v3_2 + m1.v1_4*m2.v4_2,
+      .v1_3 = m1.v1_1*m2.v1_3 + m1.v1_2*m2.v2_3 + m1.v1_3*m2.v3_3 + m1.v1_4*m2.v4_3,
+      .v1_4 = m1.v1_1*m2.v1_4 + m1.v1_2*m2.v2_4 + m1.v1_3*m2.v3_4 + m1.v1_4*m2.v4_4,
+
+      .v2_1 = m1.v2_1*m2.v1_1 + m1.v2_2*m2.v2_1 + m1.v2_3*m2.v3_1 + m1.v2_4*m2.v4_1,
+      .v2_2 = m1.v2_1*m2.v1_2 + m1.v2_2*m2.v2_2 + m1.v2_3*m2.v3_2 + m1.v2_4*m2.v4_2,
+      .v2_3 = m1.v2_1*m2.v1_3 + m1.v2_2*m2.v2_3 + m1.v2_3*m2.v3_3 + m1.v2_4*m2.v4_3,
+      .v2_4 = m1.v2_1*m2.v1_4 + m1.v2_2*m2.v2_4 + m1.v2_3*m2.v3_4 + m1.v2_4*m2.v4_4,
+
+      .v3_1 = m1.v3_1*m2.v1_1 + m1.v3_2*m2.v2_1 + m1.v3_3*m2.v3_1 + m1.v3_4*m2.v4_1,
+      .v3_2 = m1.v3_1*m2.v1_2 + m1.v3_2*m2.v2_2 + m1.v3_3*m2.v3_2 + m1.v3_4*m2.v4_2,
+      .v3_3 = m1.v3_1*m2.v1_3 + m1.v3_2*m2.v2_3 + m1.v3_3*m2.v3_3 + m1.v3_4*m2.v4_3,
+      .v3_4 = m1.v3_1*m2.v1_4 + m1.v3_2*m2.v2_4 + m1.v3_3*m2.v3_4 + m1.v3_4*m2.v4_4,
+
+      .v4_1 = m1.v4_1*m2.v1_1 + m1.v4_2*m2.v2_1 + m1.v4_3*m2.v3_1 + m1.v4_4*m2.v4_1,
+      .v4_2 = m1.v4_1*m2.v1_2 + m1.v4_2*m2.v2_2 + m1.v4_3*m2.v3_2 + m1.v4_4*m2.v4_2,
+      .v4_3 = m1.v4_1*m2.v1_3 + m1.v4_2*m2.v2_3 + m1.v4_3*m2.v3_3 + m1.v4_4*m2.v4_3,
+      .v4_4 = m1.v4_1*m2.v1_4 + m1.v4_2*m2.v2_4 + m1.v4_3*m2.v3_4 + m1.v4_4*m2.v4_4,
+
     };
   return r;
 };
