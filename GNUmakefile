@@ -121,12 +121,12 @@ CFLAGS += -DDEFAULT_OUTMOD=\"$(DEFAULT_OUTMOD)\" -DDEFAULT_MODULEDIR=\"$(DEFAULT
 
 SOURCES := src/asl.c      src/main.c        src/mod.c
 SOURCES += src/matrix.c   src/random.c      src/timers.c  src/util.c
-SOURCES += src/color.c    src/graphics.c    src/mathey.c
+SOURCES += src/color.c    src/graphics.c    src/mathey.c  src/perlin.c
 SOURCES += src/taskpool.c src/os/os_$(PLATFORM).c         src/modloader.c
 
 HEADERS := src/graphics.h src/main.h        src/mod.h
 HEADERS += src/matrix.h   src/plugin.h      src/timers.h  src/util.h
-HEADERS += src/asl.h      src/mathey.h      src/modloader.h
+HEADERS += src/asl.h      src/mathey.h      src/perlin.h  src/modloader.h
 HEADERS += src/random.h   src/types.h       src/oscore.h  src/perf.h
 HEADERS += src/taskpool.h src/ext/farbherd.h
 
