@@ -184,13 +184,13 @@ FORCE:
 
 # --- Generic object conversion rule begins here ---
 %.o: %.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null || true` $^
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $(shell cat $(@:.o=.incs) 2>/dev/null || true) $^
 
 # --- Module compile info begins here ---
 # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
 modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null || true`
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ $(shell cat src/modules/$*.libs 2>/dev/null || true)
 
 # -- k2wrap/k2link
 src/slloadcore.gen.c: src/plugin.h static/k2link
@@ -219,8 +219,8 @@ libsled.a: $(OBJECTS) $(ML_OBJECTS)
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
  $(PROJECT): $(OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true` $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ $(shell cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true) $(LIBS)
 else
  $(PROJECT): $(OBJECTS) $(ML_OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true`
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) $(shell cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true)
 endif
