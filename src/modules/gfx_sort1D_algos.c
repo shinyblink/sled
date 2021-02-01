@@ -468,14 +468,19 @@ static int quick_sortLR(){
 static int merge_sort_inplace(){
     CONTINUE(1);
     for (step=1;step<n;step*=2){
-        for (i=0;i+step<n;i+=2*step){
-            l=i;
-            r=i+step;
-            for (j=i;(j<i+2*step)&&(j<n)&&(l<r)&&(r<i+2*step);j++){
+        for (start=0;start+step<n;start+=2*step){
+            l=start;
+            r=start+step;
+            end = start+2*step;
+            if (end > n) end = n;
+            for (j=start;j<end;j++){
+                if (l>=r) break;
+                if (r>=end) break;
                 h1=l;h2=r;
                 YIELD(1);
                 if (data[l] < data[r]){
-                    l++; continue;
+                    l++;
+                    continue;
                 }
                 last=data[r];
                 for (ll=r-1;ll>=l;ll--) data[ll+1]=data[ll];
