@@ -234,3 +234,77 @@ uint32_t noise_weighted_index(float * weights, unsigned n, rand_t rand) {
     return random_integer(n);
 }
 
+////////////////////////////////////////
+// Hases for using with noise_ functions
+
+
+static RNG_State *hash_rng_state = &((RNG_State) {SLEEVE1,SLEEVE2,SLEEVE3});
+
+static uint32_t random_raw_hash() {
+    *hash_rng_state = advance_state(hash_rng_state);
+    return squirrel_like(hash_rng_state->jumper^hash_rng_state->counter,hash_rng_state->seed);
+}
+
+void seed_hash(uint32_t seed){
+    hash_rng_state->seed = squirrel_like(squirrel_like(seed,0),squirrel_like(0,seed));
+}
+
+rand_t hash_int(int i1){
+    hash_rng_state->counter = xorshift(i1);
+    hash_rng_state->jumper = SLEEVE2;
+    return random_raw_hash;
+}
+
+rand_t hash_int2(int i1, int i2){
+    hash_rng_state->counter = xorshift(i1)+PRIME1*xorshift(i2);
+    hash_rng_state->jumper = SLEEVE2;
+    return random_raw_hash;
+}
+rand_t hash_int3(int i1, int i2, int i3){
+    hash_rng_state->counter = xorshift(i1)+PRIME1*xorshift(i2)+PRIME2*xorshift(i3);
+    hash_rng_state->jumper = SLEEVE2;
+    return random_raw_hash;
+}
+rand_t hash_int4(int i1, int i2, int i3, int i4){
+    hash_rng_state->counter = squirrel_like(
+            xorshift(i1)+PRIME1*xorshift(i2),
+            xorshift(i3)+PRIME1*xorshift(i4));
+    hash_rng_state->jumper = SLEEVE2;
+    return random_raw_hash;
+}
+
+#define INT(f) ((*(uint32_t*)&f)&0xfffffff0)
+rand_t hash_float(float f1){ return hash_int(INT(f1));}
+rand_t hash_float2(float f1, float f2){return hash_int2(INT(f1), INT(f2));}
+rand_t hash_float3(float f1, float f2, float f3){
+    return hash_int3(INT(f1),INT(f2),INT(f3));
+}
+rand_t hash_float4(float f1, float f2, float f3, float f4){
+    return hash_int4(INT(f1),INT(f2),INT(f3),INT(f4));
+}
+
+rand_t hash_ints(int * ints, int n){
+    hash_rng_state->counter = SLEEVE1;
+    for (int i = 0; i < n; i++){
+        hash_rng_state->counter = squirrel_like(ints[i],hash_rng_state->counter);
+    }
+    hash_rng_state->jumper = SLEEVE2;
+    return random_raw_hash;
+}
+rand_t hash_floats(float * floats, int n){
+    hash_rng_state->counter = SLEEVE1;
+    for (int i = 0; i < n; i++){
+        hash_rng_state->counter = squirrel_like(INT(floats[i]),hash_rng_state->counter);
+    }
+    hash_rng_state->jumper = SLEEVE2;
+    return random_raw_hash;
+}
+rand_t hash_char(char * chars, int n){
+    hash_rng_state->counter = SLEEVE1;
+    for (int i = 0; i < n; i++){
+        hash_rng_state->counter = squirrel_like((int)chars[i],hash_rng_state->counter);
+    }
+    hash_rng_state->jumper = SLEEVE2;
+    return random_raw_hash;
+}
+#undef INT

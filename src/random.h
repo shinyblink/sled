@@ -13,6 +13,44 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
+/*** Quickstart ***
+ *      random_probability(p)   - for single decisions
+ *
+ *      random_integer(n)                   - random choice uniform
+ *      random_weighted_index(weights, n)   - random choice weighted
+ *      random_integer_between(i1, i2)      - including i1 and i2
+ *
+ *      random_float_one()      - uniform between 0 and 1
+ *      random_float_zero()     - balanced around +- 0 / use for directions
+ *      random_normal()         - normal distribution
+ *
+ *
+ *** Advanced: Using Noise, Generators and Hashes ***
+ * Provided some data, reproduce numbers in the same way
+ * Examples:
+ *      # random reproducable float from x,y coodinates
+ *      noise_float_zero(hash_int2(x,y))
+ *
+ *      # random RGB value from x,y coodinates
+ *      # using a third value to produce different colors
+ *      RGB(
+ *          noise_integer_between(100,255,hash_int3(x,y,1))
+ *          noise_integer_between(100,255,hash_int3(x,y,2)),
+ *          noise_integer_between(100,255,hash_int3(x,y,3)),
+ *      )
+ *
+ *      # random RGB value from x,y coodinates
+ *      # using the generator refernce for different colors
+ *      # WARNING: more than one generator at the time won't work as expected
+ *      rand_t generator = hash_int2(x,y);
+ *      RGB(
+ *          noise_integer_between(100,255,generator)
+ *          noise_integer_between(100,255,generator),
+ *          noise_integer_between(100,255,generator),
+ *      )
+ */
+
+
 #ifndef __INCLUDE_NOISE__
 #define __INCLUDE_NOISE__
 
