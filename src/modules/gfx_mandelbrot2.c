@@ -88,7 +88,7 @@ int init(int moduleno, char* argstr)
    moduleid = moduleno;
    cstore = malloc(sizeof(complex) * w * h);
    istore = malloc(sizeof(double) * w * h);
-   random_seed();
+   random_seed(udate());
    return 0;
 }
 
