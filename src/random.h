@@ -29,7 +29,7 @@ typedef uint32_t (*rand_t)(void);
 
 // 0 <= r <= limit
 #define randn(limit) random_integer(limit+1)
-extern void random_seed(void);
+extern void random_seed(uint64_t seed);
 
 /////////////////////////////
 // Generated Random Values //
@@ -51,11 +51,15 @@ extern uint32_t noise_integer(uint32_t limit,rand_t rand);
 extern uint32_t random_integer_between(uint32_t lower, uint32_t upper);
 extern uint32_t noise_integer_between(uint32_t lower, uint32_t upper, rand_t rand);
 
-// 0.0 <= r <= 1.0
-extern float random_float_raw();
-extern float noise_float_raw(rand_t rand);
+// 0.0 <= r < 1.0
+extern float random_float_one();
+extern float noise_float_one(rand_t rand);
 
-// min <= r <= max
+// -1.0 < r < 1.0       // balanced but 0.0 has double probability
+extern float random_float_zero();
+extern float noise_float_zero(rand_t rand);
+
+// min <= r < max
 extern float random_float(float min, float max);
 extern float noise_float(float min, float max, rand_t rand);
 
@@ -65,10 +69,30 @@ extern uint32_t random_weighted_index(float * weights, unsigned n);
 extern uint32_t noise_weighted_index(float * weights, unsigned n, rand_t rand);
 
 // N(0,1) "normal distribution"
-float random_normal();
-float noise_normal(rand_t rand);
+extern float random_normal();
+extern float noise_normal(rand_t rand);
 typedef struct {float x; float y;} two_normals_t;
 extern two_normals_t random_2_normals();
 extern two_normals_t noise_2_normals(rand_t rand);
+
+////////////
+// Hashes //
+////////////
+
+extern void seed_hash(uint32_t seed);
+
+extern rand_t hash_int(int i1);
+extern rand_t hash_int2(int i1, int i2);
+extern rand_t hash_int3(int i1, int i2, int i3);
+extern rand_t hash_int4(int i1, int i2, int i3, int i4);
+
+extern rand_t hash_float(float f1);
+extern rand_t hash_float2(float f1, float f2);
+extern rand_t hash_float3(float f1, float f2, float f3);
+extern rand_t hash_float4(float f1, float f2, float f3, float f4);
+
+extern rand_t hash_ints(int * is, int n);
+extern rand_t hash_floats(float * fs, int n);
+extern rand_t hash_char(char * cs, int n);
 
 #endif

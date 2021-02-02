@@ -11,7 +11,6 @@
 // WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-#include <timers.h>
 #include <stdint.h>
 #include "random.h"
 #include <math.h>
@@ -91,11 +90,11 @@ uint32_t squirrel_like(uint32_t value, uint32_t seed) {
     return value;
 }
 
-// it's legacy !!
-void random_seed(void) {
-    uint64_t date = xorshift64(udate());
-    global_rng_state->counter ^= date;
-    global_rng_state->seed ^= date >> 32;
+void random_seed(uint64_t seed) {
+    seed = xorshift64(seed);
+    global_rng_state->counter = seed;
+    global_rng_state->jumper = SLEEVE2;
+    global_rng_state->seed = squirrel_like(seed, seed>>32);
 }
 
 RNG_State advance_state(RNG_State* state) {
@@ -138,9 +137,7 @@ uint32_t noise_integer_between(uint32_t lower, uint32_t upper, rand_t rand){
 }
 
 
-float noise_float_raw(rand_t rand);
-float random_float_raw(){return noise_float_raw(*RANDOM_RAW);}
-float noise_float_raw(rand_t rand){
+float noise_float_one(rand_t rand){
     uint32_t r = random_raw(rand);
     uint32_t exponent = 126; // biased exponent 0.5 - 1.0
     // find leading 1 bit
@@ -159,18 +156,42 @@ float noise_float_raw(rand_t rand){
     u.i |= r >> 9;
     return u.f;
 }
+float random_float_one(){return noise_float_one(*RANDOM_RAW);}
+
+float noise_float_zero(rand_t rand){
+    uint32_t r = random_raw(rand);
+    uint32_t exponent = 126; // biased exponent 0.5 - 1.0
+    // find leading 1 bit
+    union {
+        float f;
+        uint32_t i;
+    } u;
+    u.i |= r & UPPER_BIT; // random sign
+    r = r << 1; // consume bit
+    while (r) {
+        if (r&UPPER_BIT) break;
+        exponent--;
+        r = r << 1;
+    }
+    if (r == 0) return 0.0;
+    u.i = exponent << 23;
+    r = r << 1; // hidden bit
+    u.i |= r >> 9;
+    return u.f;
+}
+float random_float_zero(){return noise_float_zero(*RANDOM_RAW);}
 
 
 float noise_float(float min, float max, rand_t rand);
 float random_float(float min, float max){ return noise_float(min,max,*RANDOM_RAW);}
 float noise_float(float min, float max, rand_t rand) {
-    return min+noise_float_raw(rand)*(max-min);
+    return min+noise_float_one(rand)*(max-min);
 }
 
 int noise_probability(float p, rand_t rand);
 int random_probability(float p){ return noise_probability(p, *RANDOM_RAW);}
 int noise_probability(float p, rand_t rand) {
-    return noise_float_raw(rand) < p;
+    return noise_float_one(rand) < p;
 }
 
 two_normals_t noise_2_normals(rand_t rand);
@@ -178,8 +199,8 @@ two_normals_t random_2_normals(){ return noise_2_normals(*RANDOM_RAW);}
 two_normals_t noise_2_normals(rand_t rand) {
     float f1, f2, r;
     do {
-        f1 = noise_float_raw(rand)*2-1;
-        f2 = noise_float_raw(rand)*2-1;
+        f1 = noise_float_one(rand)*2-1;
+        f2 = noise_float_one(rand)*2-1;
         r = f1*f1+f2*f2;
     } while (r > 1.0|| r <= 0.0);
     r = sqrtf((-2.0/r)*logf(r));
@@ -202,7 +223,7 @@ uint32_t noise_weighted_index(float * weights, unsigned n, rand_t rand) {
     for (int i = 0; i < n; i++) {
         sum += weights[i];
     }
-    float r = random_float_raw()*sum;
+    float r = random_float_one()*sum;
     for (int i = 0; i < n; i++) {
         r -= weights[i];
         if (r <= 0) return i;

@@ -264,7 +264,7 @@ int sled_main(int argc, char** argv) {
 	int ret;
 
 	// Initialize pseudo RNG.
-	random_seed();
+	random_seed(udate());
 
 	// Prepare for module loading
 	if (modloader_modpath == NULL) {
