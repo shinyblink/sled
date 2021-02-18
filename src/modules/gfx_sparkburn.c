@@ -62,7 +62,9 @@ void reset(int _modno) {
 
 static void calc() {
     interesting = 0;
-    if (threshold) threshold--;
+
+    if (!threshold) return;
+    threshold--;
 
     for (int i=0; i<mx; i++) {
         for (int j=0; j<my; j++) {

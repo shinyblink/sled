@@ -21,6 +21,7 @@
 #include <timers.h>
 #include <random.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <graphics.h>
 #include <math.h>

@@ -33,6 +33,11 @@ src/modules/out_ctru_shbin*
 # ndless build output
 sled.tns
 
+# emscripten build output
+sled.js
+sled.wasm
+sled.wasm.map
+
 # CLion
 .idea/
 /compile_commands.json
