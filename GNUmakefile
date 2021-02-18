@@ -27,7 +27,7 @@ OUTMODS_AVAILABLE += out_sf75_bi_spidev out_ansi out_pixelflut
 GFXMODS_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
 GFXMODS_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 GFXMODS_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
-GFXMODS_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls
+GFXMODS_DEFAULT += gfx_affinematrix gfx_candyflow gfx_bttrblls
 GFXMODS_DEFAULT += gfx_sort2D gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn
 GFXMODS_DEFAULT += gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_DEFAULT += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
@@ -166,6 +166,7 @@ ML_OBJECTS := $(ML_SOURCES:.c=.o)
 # --- Include other makefiles ---
 include Makefiles/3ds.GNUmakefile
 include Makefiles/card10.GNUmakefile
+include Makefiles/ndless.GNUmakefile
 include Makefiles/emscripten.GNUmakefile
 
 # --- All/Cleaning begins here ---
