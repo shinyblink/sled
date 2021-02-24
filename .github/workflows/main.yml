@@ -36,7 +36,8 @@ jobs:
           fetch-depth: 0 # submodule checkout breaks with depth=1
       # store the commit hash for caching later
       - working-directory: ndless
-        run: echo "::set-env name=NDLESS_SHA::$(git rev-parse HEAD)"
+        run: |
+          echo "NDLESS_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
       
       ## toolchain
       - uses: actions/cache@v2
@@ -54,7 +55,7 @@ jobs:
         run: ./build_toolchain.sh
       
       - name: Add ndless SDK to path
-        run: echo "::add-path::$GITHUB_WORKSPACE/ndless/ndless-sdk/bin"
+        run: echo "$GITHUB_WORKSPACE/ndless/ndless-sdk/bin" >> $GITHUB_PATH
       
       # ndless SDK
       - uses: actions/cache@v2
@@ -64,7 +65,7 @@ jobs:
           key: ${{ runner.os }}-${{ env.NDLESS_SHA }}
       - name: Add toolchain to path
         if: steps.sdk-cache.outputs.cache-hit != 'true'
-        run: echo "::add-path::$GITHUB_WORKSPACE/ndless/ndless-sdk/toolchain/install/bin"
+        run: echo "$GITHUB_WORKSPACE/ndless/ndless-sdk/toolchain/install/bin" >> $GITHUB_PATH
       - name: Install ndless SDK dependencies
         if: steps.sdk-cache.outputs.cache-hit != 'true'
         run: sudo apt install -y libboost-program-options-dev
