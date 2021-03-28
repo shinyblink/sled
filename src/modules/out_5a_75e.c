@@ -185,12 +185,27 @@ int render(void)
 {
   static oscore_time last = 0;
   oscore_time now = udate();
-  int elapsed = (int64_t)now - (int64_t)last;
+  oscore_time elapsed = now - last;
   if (last != 0 && elapsed < 15000)
   {
-    wait_until(1337, now + 15000 - elapsed);
+    wait_until(1337, last + 15000);
+    last += 15000;
   }
-  last = now;
+  else
+  {
+  	last = now;
+  }
+
+  static oscore_time lastfps = 0;
+  static int frames = 0;
+  oscore_time elapsedfps = now - lastfps;
+  frames++;
+  if(elapsedfps > 2000000)
+  {
+    printf("%.2lf\n", (double)frames / (elapsedfps / 1000000.0));
+    lastfps = now;
+    frames = 0;
+  }
 
   for (int i = 0; i < HEIGHT; ++i)
   {
