@@ -7,8 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUMPARTICLES 1000
+#define NUMPARTICLES 2000
 #define FPS 60
+#define FRAMETIME (T_SECOND / FPS)
+#define FRAMES (TIME_LONG * FPS)
 
 typedef struct
 {
@@ -18,21 +20,22 @@ typedef struct
    int species;
 } particle_t;
 
-particle_t particle[NUMPARTICLES];
+static particle_t particle[NUMPARTICLES];
 static int screenW;
 static int screenH;
+static int frame;
 
-float frand(float max)
+static float frand(float max)
 {
-   return max * rand() / (RAND_MAX + 1);
+   return max * rand() / RAND_MAX;
 }
 
-int validCoordinate(float x, float y)
+static int validCoordinate(float x, float y)
 {
    return (((int)x < screenW) && ((int)x >= 0) && ((int)y < screenH) && ((int)y >= 0));
 }
 
-float speciesValue(float sensX, float sensY, int species)
+static float speciesValue(float sensX, float sensY, int species)
 {
    RGB col = matrix_get((int)sensX, (int)sensY);
    switch (species % 3)
@@ -41,9 +44,10 @@ float speciesValue(float sensX, float sensY, int species)
       case 1: return col.green;
       case 2: return col.blue;
    }
+   return 0;
 }
 
-void setSpeciesValue(float sensX, float sensY, int species, unsigned char value)
+static void setSpeciesValue(float sensX, float sensY, int species, unsigned char value)
 {
    RGB col = matrix_get((int)sensX, (int)sensY);
    switch (species % 3)
@@ -61,7 +65,7 @@ void setSpeciesValue(float sensX, float sensY, int species, unsigned char value)
    matrix_set((int)sensX, (int)sensY, col);
 }
 
-float sensValue(particle_t *curParticle, float distance, float angle)
+static float sensValue(particle_t *curParticle, float distance, float angle)
 {
    float retVal = 0;
    float sensX = curParticle->x + distance * sinf(curParticle->direction + angle);
@@ -81,20 +85,19 @@ int init(int moduleid, char* argstr)
    screenW = matrix_getx();
    screenH = matrix_gety();
    
+   return 0;
+}
+
+void reset(int moduleid)
+{
    for (int i = 0; i < NUMPARTICLES; i++)
    {
       particle[i].x = frand((float)screenW);
       particle[i].y = frand((float)screenH);
       particle[i].direction = frand(2 * (float)M_PI);
       particle[i].species = (int)frand(3);
-      //particle[i].species = (int)(0.9f + frand (1.2f));
    }
    
-   return 0;
-}
-
-void reset(int moduleid)
-{
    matrix_clear();
 }
 
@@ -118,10 +121,10 @@ int draw(int moduleid, int argc, char* argv[])
       particle_t *curParticle = &particle[i];
       
       // follow own species, avoid others
-      float sensLeft = sensValue(curParticle, 10, 0.6f);
-      float sensRight = sensValue(curParticle, 10, -0.6f);
-      curParticle->direction += 0.2f * (sensLeft - sensRight);
-      curParticle->direction += 0.1f * (frand(2) - 1);
+      float sensLeft = sensValue(curParticle, 7, 0.3f);
+      float sensRight = sensValue(curParticle, 7, -0.3f);
+      curParticle->direction += 0.3f * (sensLeft - sensRight);
+      curParticle->direction += 0.19f * (frand(2) - 1);
       
       // movement and border handling
       float dx = 0.5f * sinf(curParticle->direction);
@@ -140,6 +143,11 @@ int draw(int moduleid, int argc, char* argv[])
    }
    
    matrix_render();
+   if (frame++ >= FRAMES)
+   {
+      frame = 0;
+      return 1;
+   }
    oscore_time nexttick = now + T_SECOND / FPS;
    timer_add(nexttick, moduleid, 0, NULL);
    return 0;
