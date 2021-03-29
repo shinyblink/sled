@@ -7,10 +7,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUMPARTICLES 2000
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (TIME_LONG * FPS)
+#define FOREVER 0
 
 typedef struct
 {
@@ -20,10 +20,11 @@ typedef struct
    int species;
 } particle_t;
 
-static particle_t particle[NUMPARTICLES];
 static int screenW;
 static int screenH;
 static int frame;
+static int numParticles;
+static particle_t *particle;
 
 static float frand(float max)
 {
@@ -84,13 +85,15 @@ int init(int moduleid, char* argstr)
 {
    screenW = matrix_getx();
    screenH = matrix_gety();
+   numParticles = screenW * screenH / 36;
+   particle = malloc(numParticles * sizeof(particle_t));
    
    return 0;
 }
 
 void reset(int moduleid)
 {
-   for (int i = 0; i < NUMPARTICLES; i++)
+   for (int i = 0; i < numParticles; i++)
    {
       particle[i].x = frand((float)screenW);
       particle[i].y = frand((float)screenH);
@@ -116,7 +119,7 @@ int draw(int moduleid, int argc, char* argv[])
       }
    }
    
-   for (int i = 0; i < NUMPARTICLES; i++)
+   for (int i = 0; i < numParticles; i++)
    {
       particle_t *curParticle = &particle[i];
       
@@ -124,7 +127,9 @@ int draw(int moduleid, int argc, char* argv[])
       float sensLeft = sensValue(curParticle, 7, 0.3f);
       float sensRight = sensValue(curParticle, 7, -0.3f);
       curParticle->direction += 0.3f * (sensLeft - sensRight);
-      curParticle->direction += 0.19f * (frand(2) - 1);
+      #if (FOREVER == 1)
+      curParticle->direction += 0.18f * (frand(2) - 1);
+      #endif
       
       // movement and border handling
       float dx = 0.5f * sinf(curParticle->direction);
@@ -146,7 +151,9 @@ int draw(int moduleid, int argc, char* argv[])
    if (frame++ >= FRAMES)
    {
       frame = 0;
+      #if (FOREVER == 0)
       return 1;
+      #endif
    }
    oscore_time nexttick = now + T_SECOND / FPS;
    timer_add(nexttick, moduleid, 0, NULL);
@@ -155,4 +162,8 @@ int draw(int moduleid, int argc, char* argv[])
 
 void deinit(int moduleid)
 {
+   if (particle)
+   {
+      free(particle);
+   }
 }
