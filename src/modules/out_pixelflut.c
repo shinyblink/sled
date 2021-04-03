@@ -48,8 +48,8 @@ static int Y_OFFSET;
 #define NUMPIX (X_SIZE * Y_SIZE)
 #define CHARS_PER_PIXEL 20
 
-// Message will be:
-// 0xAA <R,G,B bytes..> <2 bytes checksum, unsigned short, hi, low>
+// Message will be one line of the following for each pixel
+// "PX 0000 0000 FFFFFF\n"
 static byte* buffer;
 static char* message;
 static uint32_t* shufflemap; 
@@ -165,7 +165,7 @@ int init (int moduleno, char* argstr) {
 	}
 	// Allocate the message buffer.
 	buffer = calloc((NUMPIX * 3), 1);
-	message = calloc((NUMPIX * CHARS_PER_PIXEL) + 2, 1);
+	message = calloc(NUMPIX * CHARS_PER_PIXEL, 1);
 	assert(message); // 2lazy to handle it properly.
 	assert(buffer);
 	clear(0);
@@ -248,20 +248,22 @@ int render(void) {
 					ay = ry(ap);
 					mpos = p * CHARS_PER_PIXEL;
 					//eprintf("x:%4d y:%4d -> p:%5d -> (bpos:%5d, mpos:%5d) -> ap:%5d -> (ax:%4d ay%4d)\n", x,y,p,bpos,mpos,ap,ax,ay);
-					snprintf(&(message[mpos]), CHARS_PER_PIXEL+1, "PX %04d %04d %02x%02x%02x\n", ax+X_OFFSET, ay+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+					snprintf(&(message[mpos]), CHARS_PER_PIXEL, "PX %04d %04d %02x%02x%02x", ax+X_OFFSET, ay+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+					message[mpos + CHARS_PER_PIXEL - 1] = '\n';
 					break;
 				case STRATEGY_LINEAR :
 					p = ppos(x,y);
 					bpos = p * 3;
 					mpos = p * CHARS_PER_PIXEL;
 					//eprintf("x:%4d y:%4d -> p:%5d -> (bpos:%5d, mpos:%5d) -> ap:%5d -> (ax:%4d ay%4d)\n", x,y,p,bpos,mpos,ap,ax,ay);
-					snprintf(&(message[mpos]), CHARS_PER_PIXEL+1, "PX %04d %04d %02x%02x%02x\n", x+X_OFFSET, y+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+					snprintf(&(message[mpos]), CHARS_PER_PIXEL, "PX %04d %04d %02x%02x%02x", x+X_OFFSET, y+Y_OFFSET, buffer[bpos+0], buffer[bpos+1], buffer[bpos+2]);
+					message[mpos + CHARS_PER_PIXEL - 1] = '\n';
 					break;
 			}
 		}
 	}
-	
-	send(sock, &message[0], (NUMPIX*CHARS_PER_PIXEL)+1, 0);
+
+	send(sock, &message[0], NUMPIX * CHARS_PER_PIXEL, 0);
 	clear(0);
 	return 0;
 }
