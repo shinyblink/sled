@@ -263,6 +263,7 @@ They are the following:
 
 * `gfx_noisewarp`: Coherent noise. by @cyriax0
 
+* `gfx_multicell`: Something between cellular structures and popping bubbles? by @cyriax0
 ---
 
 If you want to only build a specific set of modules, change the "MODULES" array in your `sledconf` file.
