@@ -1,0 +1,73 @@
+# Configuration for Ndless on nSpire
+
+# MANDATORY:
+# point this to your ndless-sdk directory
+#NDLESS_SDK :=
+
+
+   ####################
+   # General settings #
+   ####################
+
+## executable name
+PROJECT := sled
+
+## Debug mode
+## 0 -> Compile with optimization and without debug symbols
+## 1 -> Compile without optimization and with debug symbols and define DEBUG
+DEBUG := 0
+
+## We can't link dynamically for ndless, so this has to be 1
+STATIC := 1
+
+PLATFORM := ndless
+DEFAULT_OUTMOD := ndless
+
+
+   ##########################
+   # Module build selection #
+   ##########################
+
+## required output module
+MODULES := out_$(DEFAULT_OUTMOD)
+
+## single modules for testing purposes
+#MODULES += gfx_clock
+#MODULES += gfx_twinkle
+
+## Build all filter modules
+#MODULES += $(FLTMODS_DEFAULT)
+
+GFX_SLIDESHOW := gfx_invfourier gfx_colorwheel gfx_rgbmatrix
+GFX_SLIDESHOW += gfx_candyflow gfx_mandelbrot gfx_mandelbrot2
+GFX_SLIDESHOW += gfx_sinefield
+
+GFX_CHOPPY := gfx_disturbedcandy gfx_sinematrix gfx_rule90
+GFX_CHOPPY += gfx_candyswarm gfx_golc gfx_ursuppe
+GFX_CHOPPY += gfx_affinematrix gfx_rgbmatrix
+
+# oscillating framerate
+GFX_OSCILLATING := gfx_text gfx_wator gfx_partirush gfx_sparkburn gfx_balls
+GFX_OSCILLATING += gfx_matrix gfx_bttrballs gfx_xorri gfx_maze gfx_starfield
+GFX_OSCILLATING += gfx_cube gfx_random_rects gfx_math_sinpi gfx_twinkle
+
+GFX_USABLE := gfx_reddot gfx_plasma gfx_clock gfx_noisewarp gfx_checkerboard
+GFX_USABLE += gfx_sort1D gfx_sort2D gfx_ursuppe gfx_afterglow gfx_gol gfx_test gfx_ghostery
+GFX_USABLE += gfx_snek gfx_testmatrix gfx_error gfx_random_static gfx_no13
+GFX_USABLE += gfx_ursuppe2
+
+GFX_BREAKS := noisewarp
+
+# Data abort????
+GFX_CRASHES := gfx_fire
+
+GFXMODS := $(GFX_USABLE)
+
+MODULES += $(GFXMODS)
+
+   ####################
+   # Build Settings #
+   ####################
+
+CFLAGS := -Ofast -g -flto
+LDFLAGS := -flto

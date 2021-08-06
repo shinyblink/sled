@@ -7,7 +7,22 @@ STATIC := 0
 PLATFORM := unix
 
 # modern clang/gcc is required for this
-CFLAGS = -fsanitize=address,undefined
+SAN_FLAGS = -fsanitize=address,undefined
+
+# $(OS) isn't defined yet
+ifeq ($(shell uname),Linux)
+ # Linux CI only runs on Ubuntu, so this should be fine
+ UBUNTU_RELEASE := $(shell lsb_release --short --release)
+
+ ifeq ($(UBUNTU_RELEASE),16.04)
+  # Work around a bug in 16.04's GCC when using UBSan:
+  # https://stackoverflow.com/questions/50024731/ld-unrecognized-option-push-state-no-as-needed
+  # Essentially, don't use UBSan on 16.04.
+  SAN_FLAGS = -fsanitize=address
+ endif
+endif
+
+CFLAGS = $(SAN_FLAGS)
 
 DEFAULT_OUTMOD := dummy
 DEFAULT_MODULEDIR := "./modules"

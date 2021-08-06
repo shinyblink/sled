@@ -90,6 +90,21 @@ typedef struct {
 	px_buffer_t * buffer; // The current line buffer.
 } px_client_t;
 
+#ifdef __APPLE__
+static inline void * memrchr(const void * mem, int c, size_t n) {
+    if (n == 0)
+        return 0;
+
+    unsigned char * end = (unsigned char *) mem + n;
+    do {
+        if (*(--end) == (unsigned char)c)
+            return (void *) end;
+    } while (--n != 0);
+
+    return 0;
+}
+#endif
+
 // shamelessly ripped from pixelnuke
 static inline int fast_str_startswith(const char* prefix, const char* str) {
 	char cp, cs;

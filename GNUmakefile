@@ -6,7 +6,7 @@ GFXMODS_AVAILABLE := gfx_random_static gfx_random_rects gfx_twinkle gfx_gol
 GFXMODS_AVAILABLE += gfx_rainbow gfx_math_sinpi gfx_text gfx_plasma
 GFXMODS_AVAILABLE += gfx_checkerboard gfx_balls gfx_clock gfx_sinematrix
 GFXMODS_AVAILABLE += gfx_error gfx_partirush gfx_matrix gfx_cube gfx_mandelbrot
-GFXMODS_AVAILABLE += gfx_golc gfx_sinefield gfx_affinematrix gfx_ip
+GFXMODS_AVAILABLE += gfx_golc gfx_sinefield gfx_ditherfield gfx_affinematrix gfx_ip
 GFXMODS_AVAILABLE += gfx_candyflow gfx_bttrblls gfx_sort2D gfx_xorrid
 GFXMODS_AVAILABLE += gfx_starfield gfx_reddot gfx_sparkburn gfx_sort1D
 GFXMODS_AVAILABLE += gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
@@ -14,6 +14,7 @@ GFXMODS_AVAILABLE += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 GFXMODS_AVAILABLE += gfx_no13 gfx_candyswarm gfx_ursuppe2 gfx_rule90
 GFXMODS_AVAILABLE += gfx_maze gfx_invfourier gfx_colorwheel gfx_snek
 GFXMODS_AVAILABLE += gfx_autoterminal gfx_wator gfx_noisewarp gfx_test
+GFXMODS_AVAILABLE += gfx_multicell
 
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 
@@ -27,12 +28,13 @@ OUTMODS_AVAILABLE += out_sf75_bi_spidev out_ansi out_pixelflut
 GFXMODS_DEFAULT := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
 GFXMODS_DEFAULT += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
 GFXMODS_DEFAULT += gfx_matrix gfx_cube gfx_mandelbrot gfx_golc gfx_sinefield
-GFXMODS_DEFAULT += gfx_affinematrix gfx_ip gfx_candyflow gfx_bttrblls
+GFXMODS_DEFAULT += gfx_affinematrix gfx_candyflow gfx_bttrblls
 GFXMODS_DEFAULT += gfx_sort2D gfx_xorrid gfx_starfield gfx_reddot gfx_sparkburn
 GFXMODS_DEFAULT += gfx_sort1D gfx_rgbmatrix gfx_mandelbrot2 gfx_disturbedcandy
 GFXMODS_DEFAULT += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 GFXMODS_DEFAULT += gfx_candyswarm gfx_ursuppe2 gfx_invfourier gfx_colorwheel
 GFXMODS_DEFAULT += gfx_snek gfx_wator gfx_noisewarp
+GFXMODS_DEFAULT += gfx_multicell
 
 BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
 FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90
@@ -167,6 +169,8 @@ ML_OBJECTS := $(ML_SOURCES:.c=.o)
 include Makefiles/3ds.GNUmakefile
 include Makefiles/card10.GNUmakefile
 include Makefiles/esp32.GNUmakefile
+include Makefiles/ndless.GNUmakefile
+include Makefiles/emscripten.GNUmakefile
 
 # --- All/Cleaning begins here ---
 
@@ -184,13 +188,13 @@ FORCE:
 
 # --- Generic object conversion rule begins here ---
 %.o: %.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ `cat $(@:.o=.incs) 2>/dev/null || true` $^
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $(shell cat $(@:.o=.incs) 2>/dev/null || true) $^
 
 # --- Module compile info begins here ---
 # To build modules/X.so, link src/modules/X.o with information in an optional .libs file
 modules/%.so: src/modules/%.o $(ML_OBJECTS)
 	mkdir -p modules
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ `cat src/modules/$*.libs 2>/dev/null || true`
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(LDSOFLAGS) -o $@ $^ $(shell cat src/modules/$*.libs 2>/dev/null || true)
 
 # -- k2wrap/k2link
 src/slloadcore.gen.c: src/plugin.h static/k2link
@@ -218,9 +222,9 @@ libsled.a: $(OBJECTS) $(ML_OBJECTS)
 
 # --- The actual build begins here ---
 ifeq ($(STATIC),0)
- sled: $(OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true` $(LIBS)
+ $(PROJECT): $(OBJECTS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -rdynamic $(LDFLAGS) -o $@ $^ $(shell cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true) $(LIBS)
 else
- sled: $(OBJECTS) $(ML_OBJECTS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) `cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true`
+ $(PROJECT): $(OBJECTS) $(ML_OBJECTS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS) $(shell cat $(PLATFORM_LIBS) $(MODULES_STATIC_LIBS) 2>/dev/null || true)
 endif

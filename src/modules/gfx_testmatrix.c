@@ -80,7 +80,7 @@ static void printnum(int num, int x, int y, RGB color){
     }
 }
 
-int draw(int argc, char* argv[]) {
+int draw(int _modno, int argc, char* argv[]) {
     matrix_clear();
     int xsize = matrix_getx() / TILESIZE;
     int ysize = matrix_gety() / TILESIZE;
@@ -139,9 +139,9 @@ int draw(int argc, char* argv[]) {
     return 0;
 }
 
-void reset(void) {
+void reset(int _modno) {
     matrix_clear();
 	// Nothing?
 }
 
-void deinit(void) {}
+void deinit(int _modno) {}

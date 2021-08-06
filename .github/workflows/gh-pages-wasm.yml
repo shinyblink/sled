@@ -1,0 +1,50 @@
+name: WASM -> GH Pages
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  EM_VERSION: 2.0.15
+  EM_CACHE_FOLDER: 'emsdk-cache'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      # we need emsdk, obviously
+      - name: Setup emsdk cache
+        id: cache-system-libraries
+        uses: actions/cache@v2
+        with:
+          path: ${{env.EM_CACHE_FOLDER}}
+          key: ${{env.EM_VERSION}}-${{ runner.os }}
+      - uses: mymindstorm/setup-emsdk@v8
+        with:
+          version: ${{env.EM_VERSION}}
+          actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
+      
+      - name: Prepare sledconf
+        run: cp Makefiles/sledconf.emscripten sledconf
+      - name: Build
+        run: make
+      
+      - name: Collect output and support files
+        run: |
+          mkdir wasm
+          cp src/modules/out_emscripten_canvas2d.html wasm/index.html
+          cp src/modules/out_emscripten_canvas2d.woff wasm/
+          cp sled.wasm wasm/
+          cp sled.js wasm/
+        
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@4.1.0
+        with:
+          # This is the branch you wish to deploy to, for example gh-pages or docs.
+          branch: gh-pages
+          # The folder in your repository that you want to deploy. If your build script compiles into a directory named build you would put it here. Folder paths cannot have a leading / or ./. If you wish to deploy the root directory you can place a . here.
+          folder: wasm
+      
+      
