@@ -102,6 +102,13 @@ Connected to the ports of the specific board you're using.
 *  ESP8266 DevBoard with UDP Sketch
   *  Uses output D2 by default, but you can use almost anything the Adafruit NeoPixel library supports.
   *  You might need a level shifter to shift the 3.3V logic level to 5V the strips want.
+
+* ESP32 DevBoard
+  * Supported via FreeRTOS.
+  * Use `Makefiles/sledconf.esp32` as the reference.
+  * Use `make libsled.a` to build the shared library (firmware binary not yet provided) 
+  * Make sure to pull in the needed FreeRTOS dependencies via `platformio`.
+  * Alternatively use Docker for building: `docker build -f scripts/Dockerfile.esp32 -t esp32-builder . && docker run -v$PWD:/home/build/sled/ esp32-builder`
   
 *  Raspberry Pi 3: Bitbanging HUB75 LED panels.
   *  High performance RaspberryPi is needed as bitbanging is quite resource intensive.

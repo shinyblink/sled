@@ -1,0 +1,98 @@
+
+
+   ####################
+   # General settings #
+   ####################
+
+## We use platformio to manage all the dependencies
+PLATFORMIO_HOME := "${HOME}/.platformio"
+
+## pio platform install espressif32 --with-package framework-arduinoespressif32
+PLATFORM := freertos
+
+DEBUG := 0
+STATIC := 1
+
+
+   ##########################
+   # Module build selection #
+   ##########################
+
+## Use platformio to install this lib dependency:
+## pio lib --global install "martymacgyver/ESP32 Digital RGB LED Drivers@^1.5.4"
+DEFAULT_OUTMOD := esp32_digitalledlib
+
+## required output module
+MODULES := out_$(DEFAULT_OUTMOD)
+
+## Build all background and filter modules
+#MODULES += $(BGMMODS_DEFAULT)
+MODULES += $(FLTMODS_DEFAULT)
+
+## Build all gfx modules (from GNUmakefile)
+## Comment this out if you want to build only single modules
+## Note: Some are not working yet on esp
+#MODULES += $(GFXMODS_DEFAULT)
+
+## single modules for testing purposes
+MODULES += gfx_text
+MODULES += gfx_mandelbrot
+MODULES += gfx_mandelbrot2
+MODULES += gfx_sinefield
+MODULES += gfx_sinematrix
+MODULES += gfx_bttrblls
+MODULES += gfx_partirush
+MODULES += gfx_golc
+MODULES += gfx_matrix
+MODULES += gfx_rainbow
+MODULES += gfx_balls
+MODULES += gfx_random_rects
+MODULES += gfx_reddot
+MODULES += gfx_plasma
+MODULES += gfx_sparkburn
+MODULES += gfx_ursuppe2
+MODULES += gfx_xorrid
+MODULES += gfx_clock
+MODULES += gfx_twinkle
+MODULES += gfx_gol
+MODULES += gfx_ghostery
+MODULES += gfx_afterglow
+MODULES += gfx_candyflow
+MODULES += gfx_disturbedcandy
+MODULES += gfx_affinematrix
+MODULES += gfx_math_sinpi
+MODULES += gfx_ursuppe
+MODULES += gfx_candyswarm
+MODULES += gfx_checkerboard
+MODULES += gfx_sort1D
+MODULES += gfx_sort2D
+MODULES += gfx_starfield
+MODULES += gfx_random_static
+MODULES += gfx_cube
+MODULES += gfx_error
+MODULES += gfx_no13
+MODULES += gfx_snek
+MODULES += gfx_rgbmatrix
+MODULES += gfx_rule90
+MODULES += gfx_testmatrix
+MODULES += gfx_text
+MODULES += gfx_sinefield
+MODULES += gfx_sinematrix
+
+
+   ############################
+   # Output size configuraion #
+   ############################
+
+## X and Y dimensions
+MATRIX_X := 16
+MATRIX_Y := 16
+
+
+   ########################
+   # Performance settings #
+   ########################
+
+CFLAGS += -ffast-math
+CFLAGS += -O3
+
