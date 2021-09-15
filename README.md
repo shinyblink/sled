@@ -7,13 +7,22 @@ Modular LED Matrix controller.
 ## Manual
 Read the Satanic Bible by Anton Szandor LaVey.
 
-## Getting started (SDL2 Tutorial on debian)
+## Getting started (SDL2 Tutorial for Development)
 
+- Debian:
 ```bash
 sudo apt-get install gcc make git libsdl2-dev
 git clone https://github.com/shinyblink/sled.git
 cd sled
 make
+./sled
+```
+
+- Nix:
+```bash
+git clone https://github.com/shinyblink/sled.git
+cd sled
+nix-shell --run make
 ./sled
 ```
 

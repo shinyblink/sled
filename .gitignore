@@ -9,6 +9,7 @@ sledconf
 sled
 sled.fish
 terminfo/
+.cache
 
 # crashy stuff
 *.core
