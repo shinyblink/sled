@@ -171,6 +171,10 @@
         nav > :first-child, nav > :last-child {
             flex: 1 1 0;
         }
+
+        body.hidden_ui > *:not(#sled_output_div) {
+            display: none;
+        }
         
     </style>
 </head>
@@ -202,7 +206,7 @@ we just ported it to WebASM!</p>
 </div>
 
 
-<div class="emscripten_border">
+<div class="emscripten_border" id="sled_output_div">
     <canvas class="emscripten" id="sled_output" width="128" height="128" oncontextmenu="event.preventDefault()"
             tabindex=-1></canvas>
 </div>
@@ -295,6 +299,15 @@ we just ported it to WebASM!</p>
         window.requestAnimationFrame(() => {
             window.sled_ctx.putImageData(img, 0, 0);
         });
+    }
+</script>
+<script type='text/javascript'>
+    if (window.location.hash === '#inline') {
+        // hide any UI through css magic
+        document.getElementsByTagName("body")[0].classList.add("hidden_ui");
+        // undo any styling on the output
+        document.getElementById("sled_output_div").classList.remove("emscripten_border");
+        document.getElementById("sled_output").classList.remove("emscripten");
     }
 </script>
 <script async type="text/javascript" src="sled.js"></script>
