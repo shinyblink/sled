@@ -33,12 +33,16 @@
         canvas.emscripten {
             border: 0 none;
             background-color: black;
-            height: 80vh;
-            height: calc(min(90vh - 115px, 100vw));
             /* chromium compat */
             image-rendering: pixelated;
             image-rendering: crisp-edges;
             z-index: 1;
+        }
+
+        /* extracted from above canvas.emscripten, so we can remove these properties for the inline version */
+        canvas.emscripten_size_stuff {
+            height: 80vh;
+            height: calc(min(90vh - 115px, 100vw));
         }
 
         #emscripten_logo {
@@ -207,7 +211,7 @@ we just ported it to WebASM!</p>
 
 
 <div class="emscripten_border" id="sled_output_div">
-    <canvas class="emscripten" id="sled_output" width="128" height="128" oncontextmenu="event.preventDefault()"
+    <canvas class="emscripten emscripten_size_stuff" id="sled_output" width="128" height="128" oncontextmenu="event.preventDefault()"
             tabindex=-1></canvas>
 </div>
 <textarea id="output" rows="8"></textarea>
@@ -307,7 +311,7 @@ we just ported it to WebASM!</p>
         document.getElementsByTagName("body")[0].classList.add("hidden_ui");
         // undo any styling on the output
         document.getElementById("sled_output_div").classList.remove("emscripten_border");
-        document.getElementById("sled_output").classList.remove("emscripten");
+        document.getElementById("sled_output").classList.remove("emscripten_size_stuff");
     }
 </script>
 <script async type="text/javascript" src="sled.js"></script>
