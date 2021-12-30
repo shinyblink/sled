@@ -98,7 +98,7 @@ void fire_palette_init(void)
 void reset(int _modno) {
 	fire_nexttick = udate();
 	fire_framecount = 0;
-	memset(fire, 0, matrix_getx() * matrix_gety());
+	memset(fire, 0, matrix_getx() * matrix_gety() * sizeof(int));
 }
 
 int draw(int _modno, int argc, char* argv[]) {
