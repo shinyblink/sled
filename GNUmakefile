@@ -171,6 +171,7 @@ include Makefiles/card10.GNUmakefile
 include Makefiles/esp32.GNUmakefile
 include Makefiles/ndless.GNUmakefile
 include Makefiles/emscripten.GNUmakefile
+include Makefiles/unix_jni.GNUmakefile
 
 # --- All/Cleaning begins here ---
 
