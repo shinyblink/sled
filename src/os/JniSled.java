@@ -26,22 +26,23 @@ public class JniSled implements Runnable {
     }
 
     public int getMatrixX() {
-            return matrixX;
+        return matrixX;
     }
 
     public int getMatrixY() {
         return matrixY;
     }
 
+    public int[] getCurrentBuffer() {
+        return currentBuf;
+    }
+
+    // called from out_jnibuf
     // TODO: maybe make this trigger a callback optionally?
     //  could use that to let the user immediately render,
     //  "pushing" instead of polling
     //  this would let us have a variable frame rate dictated by sled.
-    public void setCurrentBuffer(int[] buf) {
+    private void setCurrentBuffer(int[] buf) {
         currentBuf = buf;
-    }
-
-    public int[] getCurrentBuffer() {
-        return currentBuf;
     }
 }
