@@ -44,7 +44,7 @@ static jfieldID jf_maty;
 static int matx;
 static int maty;
 
-void ignoreException() {
+void print_any_exceptions() {
     if (JniEnv->ExceptionCheck(pJniEnv)) {
         // this doesn't actually output anything??
         JniEnv->ExceptionDescribe(pJniEnv);
@@ -56,8 +56,7 @@ void swapBuffers() {
     currentBuffer = NEXTBUFFER;
     JniEnv->CallVoidMethodA(pJniEnv, jo_jni_sled, jm_setCurrentBuffer, (jvalue *) &buffers[currentBuffer]);
 
-    // warnings constantly show up with -Xcheck:jni, I have no idea why
-    ignoreException();
+    print_any_exceptions();
 }
 
 inline unsigned int rgb2uint(RGB color) {
