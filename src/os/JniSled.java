@@ -8,17 +8,29 @@ public class JniSled implements Runnable {
         System.loadLibrary("sled");
     }
 
-    // only set these before starting the thread!!!
-    public static int MATRIX_X = 256;
-    public static int MATRIX_Y = 256;
+    private int matrixX = 256;
+    private int matrixY = 256;
 
     private int[] currentBuf;
+
+    public JniSled(int x, int y) {
+        matrixX = x;
+        matrixY = y;
+    }
 
     public native void main();
 
     @Override
     public void run() {
         main();
+    }
+
+    public int getMatrixX() {
+            return matrixX;
+    }
+
+    public int getMatrixY() {
+        return matrixY;
     }
 
     // TODO: maybe make this trigger a callback optionally?
