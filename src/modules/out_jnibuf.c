@@ -78,10 +78,10 @@ int init(void) {
     jc_jni_sled = JniEnv->GetObjectClass(pJniEnv, jo_jni_sled);
 
     // determine sizes
-    jf_matx = JniEnv->GetStaticFieldID(pJniEnv, jc_jni_sled, "MATRIX_X", "I");
-    jf_maty = JniEnv->GetStaticFieldID(pJniEnv, jc_jni_sled, "MATRIX_Y", "I");
-    matx = JniEnv->GetStaticIntField(pJniEnv, jc_jni_sled, jf_matx);
-    maty = JniEnv->GetStaticIntField(pJniEnv, jc_jni_sled, jf_maty);
+    jf_matx = JniEnv->GetFieldID(pJniEnv, jc_jni_sled, "matrixX", "I");
+    jf_maty = JniEnv->GetFieldID(pJniEnv, jc_jni_sled, "matrixY", "I");
+    matx = JniEnv->GetIntField(pJniEnv, jo_jni_sled, jf_matx);
+    maty = JniEnv->GetIntField(pJniEnv, jo_jni_sled, jf_maty);
     JNI_BUFFER_SIZE = matx * maty * sizeof(jint);
 
     // allocate output buffers
