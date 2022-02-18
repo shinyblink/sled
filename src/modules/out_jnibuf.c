@@ -102,7 +102,7 @@ int gety(int _modno) {
     return maty;
 }
 
-inline void bounds_check(int x, int y) {
+static inline void bounds_check(int x, int y) {
     assert(x >= 0);
     assert(y >= 0);
     assert(x < matx);
