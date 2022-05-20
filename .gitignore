@@ -43,3 +43,6 @@ sled.wasm.map
 # CLion
 .idea/
 /compile_commands.json
+
+# nix default result symlink (from nix-build)
+/result
