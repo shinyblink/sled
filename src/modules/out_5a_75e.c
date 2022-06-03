@@ -124,7 +124,7 @@ int init(void) {
   struct ifreq if_idx;
 
   /* Open RAW socket to send on */
-  if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) == -1)
+  if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) < 0)
   {
     perror("socket");
   }
@@ -183,6 +183,7 @@ int clear(int _modno)
 
 int render(void)
 {
+  // Limit frame rate. In this configuration, the matrix is only stable up to ~70fps
   static oscore_time last = 0;
   oscore_time now = udate();
   oscore_time elapsed = now - last;
@@ -193,18 +194,7 @@ int render(void)
   }
   else
   {
-  	last = now;
-  }
-
-  static oscore_time lastfps = 0;
-  static int frames = 0;
-  oscore_time elapsedfps = now - lastfps;
-  frames++;
-  if(elapsedfps > 2000000)
-  {
-    printf("%.2lf\n", (double)frames / (elapsedfps / 1000000.0));
-    lastfps = now;
-    frames = 0;
+    last = now;
   }
 
   for (int i = 0; i < HEIGHT; ++i)
@@ -214,7 +204,7 @@ int render(void)
     /* Send line packet */
     if (sendto(sockfd, line, sizeof(line)/sizeof(line[0]), 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
     {
-      printf("Send line %d failed\n", i);
+      perror("Send line failed");
     }
   }
 
@@ -223,7 +213,7 @@ int render(void)
   /* Send bufferswap packet */
   if (sendto(sockfd, bufferswap, sizeof(bufferswap)/sizeof(bufferswap[0]), 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
   {
-    printf("Send bufferswap failed\n");
+    perror("Send bufferswap failed");
   }
 
   return 0;
