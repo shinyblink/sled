@@ -138,24 +138,16 @@ int render(int _modno) {
 
 oscore_time wait_until(int _modno, oscore_time desired_usec) {
 	SDL_Event ev;
-	while (1) {
-		oscore_time tnow = udate();
-		if (tnow >= desired_usec)
-			return tnow;
-
-		int sleeptimems = (desired_usec - tnow) / 1000;
-		if (SDL_WaitEventTimeout(&ev, sleeptimems)) {
-			if (ev.type == SDL_QUIT) {
-				timers_doquit();
-				return udate();
-			} else if (ev.type == sdl_event_break) {
-				timers_wait_until_break_cleanup_core();
-				return udate();
-			}
-		} else {
-			return timers_wait_until_core(desired_usec);
+	while (SDL_PollEvent(&ev)) {
+		if (ev.type == SDL_QUIT) {
+			timers_doquit();
+			return udate();
+		} else if (ev.type == sdl_event_break) {
+			timers_wait_until_break_cleanup_core();
+			return udate();
 		}
 	}
+	return timers_wait_until_core(desired_usec);
 }
 
 void wait_until_break(int _modno) {
