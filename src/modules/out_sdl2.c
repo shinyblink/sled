@@ -39,8 +39,6 @@
 static size_t BUFFER_SIZE;
 static RGB* BUFFER;
 
-static unsigned int sdl_event_break;
-
 #define WIN_W (MATRIX_X * SDL_SCALE_FACTOR)
 #define WIN_H (MATRIX_Y * SDL_SCALE_FACTOR)
 
@@ -56,7 +54,6 @@ int init (int moduleno __attribute__((unused)), char *argstr __attribute__((unus
 	if (SDL_Init(SDL_INIT_VIDEO))
 		return 2;
 
-	sdl_event_break = SDL_RegisterEvents(1);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, 0);
 #ifdef SDLFULLSCREEN
 	SDL_DisplayMode dispmode;
@@ -142,19 +139,12 @@ oscore_time wait_until(int _modno, oscore_time desired_usec) {
 		if (ev.type == SDL_QUIT) {
 			timers_doquit();
 			return udate();
-		} else if (ev.type == sdl_event_break) {
-			timers_wait_until_break_cleanup_core();
-			return udate();
 		}
 	}
 	return timers_wait_until_core(desired_usec);
 }
 
 void wait_until_break(int _modno) {
-	SDL_Event myevent;
-	memset(&myevent, 0, sizeof(myevent));
-	myevent.type = sdl_event_break;
-	SDL_PushEvent(&myevent);
 	timers_wait_until_break_core();
 }
 
