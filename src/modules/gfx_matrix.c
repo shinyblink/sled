@@ -24,7 +24,7 @@
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
-#define FRAMES (TIME_SHORT * FPS)
+#define FRAMES (TIME_MEDIUM * FPS)
 
 static int modno;
 static int frame;

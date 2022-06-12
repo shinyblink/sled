@@ -28,7 +28,7 @@
 #include <limits.h>
 
 
-#define FPS 30
+#define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (TIME_LONG * FPS)
 
