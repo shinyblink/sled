@@ -178,8 +178,6 @@ int draw(int moduleid, int argc, char* argv[])
 
 void deinit(int moduleid)
 {
-   if (particle)
-   {
-      free(particle);
-   }
+   free(particle);
+   particle = NULL;
 }
