@@ -32,13 +32,6 @@
 #define WIDTH 256
 #define HEIGHT 256
 
-#define xstr(x) str(x)
-#define str(x) #x
-
-#ifndef INTERFACE
-#error "define INTERFACE in sledconf"
-#endif
-
 typedef struct
 {
   uint8_t b;
@@ -127,7 +120,7 @@ void wait_until_break(int _modno)
   #endif
 }
 
-int init(void) {
+int init(int moduleno, char *argstr) {
   struct ifreq if_idx;
 
   /* Open RAW socket to send on */
@@ -138,7 +131,7 @@ int init(void) {
 
   /* Get the index of the interface to send on */
   memset(&if_idx, 0, sizeof(struct ifreq));
-  strncpy(if_idx.ifr_name, xstr(INTERFACE), IFNAMSIZ-1);
+  strncpy(if_idx.ifr_name, argstr, IFNAMSIZ-1);
   if (ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0)
   {
     perror("SIOCGIFINDEX");
