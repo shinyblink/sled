@@ -354,9 +354,23 @@ int sled_main(int argc, char** argv) {
 					asl_clearav(&tnext.args);
 					continue;
 				}
+				// FPS measurement
+				static oscore_time lastfps = 0;
+				static int frames = 0;
+				oscore_time now = udate();
+				oscore_time elapsedfps = now - lastfps;
+				frames++;
+				if (elapsedfps > 2000000)
+				{
+					printf("%.2lf\n", (double)frames / (elapsedfps / 1000000.0));
+					lastfps = now;
+					frames = 0;
+				}
+				// Check for module switch and draw frame
 				if (tnext.moduleno != lastmod) {
-					printf("\n>> Now drawing %s", mod->name);
-					fflush(stdout);
+					printf("\n>> Now drawing %s\n.", mod->name);
+					lastfps = now;
+					frames = 0;
 					if (mod->reset) {
 						mod->reset(tnext.moduleno);
 					} else {
@@ -364,9 +378,10 @@ int sled_main(int argc, char** argv) {
 					}
 				} else {
 					printf(".");
-					fflush(stdout);
 				};
+				fflush(stdout);
 				ret = mod->draw(tnext.moduleno, tnext.args.argc, tnext.args.argv);
+				// Check for draw return: continue, next module or error
 				asl_clearav(&tnext.args);
 				lastmod = tnext.moduleno;
 				if (ret != 0) {
