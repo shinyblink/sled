@@ -11,6 +11,7 @@
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (TIME_LONG * FPS)
 #define FOREVER 0
+#define WRAP 1
 
 typedef struct
 {
@@ -31,10 +32,12 @@ static float frand(float max)
    return max * rand() / RAND_MAX;
 }
 
+#if WRAP == 0
 static int validCoordinate(float x, float y)
 {
    return (((int)x < screenW) && ((int)x >= 0) && ((int)y < screenH) && ((int)y >= 0));
 }
+#endif
 
 static float speciesValue(float sensX, float sensY, int species)
 {
@@ -71,7 +74,12 @@ static float sensValue(particle_t *curParticle, float distance, float angle)
    float retVal = 0;
    float sensX = curParticle->x + distance * sinf(curParticle->direction + angle);
    float sensY = curParticle->y + distance * cosf(curParticle->direction + angle);
+   #if (WRAP == 1)
+   sensX = fmodf((sensX + screenW), screenW);
+   sensY = fmodf((sensY + screenH), screenH);
+   #else
    if (validCoordinate(sensX, sensY))
+   #endif
    {
       float own = speciesValue(sensX, sensY, curParticle->species);
       float other = speciesValue(sensX, sensY, curParticle->species + 1);
@@ -134,15 +142,23 @@ int draw(int moduleid, int argc, char* argv[])
       // movement and border handling
       float dx = 0.5f * sinf(curParticle->direction);
       float dy = 0.5f * cosf(curParticle->direction);
+      #if (WRAP == 0)
+      float ox = curParticle->x;
+      float oy = curParticle->y;
+      #endif
       curParticle->x += dx;
       curParticle->y += dy;
+      #if (WRAP == 1)
+      curParticle->x = fmodf((curParticle->x + screenW), screenW);
+      curParticle->y = fmodf((curParticle->y + screenH), screenH);
+      #else
       if (!validCoordinate(curParticle->x, curParticle->y))
       {
-         curParticle->x -= dx;
-         curParticle->y -= dy;
+         curParticle->x = ox;
+         curParticle->y = oy;
          curParticle->direction += (float)M_PI;
       }
-      
+      #endif
       // drawing
       setSpeciesValue(curParticle->x, curParticle->y, curParticle->species, 255);
    }
@@ -162,8 +178,6 @@ int draw(int moduleid, int argc, char* argv[])
 
 void deinit(int moduleid)
 {
-   if (particle)
-   {
-      free(particle);
-   }
+   free(particle);
+   particle = NULL;
 }
