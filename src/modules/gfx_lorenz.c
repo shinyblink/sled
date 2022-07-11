@@ -38,7 +38,7 @@ static int frame;
 static oscore_time nexttick;
 
 static RGB white = RGB(255, 255, 255);
-static RGB black = RGB(0, 0, 0);
+
 #define P_MAX 15
 #define DELTA_T 0.001
 typedef vec3 Point;
@@ -48,12 +48,22 @@ const float rho = 28.0;
 const float sigma = 10.0;
 const float beta = 8.0 / 3.0;
 
+
+static unsigned int xmax;
+static unsigned int ymax;
+
+static const unsigned int frame_xmax = 32;
+static const unsigned int frame_ymax = 32;
+
 int init(int moduleno, char* argstr) {
 	// doesn't look very great with anything less.
-	if (matrix_getx() < 8)
+	if (matrix_getx() < 64)
 		return 1;
-	if (matrix_gety() < 8)
+	if (matrix_gety() < 64)
 		return 1;
+
+	xmax = matrix_getx();
+	ymax = matrix_gety();
 
 	modno = moduleno;
 	frame = 0;
@@ -104,8 +114,8 @@ int draw(int _modno, int argc, char* argv[]) {
 		for (int i =0; i<P_MAX; i++){
 			lorenz_int(&p[i], DELTA_T);
 
-			int x = p[i].x*4 + 128;
-			int y = p[i].y*4 + 128;
+			int x = p[i].x * (xmax/frame_xmax/2) + xmax/2;
+			int y = p[i].y * (ymax/frame_ymax/2) + ymax/2;
 			matrix_set(x, y, white);
 		}
 	}
