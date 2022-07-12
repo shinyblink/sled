@@ -24,13 +24,16 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <mathey.h>
+#include <stdio.h>
 
-#define FRAMETIME (T_SECOND / 60)
-#define FRAMES (TIME_LONG * 60)
+#define FPS 60
+#define FRAMETIME (T_SECOND / FPS)
+#define FRAMES (TIME_LONG * FPS)
 
 static int modno;
-static int frame;
+static unsigned int frame;
 static oscore_time nexttick;
+static float delta0;
 
 static RGB white = RGB(255, 255, 255);
 
@@ -43,7 +46,8 @@ static const float rho = 28.0;
 static const float sigma = 10.0;
 static const float beta = 8.0 / 3.0;
 
-
+// Rotations speed in rpm
+static unsigned int rotate_rpm = 9;
 static unsigned int xmax;
 static unsigned int ymax;
 
@@ -60,16 +64,21 @@ int init(int moduleno, char* argstr) {
 	modno = moduleno;
 	frame = 0;
 
+	delta0 = 2 * M_PI * rand()/(float)(RAND_MAX);
+
 	for (int i = 0; i<P_MAX; i++) {
-		p[i].x = random()/(float)(RAND_MAX)*10.;
-		p[i].y = random()/(float)(RAND_MAX)*10.;
-		p[i].z = random()/(float)(RAND_MAX)*10.;
+		p[i].x = rand()/(float)(RAND_MAX)*10.;
+		p[i].y = rand()/(float)(RAND_MAX)*10.;
+		p[i].z = rand()/(float)(RAND_MAX)*10.;
 	}
 
 	return 0;
 }
 
 void reset(int _modno) {
+	rotate_rpm = randn(3)*3;
+	delta0 = 2 * M_PI * rand()/(float)(RAND_MAX);
+	printf("\nrpm: %i   delta0: %f\n",rotate_rpm, delta0);
 	nexttick = udate();
 	frame = 0;
 }
@@ -100,8 +109,17 @@ int draw(int _modno, int argc, char* argv[]) {
 		for (int i = 0; i < P_MAX; i++) {
 			lorenz_int(&p[i], DELTA_T);
 
-			int x = p[i].x * (xmax/frame_xmax/2) + xmax/2;
-			int y = p[i].y * (ymax/frame_ymax/2) + ymax/2;
+
+			float scale = rotate_rpm == 0 ? 0.0 : ((frame % (FPS * 60 / rotate_rpm )) / (FPS * 60.0 / rotate_rpm));
+
+			float delta = delta0 + 2 * M_PI * scale;
+			while (delta < -M_PI) delta += 2 * M_PI;
+			while (delta > M_PI) delta -= 2 * M_PI;
+
+			float x = p[i].x * cos(delta) - p[i].y * sin(delta);
+			float y = p[i].x * sin(delta) + p[i].y * cos(delta);
+			x = x * (xmax/frame_xmax/2) + xmax/2;
+			y = y * (ymax/frame_ymax/2) + ymax/2;
 			matrix_set(x, y, white);
 		}
 	}
