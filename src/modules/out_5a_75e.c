@@ -16,6 +16,8 @@
 
 #include <arpa/inet.h>
 #include <linux/if_packet.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -120,13 +122,32 @@ void wait_until_break(int _modno)
   #endif
 }
 
+void p_error(char* str)
+{
+  if(errno)
+  {
+    perror(str);
+  }
+  else
+  {
+    fputs(str, stderr);
+    fputs("\n", stderr);
+  }
+  exit(-1);
+}
+
 int init(int moduleno, char *argstr) {
   struct ifreq if_idx;
+  
+  if (!argstr)
+  {
+    p_error("no network interface provided. use \"sled -o 5a_75e:ifname\" to specify interface");
+  }
 
   /* Open RAW socket to send on */
   if ((sockfd = socket(AF_PACKET, SOCK_RAW, IPPROTO_RAW)) < 0)
   {
-    perror("socket");
+    p_error("socket");
   }
 
   /* Get the index of the interface to send on */
@@ -134,7 +155,7 @@ int init(int moduleno, char *argstr) {
   strncpy(if_idx.ifr_name, argstr, IFNAMSIZ-1);
   if (ioctl(sockfd, SIOCGIFINDEX, &if_idx) < 0)
   {
-    perror("SIOCGIFINDEX");
+    p_error("SIOCGIFINDEX");
   }
 
   /* Index of the network device */
@@ -204,7 +225,7 @@ int render(void)
     /* Send line packet */
     if (sendto(sockfd, line, sizeof(line)/sizeof(line[0]), 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
     {
-      perror("Send line failed");
+      p_error("Send line failed");
     }
   }
 
@@ -213,7 +234,7 @@ int render(void)
   /* Send bufferswap packet */
   if (sendto(sockfd, bufferswap, sizeof(bufferswap)/sizeof(bufferswap[0]), 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
   {
-    perror("Send bufferswap failed");
+    p_error("Send bufferswap failed");
   }
 
   return 0;
