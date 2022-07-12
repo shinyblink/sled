@@ -109,7 +109,6 @@ int draw(int _modno, int argc, char* argv[]) {
 		for (int i = 0; i < P_MAX; i++) {
 			lorenz_int(&p[i], DELTA_T);
 
-
 			float scale = rotate_rpm == 0 ? 0.0 : ((frame % (FPS * 60 / rotate_rpm )) / (FPS * 60.0 / rotate_rpm));
 
 			float delta = delta0 + 2 * M_PI * scale;
@@ -120,6 +119,11 @@ int draw(int _modno, int argc, char* argv[]) {
 			float y = p[i].x * sin(delta) + p[i].y * cos(delta);
 			x = x * (xmax/frame_xmax/2) + xmax/2;
 			y = y * (ymax/frame_ymax/2) + ymax/2;
+
+			if (x < 0) continue;
+			if (y < 0) continue;
+			if (x >= xmax) continue;
+			if (y >= ymax) continue;
 			matrix_set(x, y, white);
 		}
 	}
