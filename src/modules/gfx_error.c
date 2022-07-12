@@ -74,8 +74,8 @@ int init(int moduleno, char* argstr) {
 	return 0;
 }
 
-static RGB bgcol = RGB(166, 166, 166); // the background, grey
-static RGB bordercol = RGB(0, 0, 200); // border, blue
+static RGB bgcol = RGB(95, 95, 95); // the background, grey
+static RGB bordercol = RGB(0, 0, 191); // border, blue
 static RGB xcol = RGB(255, 0, 0); // red X
 static RGB textcol = RGB(255, 255, 255); // white text
 
