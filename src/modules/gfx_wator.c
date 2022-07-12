@@ -46,7 +46,7 @@ int init(int moduleno, char *argstr) {
 }
 
 void reset(int _modno) {
-	frames = 20 * 60 * 3; // 3min
+	frames = 20 * TIME_LONG; // 3min
 	fishs = 0;
 	sharks = 0;
 	nexttick = udate();
