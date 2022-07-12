@@ -1,6 +1,6 @@
 # sled: The satanic LED controller
 
-![GitHub Actions CI](https://github.com/shinyblink/sled/workflows/CI/badge.svg) [![Travis CI](https://travis-ci.com/shinyblink/sled.svg?branch=master)](https://travis-ci.com/shinyblink/sled) [![builds.sr.ht CI](https://builds.sr.ht/~vifino/sled.svg)](https://builds.sr.ht/~vifino/sled?) [![Join the chat at https://gitter.im/shinyblink/sled](https://badges.gitter.im/shinyblink/sled.svg)](https://gitter.im/shinyblink/sled?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f5b7d8263e74462cbf13e2fd0fc90028)](https://app.codacy.com/gh/shinyblink/sled)
+![GitHub Actions CI](https://github.com/shinyblink/sled/workflows/CI/badge.svg) [![Join the chat at https://gitter.im/shinyblink/sled](https://badges.gitter.im/shinyblink/sled.svg)](https://gitter.im/shinyblink/sled?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Modular LED Matrix controller.
 
@@ -317,14 +317,12 @@ Anything with no statement follows the ISC, with the copyright holder being
 Adrian "vifino" Pistol, as per the `COPYING` file in this project.
 
 ## Support
-Support for sled is done on a if-i-can-find-the-time basis. Mostly, this project is for myself.
+Support for sled is done on a if-i-can-find-the-time basis. Mostly, this project is for [myself](https://github.com/vifino).
 
 I'll try to help everyone, but I might take some time.
 
-If you'd like to support my work or me in general, I have a [donation page](https://i0i0.me/donateme.html).
-
-Anything is highly appreciated. If you are donating via PayPal, please set a message so I can thank you!
+If you'd like to support my work or me in general, you can [sponsor me via GitHub](https://github.com/sponsors/vifino)!
 
 Most of the donations tracable to anything sled related will be spend buying different LED matrices and other hardware.
 
-Plus, buying cola and booze. ;)
+Plus, buying Mate, Rum and Limes to motivate me and others by making Tschunk. ;)
