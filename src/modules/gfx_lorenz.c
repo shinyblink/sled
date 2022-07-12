@@ -1,6 +1,6 @@
-// Conway's Game of Life.
+// Lorenz System
 //
-// Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
+// Copyright (c) 2022, Olaf "Brolf" Pichler <brolf@magheute.net>
 // 
 // Permission to use, copy, modify, and/or distribute this software for any
 // purpose with or without fee is hereby granted, provided that the above
@@ -25,13 +25,8 @@
 #include <assert.h>
 #include <mathey.h>
 
-#define FRAMETIME (T_SECOND / 60) // 4fps, sounds goodish.
-#define FRAMES (TIME_MEDIUM * 60)
-
-#define ALIVE 1
-#define DEAD 0
-
-#define POS(x, y) (y * matrix_getx() + x)
+#define FRAMETIME (T_SECOND / 60)
+#define FRAMES (TIME_LONG * 60)
 
 static int modno;
 static int frame;
@@ -44,9 +39,9 @@ static RGB white = RGB(255, 255, 255);
 typedef vec3 Point;
 static Point p[P_MAX];
 
-const float rho = 28.0;
-const float sigma = 10.0;
-const float beta = 8.0 / 3.0;
+static const float rho = 28.0;
+static const float sigma = 10.0;
+static const float beta = 8.0 / 3.0;
 
 
 static unsigned int xmax;
@@ -56,11 +51,8 @@ static const unsigned int frame_xmax = 32;
 static const unsigned int frame_ymax = 32;
 
 int init(int moduleno, char* argstr) {
-	// doesn't look very great with anything less.
-	if (matrix_getx() < 64)
-		return 1;
-	if (matrix_gety() < 64)
-		return 1;
+	if (matrix_getx() < 64)	return 1;
+	if (matrix_gety() < 64)	return 1;
 
 	xmax = matrix_getx();
 	ymax = matrix_gety();
@@ -68,17 +60,14 @@ int init(int moduleno, char* argstr) {
 	modno = moduleno;
 	frame = 0;
 
-	for (int i = 0; i<P_MAX; i++)
-	{
+	for (int i = 0; i<P_MAX; i++) {
 		p[i].x = random()/(float)(RAND_MAX)*10.;
 		p[i].y = random()/(float)(RAND_MAX)*10.;
 		p[i].z = random()/(float)(RAND_MAX)*10.;
 	}
 
-	matrix_clear();
 	return 0;
 }
-
 
 void reset(int _modno) {
 	nexttick = udate();
@@ -96,11 +85,8 @@ static void lorenz_int( Point* p, float delta_t) {
 }
 
 int draw(int _modno, int argc, char* argv[]) {
-
-	for (int x = 0; x < matrix_getx(); x++ )
-	{
-		for ( int y = 0; y < matrix_gety(); y++ )
-		{
+	for (int x = 0; x < matrix_getx(); x++ ) {
+		for ( int y = 0; y < matrix_gety(); y++ ) {
 			RGB c = matrix_get(x,y);
 			c.red *= 0.99;
 			c.green *= 0.9;
@@ -110,8 +96,8 @@ int draw(int _modno, int argc, char* argv[]) {
 	}
 
 
-	for (int l = 0; l< 10; l++){
-		for (int i =0; i<P_MAX; i++){
+	for (int l = 0; l < 10; l++) {
+		for (int i = 0; i < P_MAX; i++) {
 			lorenz_int(&p[i], DELTA_T);
 
 			int x = p[i].x * (xmax/frame_xmax/2) + xmax/2;
@@ -130,5 +116,4 @@ int draw(int _modno, int argc, char* argv[]) {
 	return 0;
 }
 
-void deinit(int _modno) {
-}
+void deinit(int _modno) {}
