@@ -16,88 +16,86 @@
 static int screenW;
 static int screenH;
 static int frame;
-static double ax, ay;
-static double a, b, c, d;
-static double da, db, dc, dd;
+static double t;
 
 static double frand(double max)
 {
-   return max * rand() / RAND_MAX;
+  return max * rand() / RAND_MAX;
+}
+
+static void fadeby(double f)
+{
+  for (int y = 0; y < screenH; ++y)
+  {
+    for (int x = 0; x < screenW; ++x)
+    {
+      RGB col = matrix_get(x, y);
+      col.red *= f;
+      col.green *= f;
+      col.blue *= f;
+      matrix_set(x, y, col);
+    }
+  }
 }
 
 int init(int moduleid, char* argstr)
 {
    screenW = matrix_getx();
    screenH = matrix_gety();
-   
    return 0;
 }
 
 void reset(int moduleid)
 {
-  a = frand(8) - 4;
-  b = frand(8) - 4;
-  c = frand(8) - 4;
-  d = frand(8) - 4;
-  da = a > 0 ? -0.001 : 0.001;
-  db = b > 0 ? -0.001 : 0.001;
-  dc = c > 0 ? -0.001 : 0.001;
-  dd = d > 0 ? -0.001 : 0.001;
+  t = frand(1e6);
 }
 
 int draw(int moduleid, int argc, char* argv[])
 {
+  static double x1, y1;
+  static int forever = 0;
+  
   oscore_time now = udate();
-  for (int y = 0; y < screenH; ++y)
+  fadeby(0.98);
+
+  double a = 4 * sin(t * 1.05);
+  double b = 4 * sin(t * 1.07);
+  double c = 4 * sin(t * 1.11);
+  double d = 4 * sin(t * 1.13);
+  
+  if (argc)
   {
-    for (int x = 0; x < screenW; ++x)
-    {
-      RGB col = matrix_get(x, y);
-      col.red *= 0.98;
-      col.green *= 0.98;
-      col.blue *= 0.98;
-      matrix_set(x, y, col);
-    }
+    forever = (argv[0][0] == 'f');
   }
   
   int over = 0;
   for (int i = 0; i < STEPS; i++)
   {
-    double x2 = sin(a * ay) - cos(b * ax);
-    double y2 = sin(c * ax) - cos(d * ay);
-    int x = x2 * 0.23 * screenW + screenW * 0.5;
-    int y = y2 * 0.23 * screenH + screenH * 0.5;
-    double dx = ax - x2;
-    double dy = ay - y2;
-    int dr = 4 * fabs(dx);
-    int dg = 4 * fabs(dy);
-    int db = 4;
+    double x2 = sin(a * y1) - cos(b * x1);
+    double y2 = sin(c * x1) - cos(d * y1);
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    int dr = (80000.0 / STEPS) * fabs(dx);
+    int dg = (80000.0 / STEPS) * fabs(dy);
+    int db = (80000.0 / STEPS);
+    int x = x2 * 0.25 * (screenW - 11) + screenW * 0.5;
+    int y = y2 * 0.25 * (screenH - 11) + screenH * 0.5;
     RGB col = matrix_get(x, y);
-    int red = col.red + dr;
-    int green = col.green + dg;
-    int blue = col.blue + db;
-    if (red > 255) red = 255;
-    if (green > 255) green = 255;
-    if (blue > 255) {blue = 255; over++;}
-    col.red =  red;
-    col.green = green;
-    col.blue = blue;
+    col = RGB(MIN(col.red + dr, 255), MIN(col.green + dg, 255), MIN(col.blue + db, 255)); 
+    if (col.blue == 255) over++;
     matrix_set(x, y, col);
-    ax = x2;
-    ay = y2;
+    x1 = x2;
+    y1 = y2;
   }
-  double speed = (double)(over - 5000) / 150;
-  speed = speed < 1.0 ? 1.0 : speed;
-  a += speed * da;
-  b += speed * db;
-  c += speed * dc;
-  d += speed * dd;
+  double speed = (over - 0.3 * STEPS) / (0.015 * STEPS);
+  speed = MAX(1.0, speed);
+  t += 0.0005 * speed;
 
   matrix_render();
   if (frame++ >= FRAMES)
   {
     frame = 0;
-    return 1;
+    if (!forever) return 1;
   }
   oscore_time nexttick = now + T_SECOND / FPS;
   timer_add(nexttick, moduleid, 0, NULL);
