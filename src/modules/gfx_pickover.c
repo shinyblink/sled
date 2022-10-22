@@ -30,8 +30,9 @@
 #define FRAMES (TIME_MEDIUM * FPS)
 
 // performance parameter
-#define STABLE_DT 2.0
+#define STABLE_DT 1.0
 #define ITER_MAX 1000
+#define SKIP_COUNT 2  // skips xmax*ymax/N pixel per frame
 
 // scoll max value
 #define Z_MAX 5
@@ -142,6 +143,9 @@ int draw(int _modno, int argc, char* argv[]) {
     // do shader stuff badly on a single core
     for (uint x = 0; x < xmax; x++ ) {
         for ( uint y = 0; y < ymax; y++ ) {
+            if((y * xmax + x + frame) % SKIP_COUNT) {
+                continue;
+            }
 
             point.x = x * inv_xmax * XY_SCALE;
             point.y = y * inv_ymax * XY_SCALE;
