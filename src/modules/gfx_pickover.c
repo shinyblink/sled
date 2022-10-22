@@ -109,17 +109,17 @@ void reset(int _modno) {
 	nexttick = udate();
 	frame = 0;
 
-	// slightly adjust scroll speed
-	inc_z += (1-2.0*rand()/(float)(RAND_MAX)) * 0.002;
+    // slightly adjust scroll speed
+    inc_z += (1-2.0*rand()/(float)(RAND_MAX)) * 0.002;
 
-	// Prevent running to far from z=0
-	if( (z < 0 && z < -Z_MAX && inc_z < 0) ||
-		(z > 0 && z > Z_MAX && inc_z > 0) ) {
-		inc_z = -inc_z;
-	}
+    // Prevent running to far from z=0
+    if( (z < 0 && z < -Z_MAX && inc_z < 0) ||
+        (z > 0 && z > Z_MAX && inc_z > 0) ) {
+        inc_z = -inc_z;
+    }
 
-	// display z and inc_z
-	printf("z: %f   inc_z: %f\n", z, inc_z);
+    // display z and inc_z
+    printf("z: %f   inc_z: %f\n", z, inc_z);
 }
 
 // numerical function iterator
