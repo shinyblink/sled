@@ -232,7 +232,7 @@ int init(int moduleno, char* argstr) {
 	// This is allowed to fail!
 	mkfifo("sled.fish", S_IRUSR | S_IWUSR | S_IRGRP);
 	// FIFO up, open it
-	fish_fifo = open("sled.fish", O_RDONLY | O_NONBLOCK);
+	fish_fifo = open("sled.fish", O_RDWR | O_NONBLOCK);
 	if (fish_fifo < 0) {
 		unlink("sled.fish");
 		return 3;
