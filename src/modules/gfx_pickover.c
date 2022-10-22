@@ -143,24 +143,24 @@ int draw(int _modno, int argc, char* argv[]) {
 		for ( uint y = 0; y < ymax; y++ ) {
 
 			point.x = x * inv_xmax * xy_scale;
-			point.y = y * inv_ymax * xy_scale;
-			point.z = z;
+            point.y = y * inv_ymax * xy_scale;
+            point.z = z;
 
-			for( int count=0; count < ITER_MAX; ++count ) {
-				float dt = pickover_int(&point);
-				if (dt < STABLE_DT) {
-					break;
-				}
-			}
+            for( int count=0; count < ITER_MAX; ++count ) {
+                float dt = pickover_int(&point);
+                if (dt < STABLE_DT) {
+                    break;
+                }
+            }
 
-			float r = point.x < 0 ? -point.x : point.x;
-			float g = point.y < 0 ? -point.y : point.y;
-			float b = point.z < 0 ? -point.z : point.z;
+            float r = point.x < 0 ? -point.x : point.x;
+            float g = point.y < 0 ? -point.y : point.y;
+            float b = point.z < 0 ? -point.z : point.z;
 
-			float dist = sqrt(r*r + g*g + b*b);
+            float dist = sqrt(r*r + g*g + b*b);
 
-			r = r > 1 ? 255.0 * r / dist : 255.0;
-			g = g > 1 ? 255.0 * g / dist : 255.0;
+            r = r > 1 ? 255.0 * r / dist : 255.0;
+            g = g > 1 ? 255.0 * g / dist : 255.0;
 		    b = 255.0 * b/(b+1.0);
 
 			RGB c = RGB(255 - (uint)r, 255 - (uint)g, (uint)b);
