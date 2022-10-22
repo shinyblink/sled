@@ -58,6 +58,9 @@ static snek_position_t snek_target;
 static int snek_game_state;
 
 int init(int moduleno, char* argstr) {
+	if (matrix_getx() > 16) return 1;
+	if (matrix_gety() > 16) return 1;
+
 	snek_max_length = matrix_getx();
 	int my = matrix_gety();
 	if (my < snek_max_length)
