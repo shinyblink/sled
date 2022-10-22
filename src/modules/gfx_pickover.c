@@ -29,12 +29,6 @@
 #define FRAMETIME (T_SECOND / FPS)
 #define FRAMES (TIME_MEDIUM * FPS)
 
-static int modno;
-static unsigned int frame;
-static oscore_time nexttick;
-
-typedef vec3 Point;
-
 // performance parameter
 #define STABLE_DT 2.0
 #define ITER_MAX 1000
@@ -45,7 +39,10 @@ typedef vec3 Point;
 // initial scroll window [-Z_INIT, Z_INIT]
 #define Z_INIT 3
 
-// EQUATION PARAMETER
+// zoom factor
+#define XY_SCALE 10
+
+// equation parameters
 static float params[4];
 
 // canvas size
@@ -61,11 +58,12 @@ static float z;
 static float inc_z;
 
 // test point
+typedef vec3 Point;
 static Point point;
 
-// scaling factor
-static const float xy_scale = 10;
-
+static int modno;
+static unsigned int frame;
+static oscore_time nexttick;
 
 int init(int moduleno, char* argstr) {
 
@@ -145,8 +143,8 @@ int draw(int _modno, int argc, char* argv[]) {
     for (uint x = 0; x < xmax; x++ ) {
         for ( uint y = 0; y < ymax; y++ ) {
 
-            point.x = x * inv_xmax * xy_scale;
-            point.y = y * inv_ymax * xy_scale;
+            point.x = x * inv_xmax * XY_SCALE;
+            point.y = y * inv_ymax * XY_SCALE;
             point.z = z;
 
             for( int count=0; count < ITER_MAX; ++count ) {
