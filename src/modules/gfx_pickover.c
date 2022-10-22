@@ -42,6 +42,9 @@ typedef vec3 Point;
 // scoll max value
 #define Z_MAX 5
 
+// initial scroll window [-Z_INIT, Z_INIT]
+#define Z_INIT 3
+
 // EQUATION PARAMETER
 static float params[4];
 
@@ -76,7 +79,7 @@ int init(int moduleno, char* argstr) {
 	inv_ymax = 1.0 / ymax;
 
 	// randomize starting scroll parameters z and inc_z
-	z = (1 - 2.0*rand()/(float)(RAND_MAX)) * 1.0;
+	z = (1 - 2.0*rand()/(float)(RAND_MAX)) * Z_INIT;
 	inc_z = z > 0 ? -0.01 : 0.01;
 
 	// initialize params
@@ -114,6 +117,9 @@ void reset(int _modno) {
 		(z > 0 && z > Z_MAX && inc_z > 0) ) {
 		inc_z = -inc_z;
 	}
+
+	// display z and inc_z
+	printf("z: %f   inc_z: %f\n", z, inc_z);
 }
 
 // numerical function iterator
