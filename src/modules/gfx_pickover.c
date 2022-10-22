@@ -17,13 +17,13 @@
 #include <types.h>
 #include <matrix.h>
 #include <timers.h>
-#include <random.h>
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <mathey.h>
 #include <stdio.h>
+#include <random.h>
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
@@ -95,7 +95,7 @@ int init(int moduleno, char* argstr) {
 		if(changed[c] == 0) {
 			c_count++;
 			changed[c] = 1;
-			params[c] += (1.0 - 2.0 * rand() / (float)(RAND_MAX)) * 0.2;
+			params[c] += (1. - 2. * rand() / (float)(RAND_MAX)) * 0.5 / c_count;
 		}
 	}
 
@@ -109,12 +109,9 @@ void reset(int _modno) {
 	// slightly adjust scroll speed
 	inc_z += (1-2.0*rand()/(float)(RAND_MAX)) * 0.002;
 
-	// radomize scroll direction
-	inc_z = rand()%2 ? inc_z : -inc_z;
-
 	// Prevent running to far from z=0
-	if( z < 0 && z < -Z_MAX && inc_z < 0 ||
-		z > 0 && z > Z_MAX && inc_z > 0 ) {
+	if( (z < 0 && z < -Z_MAX && inc_z < 0) ||
+		(z > 0 && z > Z_MAX && inc_z > 0) ) {
 		inc_z = -inc_z;
 	}
 }
@@ -122,7 +119,7 @@ void reset(int _modno) {
 // numerical function iterator
 static float pickover_int( Point* p ) {
 	float dx = sin( params[0] * p->y ) - p->z * cos( params[1] * p->x );
-	float dy = p->z * sin( params[4] * p->x ) - cos( params[3] * p->y );
+	float dy = p->z * sin( params[2] * p->x ) - cos( params[3] * p->y );
 	float dz = sin( p->x );
 
 	float ret = (p->x - dx) * (p->x - dx) +
