@@ -17,7 +17,6 @@
 #include <types.h>
 #include <matrix.h>
 #include <timers.h>
-#include <random.h>
 #include <stddef.h>
 #include <random.h>
 #include <string.h>
@@ -104,12 +103,18 @@ int draw(int _modno, int argc, char* argv[]) {
 		}
 	}
 
-
 	for (int l = 0; l < 10; l++) {
 		for (int i = 0; i < P_MAX; i++) {
 			lorenz_int(&p[i], DELTA_T);
 
-			float scale = rotate_rpm == 0 ? 0.0 : ((frame % (FPS * 60 / rotate_rpm )) / (FPS * 60.0 / rotate_rpm));
+			float scale;
+			if (rotate_rpm == 0){
+				scale = 0.0;
+			}
+			else {
+				scale = ((frame % (FPS * 60 / rotate_rpm )) /
+						 (FPS * 60.0 / rotate_rpm));
+			}
 
 			float delta = delta0 + 2 * M_PI * scale;
 			while (delta < -M_PI) delta += 2 * M_PI;
@@ -127,6 +132,7 @@ int draw(int _modno, int argc, char* argv[]) {
 			matrix_set(x, y, white);
 		}
 	}
+
 	matrix_render();
 	if (frame >= FRAMES) {
 		frame = 0;
