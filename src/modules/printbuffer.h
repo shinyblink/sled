@@ -4,13 +4,13 @@
 
 void printbuffer_clear(int from, int to, RGB fg, RGB bg);
 
-void printbuffer_reset();
+void printbuffer_reset(void);
 
 void printbuffer_init(int row, int column, RGB fg, RGB bg);
 
-void printbuffer_init_default();
+void printbuffer_init_default(void);
 
-void printbuffer_deinit();
+void printbuffer_deinit(void);
 
 #define printbuffer_flag_blink (1)
 #define printbuffer_flag_altchar (1 << 1)
@@ -28,5 +28,5 @@ void printbuffer_write_default(const char *str, int *row, int *column);
 // xbm must contain 128 characters
 void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
                       int blink_delay);
-void printbuffer_draw_default();
+void printbuffer_draw_default(void);
 #endif

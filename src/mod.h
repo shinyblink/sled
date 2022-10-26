@@ -75,7 +75,7 @@ struct module {
 module* mod_find(const char* name);
 int mod_getid(module* mod);
 
-int mod_count();
+int mod_count(void);
 module* mod_get(int moduleno);
 
 #endif

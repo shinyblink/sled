@@ -6,7 +6,7 @@
 #include "asl.h"
 
 // Initializes. Then, runs through over and over again to initialize all mod modules that show up.
-int modloader_initmod();
+int modloader_initmod(void);
 // Sets up the output chain here. This is an exception to the pattern, because it has to return the top of the output chain.
 // Thus, -1 is error.
 // The first filter name and filter argument is the actual output module.

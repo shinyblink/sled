@@ -19,7 +19,7 @@ asl_iv_t modloader_gfx_rotation = {0, NULL};
 // Returns the slot, or -1 on failure.
 int mod_new(int loader, const char * name, int out_chain);
 // Returns non-zero on failure.
-int mod_new_k2link();
+int mod_new_k2link(void);
 
 // Runs some process on the modules from the last loaded
 //  down to the module with the ID in 'count'.
@@ -32,7 +32,7 @@ void mod_unload_to_count(int count, int deinit, int unload);
 
 static asl_av_t all_gfxbgm = {0, NULL};
 
-int modloader_initmod() {
+int modloader_initmod(void) {
 	puts("Initializing modloader tree...");
 	asl_av_t done = {0, NULL};
 	// Inject k2link.
