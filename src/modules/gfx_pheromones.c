@@ -29,7 +29,7 @@ static particle_t *particle;
 
 static float frand(float max)
 {
-   return max * rand() / RAND_MAX;
+   return max * rand() / (float)RAND_MAX;
 }
 
 #if WRAP == 0

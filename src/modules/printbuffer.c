@@ -55,7 +55,7 @@ void printbuffer_clear(int from, int to, RGB fg, RGB bg) {
     oscore_mutex_unlock(buffer_busy);
 }
 
-void printbuffer_reset() {
+void printbuffer_reset(void) {
     printbuffer_clear(0, max_row * max_column, trans, trans);
 }
 
@@ -69,12 +69,12 @@ void printbuffer_init(int row, int column, RGB fg, RGB bg) {
     printbuffer_clear(0, max_row * max_column, fg, bg);
 }
 
-void printbuffer_init_default() {
+void printbuffer_init_default(void) {
     printbuffer_init(matrix_gety() / font_height_def,
                      matrix_getx() / font_width_def, trans, trans);
 }
 
-void printbuffer_deinit() {
+void printbuffer_deinit(void) {
     free(buffer);
     oscore_mutex_free(buffer_busy);
 }
@@ -411,6 +411,6 @@ void printbuffer_draw(unsigned char bits[], int font_width, int font_height,
     oscore_mutex_unlock(buffer_busy);
 }
 
-void printbuffer_draw_default() {
+void printbuffer_draw_default(void) {
     printbuffer_draw(foxel35_bits, font_width_def, font_height_def, 4);
 }

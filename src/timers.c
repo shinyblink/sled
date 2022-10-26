@@ -65,7 +65,7 @@ oscore_time timers_wait_until(oscore_time desired_usec) {
 
 // This code calls into the output module's wait_until_break impl.
 void timers_wait_until_break(void) {
-	return out->wait_until_break(outmodno);
+	out->wait_until_break(outmodno);
 }
 
 int timer_add(oscore_time usec,int moduleno, int argc, char* argv[]) {

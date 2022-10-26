@@ -42,14 +42,11 @@ static int numspeclets;
 static speclet* spectrum;
 static speclet* spectrum2;
 
-static float randf() {
+static float randf(void) {
     return (1.0*randn(200000)-100000.0)/100000.0;
 }
 
 
-static RGB dim(RGB c,float val){
-    return RGB(c.red*val,c.green*val,c.blue*val);
-}
 static RGB colorwheel(float fangle){
     fangle = fangle-floor(fangle);
     //printf("%f ", fangle);

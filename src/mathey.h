@@ -49,7 +49,7 @@ vec2 vdiv(vec2 v1, vec2 v2);
 vec2 multm2v2(matrix2_2 m, vec2 v);
 matrix2_2 multm2(matrix2_2 m1, matrix2_2 m2);
 matrix3_3 multm3(matrix3_3 m1, matrix3_3 m2);
-matrix3_3 identity3();
+matrix3_3 identity3(void);
 matrix3_3 composem3(int n, ...);
 matrix3_3 rotation3(float angle);
 matrix3_3 translation3(float x, float y);

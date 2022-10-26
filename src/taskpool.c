@@ -160,7 +160,7 @@ int taskpool_submit(taskpool* pool, void (*func)(void*), void* ctx) {
 // Hellish stuff to run stuff in parallel.
 inline void taskpool_submit_array(taskpool* pool, int count, void (*func)(void*), void* ctx, size_t size) {
 	for (int i = 0; i < count; i++)
-		taskpool_submit(pool, func, ctx + (i * size));
+		taskpool_submit(pool, func, (char*)ctx + (i * size));
 }
 
 

@@ -113,7 +113,7 @@ oscore_time oscore_udate(void) {
 // Threading
 oscore_task oscore_task_create(const char* name, oscore_task_function func, void* ctx) {
 	pthread_t* thread = calloc(1, sizeof(pthread_t));
-	pthread_create(thread, NULL, (void*) func, ctx);
+	pthread_create(thread, NULL, func, ctx);
 
 #if defined(__linux__) || defined(__NetBSD__)
 	pthread_setname_np(*thread, name);
