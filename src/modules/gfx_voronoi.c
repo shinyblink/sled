@@ -39,8 +39,6 @@ static float delta0;
 static uint16_t xmax;
 static uint16_t ymax;
 
-
-static const RGB white = RGB(255, 255, 255);
 static const RGB black = RGB(0,0,0);
 
 static enum NormType{
@@ -56,21 +54,20 @@ static enum NormType{
 
 static const norm_rand_min = 0;
 static const norm_rand_max = 7;
-static uint16_t choose_random_norm = 0;
+static uint16_t choose_random_norm = 1;
 
 #define P_MAX 20
 static struct Point {
-	float x;
-	float y;
+    float x;
+    float y;
     float vx;
     float vy;
 } points[P_MAX];
 
 static const float velocity = 0.4;
 
-
 static const uint8_t draw_points = 1;
-static const uint16_t palette_size = 72;
+static const uint8_t palette_size = 72;
 
 static RGB points_color[P_MAX];
 static RGB palette[] = {
@@ -149,11 +146,11 @@ static RGB palette[] = {
 };
 
 
-static inline float euklid_dist(float x1, float y1, float x2, float y2)
+static inline float multiplicate_dist(float x1, float y1, float x2, float y2)
 {
-    float dx = x1 - x2;
-    float dy = y1 - y2;
-    return dx*dx + dy*dy;
+    float dx = abs(x1 - x2);
+    float dy = abs(y1 - y2);
+    return dx * dy;
 }
 
 static inline float sum_dist(float x1, float y1, float x2, float y2)
@@ -164,18 +161,11 @@ static inline float sum_dist(float x1, float y1, float x2, float y2)
     return dx + dy;
 }
 
-static inline float multiplicate_dist(float x1, float y1, float x2, float y2)
-{
-    float dx = abs(x1 - x2);
-    float dy = abs(y1 - y2);
-    return dx * dy;
-}
-
-static inline float p4_dist(float x1, float y1, float x2, float y2)
+static inline float euklid_dist(float x1, float y1, float x2, float y2)
 {
     float dx = x1 - x2;
     float dy = y1 - y2;
-    return dx*dx*dx*dx + dy*dy*dy*dy;
+    return dx*dx + dy*dy;
 }
 
 static inline float p3_dist(float x1, float y1, float x2, float y2)
@@ -183,6 +173,13 @@ static inline float p3_dist(float x1, float y1, float x2, float y2)
     float dx = abs(x1 - x2);
     float dy = abs(y1 - y2);
     return dx*dx*dx + dy*dy*dy;
+}
+
+static inline float p4_dist(float x1, float y1, float x2, float y2)
+{
+    float dx = x1 - x2;
+    float dy = y1 - y2;
+    return dx*dx*dx*dx + dy*dy*dy*dy;
 }
 
 static inline float p5_dist(float x1, float y1, float x2, float y2)
@@ -206,63 +203,63 @@ static inline float max_dist(float x1, float y1, float x2, float y2)
     return (dx*dx > dy*dy) ? dx*dx : dy*dy;
 }
 
-static inline float dist(float x1, float y1, float x2, float y2) {
-    if (norm_type == EUKLID){
-        return euklid_dist(x1,y1,x2,y2);
-    }
-    else if (norm_type == SUM) {
-        return sum_dist(x1,y1,x2,y2);
-    }
-    else if (norm_type == MAX) {
-        return max_dist(x1,y1,x2,y2);
-    }
-    else if (norm_type == P4){
-        return p4_dist(x1,y1,x2,y2);
-    }
-    else if (norm_type == P3){
-        return p3_dist(x1,y1,x2,y2);
-    }
-    else if (norm_type == P5){
-        return p5_dist(x1,y1,x2,y2);
-    }
-    else if (norm_type == P6){
-        return p6_dist(x1,y1,x2,y2);
-    }
-    else if (norm_type == MULTIPLICATE){
-        return multiplicate_dist(x1,y1,x2,y2);
-    }
-    else{
-        // unreachable
-    }
+static inline float dist(float x1, float y1, float x2, float y2)
+{
+    switch(norm_type) {
+        case MULTIPLICATE:
+            return multiplicate_dist(x1,y1,x2,y2);
+            break;
+        case SUM:
+            return sum_dist(x1,y1,x2,y2);
+            break;
+        case EUKLID:
+            return euklid_dist(x1,y1,x2,y2);
+            break;
+        case P3:
+            return p3_dist(x1,y1,x2,y2);
+            break;
+        case P4:
+            return p4_dist(x1,y1,x2,y2);
+            break;
+        case P5:
+            return p5_dist(x1,y1,x2,y2);
+            break;
+        case P6:
+            return p6_dist(x1,y1,x2,y2);
+            break;
+        case MAX:
+            return max_dist(x1,y1,x2,y2);
+            break;
+        }
 }
 
-static void myinit(){
-
-    if(choose_random_norm){
+static void myinit()
+{
+    if(choose_random_norm) {
         norm_type = rand()%(norm_rand_max-norm_rand_min+1) + norm_rand_min;
         printf("norm_type = %i\n",norm_type);
     }
 
-    for (uint8_t i = 0; i < P_MAX; ++i){
+    for (uint8_t i = 0; i < P_MAX; ++i) {
         points[i].x = rand()/(float)(RAND_MAX)*(float)xmax;
         points[i].y = rand()/(float)(RAND_MAX)*(float)ymax;
 
         points[i].vx = rand()/(float)(RAND_MAX)*velocity;
         points[i].vy = rand()/(float)(RAND_MAX)*velocity;
-        if ( rand()%2 ){
+        if ( rand()%2 ) {
             points[i].vx = -points[i].vx;
         }
-        if ( rand()%2 ){
+        if ( rand()%2 ) {
             points[i].vy = -points[i].vy;
         }
     }
 
-    if(P_MAX < palette_size){
-        for(uint8_t i = 0; i < P_MAX; ++i){
+    if(P_MAX < palette_size) {
+        for(uint8_t i = 0; i < P_MAX; ++i) {
         choose_color:
 
             points_color[i] = palette[rand()%palette_size];
-            for(uint8_t j = 0; j<i; ++j){
+            for(uint8_t j = 0; j<i; ++j) {
                 if(points_color[i].red == points_color[j].red &&
                    points_color[i].green == points_color[j].green &&
                    points_color[i].blue == points_color[j].blue &&
@@ -271,16 +268,16 @@ static void myinit(){
                 }
             }
         }
-    }
-    else{
+    } else {
         uint8_t offset = rand()%palette_size;
-        for(uint8_t i = 0; i < P_MAX; ++i){
+        for(uint8_t i = 0; i < P_MAX; ++i) {
             points_color[i] = palette[(i+offset)%palette_size];
         }
     }
 }
 
-int init(int moduleno, char* argstr) {
+int init(int moduleno, char* argstr)
+{
     xmax = matrix_getx();
     ymax = matrix_gety();
 
@@ -292,16 +289,16 @@ int init(int moduleno, char* argstr) {
     return 0;
 }
 
-void reset(int _modno) {
-
+void reset(int _modno)
+{
     myinit();
 
     nexttick = udate();
     frame = 0;
 }
 
-int draw(int _modno, int argc, char* argv[]) {
-
+int draw(int _modno, int argc, char* argv[])
+{
     for (uint16_t y = 0; y < ymax; ++y) {
         for (uint16_t x = 0; x < xmax; ++x) {
             uint16_t j = 0;
@@ -311,32 +308,31 @@ int draw(int _modno, int argc, char* argv[]) {
                 }
             }
             matrix_set(x,y,points_color[j]);
-            //matrix_set(x,y,HSV2RGB(HSV((uint8_t)(j*255.0/P_MAX),255,255)));
         }
     }
 
     for (uint8_t i = 0; i < P_MAX; ++i) {
-        if (draw_points){
+        if (draw_points) {
             matrix_set((uint16_t)points[i].x, (uint16_t)points[i].y, black);
         }
 
         points[i].x += points[i].vx;
         points[i].y += points[i].vy;
 
-        if(points[i].x <= 0){
+        if(points[i].x <= 0) {
             points[i].x = 0.1;
             points[i].vx = -points[i].vx;
         }
-        else if(points[i].x >= xmax){
+        else if(points[i].x >= xmax) {
             points[i].x = xmax-0.1;
             points[i].vx = -points[i].vx;
         }
 
-        if(points[i].y <= 0){
+        if(points[i].y <= 0) {
             points[i].y = 0.1;
             points[i].vy = -points[i].vy;
         }
-        else if(points[i].y >= ymax){
+        else if(points[i].y >= ymax) {
             points[i].y = ymax-0.1;
             points[i].vy = -points[i].vy;
         }
