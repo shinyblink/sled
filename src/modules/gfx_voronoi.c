@@ -42,19 +42,19 @@ static uint16_t ymax;
 static const RGB black = RGB(0,0,0);
 
 static enum NormType{
-    MULTIPLICATE = 0,
-    SUM = 1,
-    EUKLID = 2,
-    P3 = 3,
-    P4 = 4,
-    P5 = 5,
-    P6 = 6,
-    MAX = 7,
+    MULTIPLICATE,
+    SUM,
+    EUKLID,
+    P3,
+    P4,
+    P5,
+    P6,
+    MAX,
 } norm_type = MULTIPLICATE;
 
-static const norm_rand_min = 0;
-static const norm_rand_max = 7;
-static uint16_t choose_random_norm = 1;
+static const uint8_t norm_rand_min = 0;
+static const uint8_t norm_rand_max = 7;
+static const uint8_t choose_random_norm = 1;
 
 #define P_MAX 20
 static struct Point {
@@ -71,78 +71,24 @@ static const uint8_t palette_size = 72;
 
 static RGB points_color[P_MAX];
 static RGB palette[] = {
-    RGB(255, 0, 0),
-    RGB(204, 0, 0),
-    RGB(153, 0, 0),
-    RGB(255, 85, 85),
-    RGB(204, 68, 68),
-    RGB(153, 51, 51),
-    RGB(255, 127, 0),
-    RGB(204, 102, 0),
-    RGB(153, 76, 0),
-    RGB(255, 170, 85),
-    RGB(204, 136, 68),
-    RGB(153, 102, 51),
-    RGB(255, 255, 0),
-    RGB(204, 204, 0),
-    RGB(153, 153, 0),
-    RGB(255, 255, 85),
-    RGB(204, 204, 68),
-    RGB(153, 153, 51),
-    RGB(127, 255, 0),
-    RGB(102, 204, 0),
-    RGB(76, 153, 0),
-    RGB(170, 255, 85),
-    RGB(136, 204, 68),
-    RGB(102, 153, 51),
-    RGB(0, 255, 0),
-    RGB(0, 204, 0),
-    RGB(0, 153, 0),
-    RGB(85, 255, 85),
-    RGB(68, 204, 68),
-    RGB(51, 153, 51),
-    RGB(0, 255, 127),
-    RGB(0, 204, 102),
-    RGB(0, 153, 76),
-    RGB(85, 255, 170),
-    RGB(68, 204, 136),
-    RGB(51, 153, 102),
-    RGB(0, 255, 255),
-    RGB(0, 204, 204),
-    RGB(0, 153, 153),
-    RGB(85, 255, 255),
-    RGB(68, 204, 204),
-    RGB(51, 153, 153),
-    RGB(0, 127, 255),
-    RGB(0, 102, 204),
-    RGB(0, 76, 153),
-    RGB(85, 170, 255),
-    RGB(68, 136, 204),
-    RGB(51, 102, 153),
-    RGB(0, 0, 255),
-    RGB(0, 0, 204),
-    RGB(0, 0, 153),
-    RGB(85, 85, 255),
-    RGB(68, 68, 204),
-    RGB(51, 51, 153),
-    RGB(127, 0, 255),
-    RGB(102, 0, 204),
-    RGB(76, 0, 153),
-    RGB(170, 85, 255),
-    RGB(136, 68, 204),
-    RGB(102, 51, 153),
-    RGB(255, 0, 255),
-    RGB(204, 0, 204),
-    RGB(153, 0, 153),
-    RGB(255, 85, 255),
-    RGB(204, 68, 204),
-    RGB(153, 51, 153),
-    RGB(255, 0, 127),
-    RGB(204, 0, 102),
-    RGB(153, 0, 76),
-    RGB(255, 85, 170),
-    RGB(204, 68, 136),
-    RGB(153, 51, 102)
+    RGB(255, 0, 0),    RGB(204, 0, 0),    RGB(153, 0, 0),    RGB(255, 85, 85),
+    RGB(204, 68, 68),  RGB(153, 51, 51),  RGB(255, 127, 0),  RGB(204, 102, 0),
+    RGB(153, 76, 0),   RGB(255, 170, 85), RGB(204, 136, 68), RGB(153, 102, 51),
+    RGB(255, 255, 0),  RGB(204, 204, 0),  RGB(153, 153, 0),  RGB(255, 255, 85),
+    RGB(204, 204, 68), RGB(153, 153, 51), RGB(127, 255, 0),  RGB(102, 204, 0),
+    RGB(76, 153, 0),   RGB(170, 255, 85), RGB(136, 204, 68), RGB(102, 153, 51),
+    RGB(0, 255, 0),    RGB(0, 204, 0),    RGB(0, 153, 0),    RGB(85, 255, 85),
+    RGB(68, 204, 68),  RGB(51, 153, 51),  RGB(0, 255, 127),  RGB(0, 204, 102),
+    RGB(0, 153, 76),   RGB(85, 255, 170), RGB(68, 204, 136), RGB(51, 153, 102),
+    RGB(0, 255, 255),  RGB(0, 204, 204),  RGB(0, 153, 153),  RGB(85, 255, 255),
+    RGB(68, 204, 204), RGB(51, 153, 153), RGB(0, 127, 255),  RGB(0, 102, 204),
+    RGB(0, 76, 153),   RGB(85, 170, 255), RGB(68, 136, 204), RGB(51, 102, 153),
+    RGB(0, 0, 255),    RGB(0, 0, 204),    RGB(0, 0, 153),    RGB(85, 85, 255),
+    RGB(68, 68, 204),  RGB(51, 51, 153),  RGB(127, 0, 255),  RGB(102, 0, 204),
+    RGB(76, 0, 153),   RGB(170, 85, 255), RGB(136, 68, 204), RGB(102, 51, 153),
+    RGB(255, 0, 255),  RGB(204, 0, 204),  RGB(153, 0, 153),  RGB(255, 85, 255),
+    RGB(204, 68, 204), RGB(153, 51, 153), RGB(255, 0, 127),  RGB(204, 0, 102),
+    RGB(153, 0, 76),   RGB(255, 85, 170), RGB(204, 68, 136), RGB(153, 51, 102)
 };
 
 
@@ -241,11 +187,12 @@ static void myinit()
     }
 
     for (uint8_t i = 0; i < P_MAX; ++i) {
-        points[i].x = rand()/(float)(RAND_MAX)*(float)xmax;
-        points[i].y = rand()/(float)(RAND_MAX)*(float)ymax;
+        points[i].x =  rand()/(float)(RAND_MAX)*(float)xmax;
+        points[i].y =  rand()/(float)(RAND_MAX)*(float)ymax;
 
         points[i].vx = rand()/(float)(RAND_MAX)*velocity;
         points[i].vy = rand()/(float)(RAND_MAX)*velocity;
+
         if ( rand()%2 ) {
             points[i].vx = -points[i].vx;
         }
@@ -257,12 +204,12 @@ static void myinit()
     if(P_MAX < palette_size) {
         for(uint8_t i = 0; i < P_MAX; ++i) {
         choose_color:
-
             points_color[i] = palette[rand()%palette_size];
+
             for(uint8_t j = 0; j<i; ++j) {
-                if(points_color[i].red == points_color[j].red &&
+                if(points_color[i].red   == points_color[j].red   &&
                    points_color[i].green == points_color[j].green &&
-                   points_color[i].blue == points_color[j].blue &&
+                   points_color[i].blue  == points_color[j].blue  &&
                    points_color[i].alpha == points_color[j].alpha) {
                     goto choose_color;
                 }
@@ -322,8 +269,7 @@ int draw(int _modno, int argc, char* argv[])
         if(points[i].x <= 0) {
             points[i].x = 0.1;
             points[i].vx = -points[i].vx;
-        }
-        else if(points[i].x >= xmax) {
+        } else if(points[i].x >= xmax) {
             points[i].x = xmax-0.1;
             points[i].vx = -points[i].vx;
         }
@@ -331,8 +277,7 @@ int draw(int _modno, int argc, char* argv[])
         if(points[i].y <= 0) {
             points[i].y = 0.1;
             points[i].vy = -points[i].vy;
-        }
-        else if(points[i].y >= ymax) {
+        } else if(points[i].y >= ymax) {
             points[i].y = ymax-0.1;
             points[i].vy = -points[i].vy;
         }
