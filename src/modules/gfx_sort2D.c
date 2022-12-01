@@ -256,7 +256,7 @@ static void own_reset(){
     // timing
 #ifdef SORT_TIMING
     if (timer_n)
-        printf("Avg: sort %luus, draw %luus",td1_acc/timer_n,td2_acc/timer_n);
+        printf("Avg: sort %lluus, draw %lluus",td1_acc/timer_n,td2_acc/timer_n);
 #endif
     td1_acc=0;
     td2_acc=0;

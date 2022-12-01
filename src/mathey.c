@@ -128,9 +128,9 @@ matrix3_3 multm3(matrix3_3 m1, matrix3_3 m2) {
       .v3_3 = m1.v3_1*m2.v1_3 + m1.v3_2*m2.v2_3 + m1.v3_3*m2.v3_3
     };
   return r;
-};
+}
 
-matrix3_3 identity3() {
+matrix3_3 identity3(void) {
   matrix3_3 r = {
     .v1_1 = 1,
     .v1_2 = 0,

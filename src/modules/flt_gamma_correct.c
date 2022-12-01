@@ -87,7 +87,7 @@ oscore_time wait_until(int _modno, oscore_time desired_usec) {
 void wait_until_break(int _modno) {
 	PGCTX_GET
 	if (ctx->next && ctx->next->wait_until_break)
-		return ctx->next->wait_until_break(ctx->nextid);
+		ctx->next->wait_until_break(ctx->nextid);
 }
 
 void deinit(int _modno) {

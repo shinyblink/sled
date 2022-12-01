@@ -88,12 +88,12 @@ int init(int moduleno, char* argstr) {
     params[3] = 1.51;
 
     // randomize params
-    u_int8_t to_change = rand()%5;
-    u_int8_t changed[4] = {0,0,0,0};
-    u_int8_t c_count = 0;
+    uint8_t to_change = rand()%5;
+    uint8_t changed[4] = {0,0,0,0};
+    uint8_t c_count = 0;
 
     while(c_count < to_change) {
-        u_int8_t c = rand()%4;
+        uint8_t c = rand()%4;
         if(changed[c] == 0) {
             c_count++;
             changed[c] = 1;

@@ -200,9 +200,9 @@ static void draw_lines_helper_draw(int offset){
 static void draw_select(){
     switch (draw_style){
         default:
-        case 0: return draw_bars();
-        case 1: return draw_dots();
-        case 2: return draw_lines_helper_draw(hyper_speed-1);
+        case 0: draw_bars();
+        case 1: draw_dots();
+        case 2: draw_lines_helper_draw(hyper_speed-1);
     }
 }
 
@@ -212,7 +212,7 @@ int draw(int _modno, int argc, char* argv[]) {
     oscore_time thistick = udate();
 
     if (__rval==2){
-        randomize_and_reset(0);
+        randomize_and_reset();
         __rval=0;
         return 1;
     }
@@ -251,7 +251,7 @@ int draw(int _modno, int argc, char* argv[]) {
 }
 
 void reset(int _modno) {
-    randomize_and_reset(0);
+    randomize_and_reset();
     nexttick = udate();
 }
 

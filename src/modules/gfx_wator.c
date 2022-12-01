@@ -91,7 +91,7 @@ static void move_point(int oldx, int oldy, int x, int y) {
 	table_copy[new] = 0;
 }
 
-static void move_fishark() {
+static void move_fishark(void) {
 	int *tmp = table_copy;
 	table_copy = table;
 	table = tmp;
