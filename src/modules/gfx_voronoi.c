@@ -39,8 +39,6 @@ static float delta0;
 static uint16_t xmax;
 static uint16_t ymax;
 
-static const RGB black = RGB(0,0,0);
-
 static enum NormType{
     MULTIPLICATE,
     SUM,
@@ -56,6 +54,9 @@ static const uint8_t norm_rand_min = 0;
 static const uint8_t norm_rand_max = 7;
 static const uint8_t choose_random_norm = 1;
 
+static const float velocity = 0.4;
+static const uint8_t draw_points = 1;
+
 #define P_MAX 20
 static struct Point {
     float x;
@@ -63,14 +64,11 @@ static struct Point {
     float vx;
     float vy;
 } points[P_MAX];
-
-static const float velocity = 0.4;
-
-static const uint8_t draw_points = 1;
-static const uint8_t palette_size = 72;
-
 static RGB points_color[P_MAX];
-static RGB palette[] = {
+
+static const RGB black = RGB(0,0,0);
+
+static const RGB palette[] = {
     RGB(255, 0, 0),    RGB(204, 0, 0),    RGB(153, 0, 0),    RGB(255, 85, 85),
     RGB(204, 68, 68),  RGB(153, 51, 51),  RGB(255, 127, 0),  RGB(204, 102, 0),
     RGB(153, 76, 0),   RGB(255, 170, 85), RGB(204, 136, 68), RGB(153, 102, 51),
@@ -90,7 +88,7 @@ static RGB palette[] = {
     RGB(204, 68, 204), RGB(153, 51, 153), RGB(255, 0, 127),  RGB(204, 0, 102),
     RGB(153, 0, 76),   RGB(255, 85, 170), RGB(204, 68, 136), RGB(153, 51, 102)
 };
-
+static const uint8_t palette_size = sizeof(palette)/sizeof(RGB);
 
 static inline float multiplicate_dist(float x1, float y1, float x2, float y2)
 {
