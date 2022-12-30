@@ -38,7 +38,7 @@ GFXMODS_DEFAULT += gfx_candyswarm gfx_ursuppe2 gfx_invfourier gfx_colorwheel
 GFXMODS_DEFAULT += gfx_snek gfx_wator gfx_noisewarp
 GFXMODS_DEFAULT += gfx_multicell gfx_pheromones
 GFXMODS_DEFAULT += gfx_attractor
-GFXMODS_DEFAULT += gfx_lorenz gfx_pickover gfx_voronoi
+GFXMODS_DEFAULT += gfx_lorenz gfx_pickover gfx_voronoi gfx_voronoi2
 
 BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
 FLTMODS_DEFAULT += flt_gamma_correct flt_flip_x flt_flip_y flt_scale flt_rot_90
