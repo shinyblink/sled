@@ -138,7 +138,7 @@ static float pickover_int( Point* p ) {
     return ret;
 }
 
-void drawrow(void* y_ptr) {
+static void drawrow(void* y_ptr) {
     uint y = *((int*) y_ptr);
 
     for (uint x = 0; x < xmax; x++ ) {

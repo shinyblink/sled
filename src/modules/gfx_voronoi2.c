@@ -155,7 +155,7 @@ void reset(int _modno)
     frame = 0;
 }
 
-void drawrow(void* y_ptr){
+static void drawrow(void* y_ptr){
     uint16_t y = *((int*) y_ptr);
 
     for (uint16_t x = 0; x < xmax; ++x) {
