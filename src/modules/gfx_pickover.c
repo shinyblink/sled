@@ -24,6 +24,7 @@
 #include <mathey.h>
 #include <stdio.h>
 #include <random.h>
+#include "taskpool.h"
 
 #define FPS 60
 #define FRAMETIME (T_SECOND / FPS)
@@ -32,7 +33,6 @@
 // performance parameter
 #define STABLE_DT 1.0
 #define ITER_MAX 1000
-#define SKIP_COUNT 2  // skips xmax*ymax/N pixel per frame
 
 // scoll max value
 #define Z_MAX 5
@@ -138,40 +138,41 @@ static float pickover_int( Point* p ) {
     return ret;
 }
 
+void drawrow(void* y_ptr) {
+    uint y = *((int*) y_ptr);
+
+    for (uint x = 0; x < xmax; x++ ) {
+
+        point.x = x * inv_xmax * XY_SCALE;
+        point.y = y * inv_ymax * XY_SCALE;
+        point.z = z;
+
+        for( int count=0; count < ITER_MAX; ++count ) {
+            float dt = pickover_int(&point);
+            if (dt < STABLE_DT) {
+                break;
+            }
+        }
+
+        float r = point.x < 0 ? -point.x : point.x;
+        float g = point.y < 0 ? -point.y : point.y;
+        float b = point.z < 0 ? -point.z : point.z;
+
+        float dist = sqrt(r*r + g*g + b*b);
+
+        r = r > 1 ? 255.0 * r / dist : 255.0;
+        g = g > 1 ? 255.0 * g / dist : 255.0;
+        b = 255.0 * b/(b+1.0);
+
+        RGB c = RGB(255 - (uint)r, 255 - (uint)g, (uint)b);
+        matrix_set(x,y,c);
+    }
+}
+
 int draw(int _modno, int argc, char* argv[]) {
 
-    // do shader stuff badly on a single core
-    for (uint x = 0; x < xmax; x++ ) {
-        for ( uint y = 0; y < ymax; y++ ) {
-            if((y * xmax + x + frame) % SKIP_COUNT) {
-                continue;
-            }
-
-            point.x = x * inv_xmax * XY_SCALE;
-            point.y = y * inv_ymax * XY_SCALE;
-            point.z = z;
-
-            for( int count=0; count < ITER_MAX; ++count ) {
-                float dt = pickover_int(&point);
-                if (dt < STABLE_DT) {
-                    break;
-                }
-            }
-
-            float r = point.x < 0 ? -point.x : point.x;
-            float g = point.y < 0 ? -point.y : point.y;
-            float b = point.z < 0 ? -point.z : point.z;
-
-            float dist = sqrt(r*r + g*g + b*b);
-
-            r = r > 1 ? 255.0 * r / dist : 255.0;
-            g = g > 1 ? 255.0 * g / dist : 255.0;
-            b = 255.0 * b/(b+1.0);
-
-            RGB c = RGB(255 - (uint)r, 255 - (uint)g, (uint)b);
-            matrix_set(x,y,c);
-        }
-    }
+    taskpool_forloop(TP_GLOBAL, &drawrow, 0, ymax);
+    taskpool_wait(TP_GLOBAL);
 
     z += inc_z;
 
