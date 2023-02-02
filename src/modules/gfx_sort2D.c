@@ -61,7 +61,7 @@ static int exit_flag;
 
 // SETTINGS
 static const int s_generator_step = 8;
-static const int s_boring_percentage = 8;
+static const int s_boring_percentage = 16;
 
 // GENERATED SETTINGS
 static int boring_percentage = 1;
