@@ -1,4 +1,4 @@
-// Matrix-style lines moving from top to bottom.
+// Matrix-style runners moving from top to bottom.
 // However, in random colors!
 //
 // Copyright (c) 2019, Adrian "vifino" Pistol <vifino@tty.sh>
@@ -21,6 +21,7 @@
 #include <random.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define FPS 30
 #define FRAMETIME (T_SECOND / FPS)
@@ -33,60 +34,66 @@ static oscore_time nexttick;
 static int mx;
 static int my;
 
-typedef struct line {
+typedef struct runner {
 	RGB color;
 	int pos_x;
 	int pos_y;
 	int speed;
-	int length;
-} line;
+} runner;
 
-static int numlines;
-static line* lines;
+static int numrunners;
+static runner* runners;
+static int HYPERSPEED = 3;
 
-static RGB black = RGB(0, 0, 0);
 
-static void randomize_line(int line) {
-	lines[line].color = HSV2RGB(HSV(randn(255), 255, 255)); // HSV instead of RGB to get sameish brightness but differing color.
-
-	lines[line].pos_y = -randn(my/4);
-	lines[line].pos_x = randn(mx - 1);
-
-	int speed = 0;
-	while (speed == 0)
-		speed = randn(2);
-	lines[line].speed = speed;
-
-	int length = 0;
-	while (length < (my/4))
-		length = randn(my/2);
-	lines[line].length = length;
+static void randomize_runner(runner * runner) {
+    runner->color = HSV2RGB(HSV(randn(255), 255, 255));
+    if (randn(4)==0){
+        runner->pos_y = 0;
+    } else if (runner->pos_y != my){
+        runner->pos_y = randn(my-1);
+    } else {
+        runner->pos_y = randn(my/8);
+    }
+    runner->pos_x = randn(mx-1);
+    runner->speed = randn(2)+1;
 }
 
-static void randomize_lines() {
-	int line;
-	for (line = 0; line < numlines; ++line) {
-		randomize_line(line);
-	}
+static RGB greenify(int intensity){
+    if (intensity > 511) intensity = 511;
+    if (intensity < 256) {
+        return RGB(0,intensity,intensity/2);
+        //return RGB(0,intensity/2,intensity);
+    } else {
+        return RGB(intensity-256,255,intensity/2);
+        //return RGB(intensity-256,255,intensity/2);
+    }
 }
 
-static void update_lines() {
-	int line;
-	int y;
-	for (line = 0; line < numlines; ++line) {
-		y = lines[line].pos_y + lines[line].speed;
+static int degreenify(RGB px){
+    if (px.red){
+        return px.red + 256;
+    } else {
+        return px.green;
+    }
+}
 
-		if ((y - lines[line].length) > my) {
-			// clear old line
-			/*int py;
-			for (py = y; py >= (y - lines[line].length); py--)
-				if (py < my)
-				matrix_set(lines[line].pos_x, py, black);*/
-			randomize_line(line);
-		} else {
-			lines[line].pos_y = y;
-		}
-	}
+int out_of_bounds(int x, int y){
+    return (x >= mx) || (x < 0) || (y >= my) || (y < 0);
+}
+
+void matrix_set_safe(int x, int y, RGB color){
+    if (out_of_bounds(x,y)) return;
+    matrix_set(x,y,color);
+}
+
+void run_runner(runner * runner){
+    if (!randn(runner->speed)) runner->pos_y++;
+    if (out_of_bounds(runner->pos_x, runner->pos_y)){
+        randomize_runner(runner);
+    } else {
+        matrix_set(runner->pos_x, runner->pos_y, greenify(400));
+    }
 }
 
 int init(int moduleno, char* argstr) {
@@ -96,10 +103,14 @@ int init(int moduleno, char* argstr) {
 	if ((mx * my) < 16)
 		return 1;
 
-	numlines = mx / 4; // not sure if this is the best thing to do, but meh.
-	lines = malloc(numlines * sizeof(line));
+	numrunners = mx/2; // not sure if this is the best thing to do, but meh.
+    printf("numrunners %d\n",numrunners);
+	runners = malloc(numrunners * sizeof(runner));
 
-	randomize_lines();
+    int runner;
+    for (runner = 0; runner < numrunners; ++runner){
+        randomize_runner(&(runners[runner]));
+    }
 
 	modno = moduleno;
 	frame = 0;
@@ -108,29 +119,26 @@ int init(int moduleno, char* argstr) {
 
 void reset(int _modno) {
 	nexttick = udate();
-	matrix_clear();
-
+	//matrix_clear();
 	frame = 0;
 }
 
-int draw(int _modno, int argc, char* argv[]) {
-	int line;
-	// clear out old points of lines
-	for (line = 0; line < numlines; ++line) {
-		int y = lines[line].pos_y - lines[line].length;
-		int speed;
-		for (speed = 0; speed <= lines[line].speed; speed++)
-			if ((y - speed) >= 0 && (y - speed) < my)
-				matrix_set(lines[line].pos_x, y - speed, black);
-	}
 
-	// update the lines and draw them
-	update_lines(); // todo, move back below matrix_render, to get a more consistant framerate
-	for (line = 0; line < numlines; ++line) {
-		int y;
-		for (y = lines[line].pos_y - lines[line].length; y <= lines[line].pos_y; y++)
-			if (y >= 0 && y < my)
-				matrix_set(lines[line].pos_x, y, lines[line].color);
+int draw(int _modno, int argc, char* argv[]) {
+    int x,y;
+    for (x=0; x<mx; ++x){
+        for (y=0;y<my; ++y){
+            int intense_px = degreenify(matrix_get(x,y))*(256-HYPERSPEED*5)/256;
+            RGB res = greenify(intense_px);
+            matrix_set(x,y,res);
+        }
+    }
+	int runner;
+    int dont_care;
+	for (runner = 0; runner < numrunners; ++runner) {
+        for (dont_care=0;dont_care < HYPERSPEED; dont_care++){
+            run_runner(&(runners[runner]));
+        }
 	}
 
 	matrix_render();
@@ -146,5 +154,5 @@ int draw(int _modno, int argc, char* argv[]) {
 }
 
 void deinit(int _modno) {
-	free(lines);
+	free(runners);
 }
