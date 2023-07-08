@@ -33,8 +33,9 @@ static int width;
 static int height;
 static int counter = SHARK_REPRODUCE * FISH_REPRODUCE;
 static int frames = 0;
-static int fishs = 0;
+static int fishes = 0;
 static int sharks = 0;
+static int color_max = 180; // <=255
 
 int init(int moduleno, char *argstr) {
 	width = matrix_getx();
@@ -47,7 +48,7 @@ int init(int moduleno, char *argstr) {
 
 void reset(int _modno) {
 	frames = 20 * TIME_LONG; // 3min
-	fishs = 0;
+	fishes = 0;
 	sharks = 0;
 	nexttick = udate();
 	for (int i = 0; i < width * height; ++i) {
@@ -61,7 +62,7 @@ void reset(int _modno) {
 		} else {
 			// 9% fish
 			table[i] = 1;
-			fishs++;
+			fishes++;
 		}
 		table_copy[i] = 0;
 	}
@@ -137,7 +138,7 @@ static void move_fishark(void) {
 				} else {
 					// shark found a fish
 					table_copy[(y * width) + x] = 2;
-					fishs--;
+					fishes--;
 				}
 				if (y_new < 0)
 					y_new = height + y_new;
@@ -152,7 +153,7 @@ static void move_fishark(void) {
 				if (x != x_new && y != y_new) {
 					if (cell == 1 && (counter % FISH_REPRODUCE) == 0) {
 						table[(y * width) + x] = 1;
-						fishs++;
+						fishes++;
 					}
 					if (cell > 1 && (counter % SHARK_REPRODUCE) == 0) {
 						table[(y * width) + x] = 2;
@@ -169,21 +170,21 @@ int draw(int _modno, int argc, char *argv[]) {
 	matrix_clear();
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
-			RGB col = RGB(0, 0, 255);
+			RGB col = RGB(0, 0, color_max);
 			int index = (width * y) + x;
 			if (table[index] == 1) {
 				// fish
-				col = RGB(0, 255, 0);
+				col = RGB(0, color_max, 0);
 			} else if (table[index] > 1) {
 				// shark with darker color if starving
-				col = RGB(255 / (table[index] - 1), 0, 0);
+				col = RGB(color_max / (table[index] - 1), 0, 0);
 			}
 			matrix_set(x, y, col);
 		}
 	}
 	matrix_render();
 	frames--;
-	if(frames <= 0 || fishs <= 0 || sharks <= 0){
+	if(frames <= 0 || fishes <= 0 || sharks <= 0){
 		return 1;
 	}
 	nexttick += FRAMETIME;
