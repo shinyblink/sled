@@ -1,0 +1,21 @@
+# Example sledconf for building sled as a JNI library
+
+# Build with `make sled.jar`
+
+PROJECT := sled
+
+DEBUG := 0
+
+# I've only validated it to work in static form. Dynamic will need extra handling/work in unix_jni.GNUmakefile
+STATIC := 1
+PLATFORM := unix_jni
+
+# Avoid touching CFLAGS too much.
+
+DEFAULT_OUTMOD := jnibuf
+DEFAULT_MODULEDIR := "./modules"
+MODULES := $(MODULES_DEFAULT) out_$(DEFAULT_OUTMOD)
+
+# TODO these are useless now. Set them in src/os/JniSled.java instead.
+#MATRIX_X := 256
+#MATRIX_Y := 256
