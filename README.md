@@ -1,4 +1,4 @@
-# sled: The satanic LED controller
+# mayz is learning git :)
 
 ![GitHub Actions CI](https://github.com/shinyblink/sled/workflows/CI/badge.svg) [![Join the chat at https://gitter.im/shinyblink/sled](https://badges.gitter.im/shinyblink/sled.svg)](https://gitter.im/shinyblink/sled?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
