@@ -37,7 +37,7 @@ static oscore_time nexttick;
 static u_int16_t xmax;
 static u_int16_t ymax;
 
-#define P_MAX 50
+#define P_MAX 25
 typedef struct {
     u_int16_t x;
     u_int16_t y;
