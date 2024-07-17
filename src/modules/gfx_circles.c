@@ -176,6 +176,19 @@ int init(int moduleno, char* argstr)
 void reset(int _modno)
 {
 
+    for( u_int16_t x = 0; x < xmax; x++){
+
+        for( u_int16_t y = 0; y < ymax; y++){
+            matrix_set(x,y, black);
+        }
+    }
+
+    for( u_int16_t i = 0; i < P_MAX; i++ ){
+        reinit_circle(&points[i]);
+        xor_circle(&points[i], i);
+    }
+
+
     nexttick = udate();
     frame = 0;
 }
