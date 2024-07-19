@@ -16,7 +16,7 @@ GFXMODS_AVAILABLE += gfx_maze gfx_invfourier gfx_colorwheel gfx_snek
 GFXMODS_AVAILABLE += gfx_autoterminal gfx_wator gfx_noisewarp gfx_test
 GFXMODS_AVAILABLE += gfx_multicell gfx_pheromones
 GFXMODS_AVAILABLE += gfx_attractor
-GFXMODS_AVAILABLE += gfx_lorenz gfx_pickover gfx_voronoi
+GFXMODS_AVAILABLE += gfx_lorenz gfx_pickover gfx_voronoi gfx_cirles
 
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
 
