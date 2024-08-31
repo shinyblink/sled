@@ -322,7 +322,7 @@ static int px_client_update(px_client_t * client) {
 		// The new remainder buffer belongs to us...
 		client->buffer = nb;
 		// The old line buffer is sent to the taskpool
-		*chp = 0;
+		chp[1] = 0;
 		taskpool_submit(TP_GLOBAL, px_buffer_update, cbuf);
 	}
 	return 0;
