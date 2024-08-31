@@ -46,3 +46,8 @@ sled.wasm.map
 
 # nix default result symlink (from nix-build)
 /result
+
+# JNI build files
+src/os/JniSled.class
+src/os/sh_tty_sled_JniSled.h
+/sled.jar
