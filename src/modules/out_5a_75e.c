@@ -210,7 +210,10 @@ int render(void)
   oscore_time elapsed = now - last;
   if (last != 0 && elapsed < 15000)
   {
-    wait_until(1337, last + 15000);
+    while(wait_until(1337, last + 15000) < last + 15000)
+    {
+      ;
+    }
     last += 15000;
   }
   else
