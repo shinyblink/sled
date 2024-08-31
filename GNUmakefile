@@ -15,7 +15,7 @@ GFXMODS_AVAILABLE += gfx_no13 gfx_candyswarm gfx_ursuppe2 gfx_rule90
 GFXMODS_AVAILABLE += gfx_maze gfx_invfourier gfx_colorwheel gfx_snek
 GFXMODS_AVAILABLE += gfx_autoterminal gfx_wator gfx_noisewarp gfx_test
 GFXMODS_AVAILABLE += gfx_multicell gfx_pheromones
-GFXMODS_AVAILABLE += gfx_attractor
+GFXMODS_AVAILABLE += gfx_attractor gfx_belou_zhabo_ca
 GFXMODS_AVAILABLE += gfx_lorenz gfx_pickover gfx_voronoi
 
 BGMMODS_AVAILABLE += bgm_fish bgm_opc bgm_xyscope bgm_pixelflut
@@ -37,7 +37,7 @@ GFXMODS_DEFAULT += gfx_ghostery gfx_ursuppe gfx_afterglow gfx_fire
 GFXMODS_DEFAULT += gfx_candyswarm gfx_ursuppe2 gfx_invfourier gfx_colorwheel
 GFXMODS_DEFAULT += gfx_snek gfx_wator gfx_noisewarp
 GFXMODS_DEFAULT += gfx_multicell gfx_pheromones
-GFXMODS_DEFAULT += gfx_attractor
+GFXMODS_DEFAULT += gfx_attractor gfx_belou_zhabo_ca
 GFXMODS_DEFAULT += gfx_lorenz gfx_pickover gfx_voronoi gfx_voronoi2
 
 BGMMODS_DEFAULT += bgm_fish bgm_pixelflut
