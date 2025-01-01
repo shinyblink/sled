@@ -251,6 +251,10 @@ int init(int modulen, char* argstr) {
 			printf("Got BS16C2\n");
 			sf_sampsize = SIZE_16;
 			sf_2c = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S32, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS32C2\n");
+			sf_sampsize = SIZE_32;
+			sf_2c = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU8C2\n");
 			sf_2c = 1;
@@ -260,6 +264,11 @@ int init(int modulen, char* argstr) {
 			sf_sampsize = SIZE_16;
 			sf_2c = 1;
 			sf_us = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U32, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU32C2\n");
+			sf_sampsize = SIZE_32;
+			sf_2c = 1;
+			sf_us = 1;
 		}
 	} else {
 		if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
@@ -267,12 +276,19 @@ int init(int modulen, char* argstr) {
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BS16C1\n");
 			sf_sampsize = SIZE_16;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S32, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS32C1\n");
+			sf_sampsize = SIZE_32;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU8C1\n");
 			sf_us = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU16C1\n");
 			sf_sampsize = SIZE_16;
+			sf_us = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U32, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU32C1\n");
+			sf_sampsize = SIZE_32;
 			sf_us = 1;
 		} else {
 			printf("Couldn't convince ALSA to give sane settings: %i\n", code);
