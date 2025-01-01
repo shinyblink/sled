@@ -25,7 +25,7 @@
 #define PLOSSFAC ((BUFFER_FRAMES) / 64)
 
 enum samplesize {
-	SIZE_8, SIZE_16, SIZE_32
+	SIZE_8, SIZE_16, SIZE_24, SIZE_32
 };
 
 static snd_pcm_t * scope_pcm;
@@ -108,7 +108,19 @@ static void * thread_func(void * ign) {
 			frames = snd_pcm_recover(scope_pcm, frames, 0);
 		if (frames < 0)
 			printf("Warning: reading totally failed: %i, %s\n", frames, snd_strerror(frames));
-		if (sf_sampsize == SIZE_16) {
+		if (sf_sampsize == SIZE_32) {
+			if (sf_us) {
+				LD_ALGORITHM(unsigned int, 24, 0);
+			} else {
+				LD_ALGORITHM(unsigned int, 24, 0x80);
+			}
+		} else if (sf_sampsize == SIZE_24) {
+			if (sf_us) {
+				LD_ALGORITHM(unsigned int, 16, 0);
+			} else {
+				LD_ALGORITHM(unsigned int, 16, 0x80);
+			}
+		} else if (sf_sampsize == SIZE_16) {
 			if (sf_us) {
 				LD_ALGORITHM(unsigned short, 8, 0);
 			} else {
@@ -119,12 +131,6 @@ static void * thread_func(void * ign) {
 				LD_ALGORITHM(byte, 0, 0);
 			} else {
 				LD_ALGORITHM(byte, 0, 0x80);
-			}
-		} else if (sf_sampsize == SIZE_32) {
-			if (sf_us) {
-				LD_ALGORITHM(unsigned int, 24, 0);
-			} else {
-				LD_ALGORITHM(unsigned int, 24, 0x80);
 			}
 		}
 		// This actually connects it all together
@@ -251,6 +257,10 @@ int init(int modulen, char* argstr) {
 			printf("Got BS16C2\n");
 			sf_sampsize = SIZE_16;
 			sf_2c = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S24, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS24C2\n");
+			sf_sampsize = SIZE_24;
+			sf_2c = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S32, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BS32C2\n");
 			sf_sampsize = SIZE_32;
@@ -262,6 +272,11 @@ int init(int modulen, char* argstr) {
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU16C2\n");
 			sf_sampsize = SIZE_16;
+			sf_2c = 1;
+			sf_us = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U24, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU24C2\n");
+			sf_sampsize = SIZE_24;
 			sf_2c = 1;
 			sf_us = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U32, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
@@ -276,6 +291,9 @@ int init(int modulen, char* argstr) {
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BS16C1\n");
 			sf_sampsize = SIZE_16;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S24, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BS24C1\n");
+			sf_sampsize = SIZE_24;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S32, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BS32C1\n");
 			sf_sampsize = SIZE_32;
@@ -285,6 +303,10 @@ int init(int modulen, char* argstr) {
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU16C1\n");
 			sf_sampsize = SIZE_16;
+			sf_us = 1;
+		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U24, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
+			printf("Got BU24C1\n");
+			sf_sampsize = SIZE_24;
 			sf_us = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U32, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU32C1\n");
@@ -305,7 +327,10 @@ int init(int modulen, char* argstr) {
 		break;
 		case SIZE_16:
 			bytesPerSample = 2;
-		break;
+			break;
+		case SIZE_24:
+			bytesPerSample = 3;
+			break;
 		case SIZE_32:
 			bytesPerSample = 4;
 		break;
