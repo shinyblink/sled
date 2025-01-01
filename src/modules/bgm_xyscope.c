@@ -25,7 +25,7 @@
 #define PLOSSFAC ((BUFFER_FRAMES) / 64)
 
 enum samplesize {
-	SIZE_8, SIZE_16
+	SIZE_8, SIZE_16, SIZE_32
 };
 
 static snd_pcm_t * scope_pcm;
@@ -119,6 +119,12 @@ static void * thread_func(void * ign) {
 				LD_ALGORITHM(byte, 0, 0);
 			} else {
 				LD_ALGORITHM(byte, 0, 0x80);
+			}
+		} else if (sf_sampsize == SIZE_32) {
+			if (sf_us) {
+				LD_ALGORITHM(unsigned int, 24, 0);
+			} else {
+				LD_ALGORITHM(unsigned int, 24, 0x80);
 			}
 		}
 		// This actually connects it all together
@@ -283,6 +289,9 @@ int init(int modulen, char* argstr) {
 		break;
 		case SIZE_16:
 			bytesPerSample = 2;
+		break;
+		case SIZE_32:
+			bytesPerSample = 4;
 		break;
 	}
 
