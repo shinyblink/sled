@@ -24,11 +24,15 @@
 
 #define PLOSSFAC ((BUFFER_FRAMES) / 64)
 
+enum samplesize {
+	SIZE_8, SIZE_16
+};
+
 static snd_pcm_t * scope_pcm;
 // Details on the sample format before conversion.
 // Two-channel (enables XY mode), if not, acts like a primitive X oscilloscope
 static int sf_2c;
-static int sf_16b;
+static enum samplesize sf_sampsize;
 static int sf_us;
 static int sf_usey;
 static int sf_forceon;
@@ -104,13 +108,13 @@ static void * thread_func(void * ign) {
 			frames = snd_pcm_recover(scope_pcm, frames, 0);
 		if (frames < 0)
 			printf("Warning: reading totally failed: %i, %s\n", frames, snd_strerror(frames));
-		if (sf_16b) {
+		if (sf_sampsize == SIZE_16) {
 			if (sf_us) {
 				LD_ALGORITHM(unsigned short, 8, 0);
 			} else {
 				LD_ALGORITHM(unsigned short, 8, 0x80);
 			}
-		} else {
+		} else if (sf_sampsize == SIZE_8) {
 			if (sf_us) {
 				LD_ALGORITHM(byte, 0, 0);
 			} else {
@@ -231,7 +235,7 @@ int init(int modulen, char* argstr) {
 	}
 	free(ourarg);
 	sf_2c = 0;
-	sf_16b = 0;
+	sf_sampsize = SIZE_8;
 	sf_us = 0;
 	if (sf_usey) {
 		if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
@@ -239,7 +243,7 @@ int init(int modulen, char* argstr) {
 			sf_2c = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BS16C2\n");
-			sf_16b = 1;
+			sf_sampsize = SIZE_16;
 			sf_2c = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU8C2\n");
@@ -247,7 +251,7 @@ int init(int modulen, char* argstr) {
 			sf_us = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU16C2\n");
-			sf_16b = 1;
+			sf_sampsize = SIZE_16;
 			sf_2c = 1;
 			sf_us = 1;
 		}
@@ -256,13 +260,13 @@ int init(int modulen, char* argstr) {
 			printf("Got BS8C1\n");
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BS16C1\n");
-			sf_16b = 1;
+			sf_sampsize = SIZE_16;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU8C1\n");
 			sf_us = 1;
 		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
 			printf("Got BU16C1\n");
-			sf_16b = 1;
+			sf_sampsize = SIZE_16;
 			sf_us = 1;
 		} else {
 			printf("Couldn't convince ALSA to give sane settings: %i\n", code);
@@ -271,7 +275,18 @@ int init(int modulen, char* argstr) {
 			return 1;
 		}
 	}
-	bufferA = malloc(BUFFER_FRAMES * (sf_2c ? 2 : 1) * (sf_16b ? 2 : 1));
+
+	int bytesPerSample = 1;
+	switch (sf_sampsize) {
+		case SIZE_8:
+			bytesPerSample = 1;
+		break;
+		case SIZE_16:
+			bytesPerSample = 2;
+		break;
+	}
+
+	bufferA = malloc(BUFFER_FRAMES * (sf_2c ? 2 : 1) * bytesPerSample);
 	if (!bufferA) {
 		printf("Couldn't allocate working buffer\n");
 		snd_pcm_close(scope_pcm);
