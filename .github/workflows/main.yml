@@ -10,7 +10,7 @@ jobs:
         os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04, macos-13, macos-14, macos-15]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Prepare CI config
       run: cp Makefiles/sledconf.ci ./sledconf
     - name: Build
@@ -23,12 +23,12 @@ jobs:
     
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: sled
 
       - name: Checkout ndless
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: ndless-nspire/Ndless
           path: ndless
@@ -40,7 +40,7 @@ jobs:
           echo "NDLESS_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
       
       ## toolchain
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: toolchain-cache
         with:
           path: ndless/ndless-sdk/toolchain/install
@@ -58,7 +58,7 @@ jobs:
         run: echo "$GITHUB_WORKSPACE/ndless/ndless-sdk/bin" >> $GITHUB_PATH
       
       # ndless SDK
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: sdk-cache
         with:
           path: ndless/ndless-sdk
@@ -87,7 +87,7 @@ jobs:
           NDLESS_SDK: ../ndless/ndless-sdk
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sled for ndless
           path: sled/sled.tns
