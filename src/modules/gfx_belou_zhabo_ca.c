@@ -141,4 +141,6 @@ int draw(int moduleid, int argc, char* argv[])
 
 void deinit(int moduleid)
 {
+	free(cdat);
+	free(ndat);
 }
