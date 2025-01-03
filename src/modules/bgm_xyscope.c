@@ -24,13 +24,18 @@
 
 #define PLOSSFAC ((BUFFER_FRAMES) / 64)
 
+enum samplesize {
+	SIZE_8, SIZE_16, SIZE_24, SIZE_32
+};
+
 static snd_pcm_t * scope_pcm;
 // Details on the sample format before conversion.
-// Two-channel (enables XY mode), if not, acts like a primitive X oscilloscope
-static int sf_2c;
-static int sf_16b;
-static int sf_us;
+// channel count - 2 enables XY mode, 1 acts like a primitive X oscilloscope
+static int sf_chancount;
+// xy mode, uses two channels
 static int sf_usey;
+static enum samplesize sf_sampsize;
+static int sf_us;
 static int sf_forceon;
 
 static int camera_width;
@@ -58,10 +63,10 @@ static oscore_task scope_task;
 #define SM_ALGORITHM(sample, shr, sub) (((byte) (sample >> shr)) - sub)
 #define LD_ALGORITHM(typ, shr, sub) \
 	for (int indx = 0; indx < BUFFER_FRAMES; indx++) { \
-		typ sampleA = ((typ *) bufferA)[indx * (sf_2c ? 2 : 1)]; \
+		typ sampleA = ((typ *) bufferA)[indx * sf_chancount]; \
 		bufferB[indx * 2] = SM_ALGORITHM(sampleA, shr, sub); \
-		if (sf_2c && sf_usey) { \
-			typ sampleB = ((typ *) bufferA)[(indx * (sf_2c ? 2 : 1)) + 1]; \
+		if (sf_chancount == 2 && sf_usey) { \
+			typ sampleB = ((typ *) bufferA)[(indx * sf_chancount) + 1]; \
 			bufferB[(indx * 2) + 1] = 255 - SM_ALGORITHM(sampleB, shr, sub); \
 		} else { \
 			bufferB[(indx * 2) + 1] = bufferB[indx * 2]; \
@@ -104,13 +109,25 @@ static void * thread_func(void * ign) {
 			frames = snd_pcm_recover(scope_pcm, frames, 0);
 		if (frames < 0)
 			printf("Warning: reading totally failed: %i, %s\n", frames, snd_strerror(frames));
-		if (sf_16b) {
+		if (sf_sampsize == SIZE_32) {
+			if (sf_us) {
+				LD_ALGORITHM(unsigned int, 24, 0);
+			} else {
+				LD_ALGORITHM(unsigned int, 24, 0x80);
+			}
+		} else if (sf_sampsize == SIZE_24) {
+			if (sf_us) {
+				LD_ALGORITHM(unsigned int, 16, 0);
+			} else {
+				LD_ALGORITHM(unsigned int, 16, 0x80);
+			}
+		} else if (sf_sampsize == SIZE_16) {
 			if (sf_us) {
 				LD_ALGORITHM(unsigned short, 8, 0);
 			} else {
 				LD_ALGORITHM(unsigned short, 8, 0x80);
 			}
-		} else {
+		} else if (sf_sampsize == SIZE_8) {
 			if (sf_us) {
 				LD_ALGORITHM(byte, 0, 0);
 			} else {
@@ -230,48 +247,62 @@ int init(int modulen, char* argstr) {
 		return 1;
 	}
 	free(ourarg);
-	sf_2c = 0;
-	sf_16b = 0;
+
+	sf_sampsize = SIZE_8;
 	sf_us = 0;
-	if (sf_usey) {
-		if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BS8C2\n");
-			sf_2c = 1;
-		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BS16C2\n");
-			sf_16b = 1;
-			sf_2c = 1;
-		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BU8C2\n");
-			sf_2c = 1;
-			sf_us = 1;
-		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 2, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BU16C2\n");
-			sf_16b = 1;
-			sf_2c = 1;
-			sf_us = 1;
-		}
+	sf_chancount = sf_usey ? 2 : 1;
+
+	if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_8;
+	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_16;
+	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S24, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_24;
+	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S32, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_32;
+	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_8;
+		sf_us = 1;
+	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_16;
+		sf_us = 1;
+	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U24, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_24;
+		sf_us = 1;
+	} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U32, SND_PCM_ACCESS_RW_INTERLEAVED, sf_chancount, SAMPLE_RATE, 1, 1000))) {
+		sf_sampsize = SIZE_32;
+		sf_us = 1;
 	} else {
-		if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BS8C1\n");
-		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_S16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BS16C1\n");
-			sf_16b = 1;
-		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U8, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BU8C1\n");
-			sf_us = 1;
-		} else if (!(code = snd_pcm_set_params(scope_pcm, SND_PCM_FORMAT_U16, SND_PCM_ACCESS_RW_INTERLEAVED, 1, SAMPLE_RATE, 1, 1000))) {
-			printf("Got BU16C1\n");
-			sf_16b = 1;
-			sf_us = 1;
-		} else {
-			printf("Couldn't convince ALSA to give sane settings: %i\n", code);
-			snd_pcm_close(scope_pcm);
-			free(bufferC);
-			return 1;
-		}
+		printf("Couldn't convince ALSA to give sane settings: %i\n", code);
+		snd_pcm_close(scope_pcm);
+		free(bufferC);
+		return 1;
 	}
-	bufferA = malloc(BUFFER_FRAMES * (sf_2c ? 2 : 1) * (sf_16b ? 2 : 1));
+
+	int bytesPerSample;
+	int bitsPerSample;
+	switch (sf_sampsize) {
+		case SIZE_8:
+			bytesPerSample = 1;
+			bitsPerSample = 8;
+		break;
+		case SIZE_16:
+			bytesPerSample = 2;
+			bitsPerSample = 16;
+			break;
+		case SIZE_24:
+			bytesPerSample = 3;
+			bitsPerSample = 24;
+			break;
+		case SIZE_32:
+			bytesPerSample = 4;
+			bitsPerSample = 32;
+		break;
+	}
+
+	printf("Got B%c%dC%d\n", sf_us ? 'U' : 'S', bitsPerSample, sf_chancount);
+
+	bufferA = malloc(BUFFER_FRAMES * sf_chancount * bytesPerSample);
 	if (!bufferA) {
 		printf("Couldn't allocate working buffer\n");
 		snd_pcm_close(scope_pcm);
