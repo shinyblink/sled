@@ -34,7 +34,6 @@
 static int modno;
 static unsigned int frame;
 static oscore_time nexttick;
-static float delta0;
 
 static uint16_t xmax;
 static uint16_t ymax;
@@ -92,15 +91,15 @@ static const uint8_t palette_size = sizeof(palette)/sizeof(RGB);
 
 static inline float multiplicate_dist(float x1, float y1, float x2, float y2)
 {
-    float dx = abs(x1 - x2);
-    float dy = abs(y1 - y2);
+    float dx = fabsf(x1 - x2);
+    float dy = fabsf(y1 - y2);
     return dx * dy;
 }
 
 static inline float sum_dist(float x1, float y1, float x2, float y2)
 {
-    float dx = abs(x1 - x2);
-    float dy = abs(y1 - y2);
+    float dx = fabsf(x1 - x2);
+    float dy = fabsf(y1 - y2);
 
     return dx + dy;
 }
@@ -114,8 +113,8 @@ static inline float euklid_dist(float x1, float y1, float x2, float y2)
 
 static inline float p3_dist(float x1, float y1, float x2, float y2)
 {
-    float dx = abs(x1 - x2);
-    float dy = abs(y1 - y2);
+    float dx = fabsf(x1 - x2);
+    float dy = fabsf(y1 - y2);
     return dx*dx*dx + dy*dy*dy;
 }
 
@@ -128,8 +127,8 @@ static inline float p4_dist(float x1, float y1, float x2, float y2)
 
 static inline float p5_dist(float x1, float y1, float x2, float y2)
 {
-    float dx = abs(x1 - x2);
-    float dy = abs(y1 - y2);
+    float dx = fabsf(x1 - x2);
+    float dy = fabsf(y1 - y2);
     return dx*dx*dx*dx*dx + dy*dy*dy*dy*dy;
 }
 
