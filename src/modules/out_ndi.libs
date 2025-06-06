@@ -1,0 +1,1 @@
+-L"$NDI_SDK_DIR/lib" -L/usr/local/lib -lndi
