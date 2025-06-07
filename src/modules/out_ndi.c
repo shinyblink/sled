@@ -89,10 +89,10 @@ int clear(int _modno) {
 int render(void) {
 	// Get current buffer
 	int current_fob = atomic_load(&front_or_back);
-	RGB *current_buffer = current_fob ? front_buffer : back_buffer;
+	RGB *alt_buffer = current_fob ? back_buffer : front_buffer;
 
-	// Upscale primary buffer to current buffer
-	upscale_buffer(primary_buffer, MATRIX_X, MATRIX_Y, NDI_SCALE_FACTOR, current_buffer);
+	// Upscale primary buffer to alternate buffer
+	upscale_buffer(primary_buffer, MATRIX_X, MATRIX_Y, NDI_SCALE_FACTOR, alt_buffer);
 
 	// Flip buffers
 	atomic_store(&front_or_back, !current_fob);
@@ -153,7 +153,7 @@ static void* send_task(void *arg) {
 		// Get current buffer
 		int current_fob = atomic_load(&front_or_back);
 
-		// Send a video frame with the actual data.
+		// Send a video frame with the current buffer's data.
 		video_frame.p_data = (uint8_t*) (current_fob ? front_buffer : back_buffer);
 		NDIlib_send_send_video_async_v2(ndi_send, &video_frame);
 
