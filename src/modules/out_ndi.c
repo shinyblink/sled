@@ -18,7 +18,8 @@
 #error Define MATRIX_Y as the matrix's Y size.
 #endif
 
-#define FPS 60
+#define NDI_FPS 60
+#define NDI_SCALE_FACTOR 2 // Pixels per Axis
 
 static RGB *primary_buffer;
 static RGB *front_buffer;
@@ -30,14 +31,29 @@ static NDIlib_send_instance_t ndi_send = NULL;
 static oscore_task ndi_task;
 
 static void* send_task(void *arg);
-	
+
+static void upscale_buffer(const RGB *src, int w, int h, int scale, RGB *dst) {
+    int w2 = w * scale;
+    for (int y = 0; y < h; y++) {
+        for (int x = 0; x < w; x++) {
+            RGB px = src[y*w + x];
+            int base = (y*scale)*w2 + x*scale;
+            for (int dy = 0; dy < scale; dy++) {
+                for (int dx = 0; dx < scale; dx++) {
+                    dst[base + dy*w2 + dx] = px;
+                }
+            }
+        }
+    }
+}
+
 int init(void) {
 	assert(sizeof(RGB) == 4);
 
 	// Allocate memory for the buffers
 	primary_buffer = (RGB*)malloc(MATRIX_X * MATRIX_Y * sizeof(RGB));
-	front_buffer = (RGB*)malloc(MATRIX_X * MATRIX_Y * sizeof(RGB));
-	back_buffer = (RGB*)malloc(MATRIX_X * MATRIX_Y * sizeof(RGB));
+	front_buffer = (RGB*)malloc(MATRIX_X * MATRIX_Y * sizeof(RGB) * (2*NDI_SCALE_FACTOR));
+	back_buffer = (RGB*)malloc(MATRIX_X * MATRIX_Y * sizeof(RGB) * (2*NDI_SCALE_FACTOR));
 
 	atomic_init(&keep_running, true);
 	atomic_init(&front_or_back, true);
@@ -75,8 +91,8 @@ int render(void) {
 	int current_fob = atomic_load(&front_or_back);
 	RGB *current_buffer = current_fob ? front_buffer : back_buffer;
 
-	// Copy primary buffer to current buffer
-	memcpy(current_buffer, primary_buffer, MATRIX_X * MATRIX_Y * sizeof(RGB));
+	// Upscale primary buffer to current buffer
+	upscale_buffer(primary_buffer, MATRIX_X, MATRIX_Y, NDI_SCALE_FACTOR, current_buffer);
 
 	// Flip buffers
 	atomic_store(&front_or_back, !current_fob);
@@ -124,13 +140,13 @@ static void* send_task(void *arg) {
 
 	// Prepopulate frame with static info.
 	NDIlib_video_frame_v2_t video_frame;
-	video_frame.xres = MATRIX_X;
-	video_frame.yres = MATRIX_Y;
-	video_frame.line_stride_in_bytes = MATRIX_X * sizeof(RGB);
+	video_frame.xres = MATRIX_X * NDI_SCALE_FACTOR;
+	video_frame.yres = MATRIX_Y * NDI_SCALE_FACTOR;
+	video_frame.line_stride_in_bytes = MATRIX_X * NDI_SCALE_FACTOR * sizeof(RGB);
 	video_frame.picture_aspect_ratio = (float)MATRIX_X / (float)MATRIX_Y;
 	video_frame.FourCC = NDIlib_FourCC_type_RGBX;
 	video_frame.frame_format_type = NDIlib_frame_format_type_progressive;
-	video_frame.frame_rate_N = FPS * 1000;
+	video_frame.frame_rate_N = NDI_FPS * 1000;
 	video_frame.frame_rate_D = 1000;
 	
 	while (atomic_load(&keep_running)) {
@@ -142,7 +158,7 @@ static void* send_task(void *arg) {
 		NDIlib_send_send_video_async_v2(ndi_send, &video_frame);
 
 		// Wait for the next frame
-		usleep(1000000 / FPS);
+		usleep(1000000 / NDI_FPS);
 	}
 
 	// Force sync for last frame.
