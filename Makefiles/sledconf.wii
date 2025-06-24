@@ -1,0 +1,30 @@
+# Makefile for sled running on the nintendo wii/gc.
+PROJECT := sled
+
+LIBS := -L/opt/devkitpro/libogc/lib/wii -lwiiuse -lbte -logc -lm
+
+CFLAGS := -g -flto
+CFLAGS += -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float
+CFLAGS += -Wall -O4 -fomit-frame-pointer -ffunction-sections -ffast-math
+CFLAGS += -I/opt/devkitpro/libogc/include
+
+LDFLAGS := -g -DGEKKO -mrvl -mcpu=750 -meabi -mhard-float -Wl,-Map,$(PROJECT).map
+
+# This can't work on any setting except static
+STATIC := 1
+PLATFORM := dummy
+
+DEFAULT_OUTMOD := ogc
+DEFAULT_MODULEDIR := "./modules"
+
+MODULES := gfx_twinkle gfx_gol gfx_rainbow gfx_math_sinpi gfx_plasma
+MODULES += gfx_balls gfx_clock gfx_sinematrix gfx_error gfx_partirush
+MODULES += gfx_matrix gfx_cube gfx_golc gfx_sinefield gfx_affinematrix
+MODULES += out_ogc
+
+MATRIX_X := 64
+MATRIX_Y := 64
+SDL_SCALE_FACTOR := 4
+
+CC := /opt/devkitpro/devkitPPC/bin/powerpc-eabi-gcc
+AS := /opt/devkitpro/devkitPPC/bin/powerpc-eabi-as
