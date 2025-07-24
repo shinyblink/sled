@@ -26,6 +26,8 @@
 #include <netinet/ether.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <time.h>
+#include <math.h>
 
 #include <types.h>
 #include <timers.h>
@@ -41,7 +43,8 @@ typedef struct
   uint8_t r;
 } BGR;
 
-BGR frame[HEIGHT][WIDTH];
+RGB frame_in[HEIGHT][WIDTH];
+BGR frame_out[HEIGHT][WIDTH];
 int sockfd;
 struct sockaddr_ll socket_address;
 
@@ -185,25 +188,66 @@ int gety(int _modno)
 
 int set(int _modno, int x, int y, RGB color)
 {
-  frame[y][x].r = color.red;
-  frame[y][x].g = color.green;
-  frame[y][x].b = color.blue;
+  frame_in[y][x] = color;
   return 0;
 }
 
 RGB get(int _modno, int x, int y)
 {
-  return RGB(frame[y][x].r, frame[y][x].g, frame[y][x].b);
+  return frame_in[y][x];
 }
 
 int clear(int _modno)
 {
-  memset(frame, 0, HEIGHT * WIDTH * 3);
+  memset(frame_in, 0, HEIGHT * WIDTH * sizeof(RGB));
+  for (int y = 0; y < HEIGHT; y++)
+  {
+    for (int x = 0; x < WIDTH; x++)
+    {
+      frame_in[y][x].alpha = 255;
+    }
+  }
   return 0;
 };
 
+#define FADE_ENABLED 1
 int render(void)
 {
+  time_t tm_now = time(NULL);
+  struct tm *tm_struct = localtime(&tm_now);
+  float hour = tm_struct->tm_hour + tm_struct->tm_min / 60.0;
+
+  // analyse
+  int pixsum = 0;
+  for (int y = 0; y < HEIGHT; y++)
+  {
+    for (int x = 0; x < WIDTH; x++)
+    {
+      pixsum += frame_in[y][x].red;
+      pixsum += frame_in[y][x].green;
+      pixsum += frame_in[y][x].blue;
+    }
+  }
+  double bright = (double)pixsum / (WIDTH * HEIGHT);
+  double fade = 127.0 / bright;
+  fade = MIN(0.66, fade);
+  // TODO: get location from commandline, implement equation of time for sunset and sunrise
+  if (!FADE_ENABLED || (hour > 5.5 && hour < 21.5))
+  {
+    fade = 1.0;
+  }
+
+  // copy and fade
+  for (int y = 0; y < HEIGHT; y++)
+  {
+    for (int x = 0; x < WIDTH; x++)
+    {
+      frame_out[y][x].r = frame_in[y][x].red * fade;
+      frame_out[y][x].g = frame_in[y][x].green * fade;
+      frame_out[y][x].b = frame_in[y][x].blue * fade;
+    }
+  }
+  
   // Limit frame rate. In this configuration, the matrix is only stable up to ~70fps
   static oscore_time last = 0;
   oscore_time now = udate();
@@ -224,7 +268,7 @@ int render(void)
   for (int i = 0; i < HEIGHT; ++i)
   {
     line[14] = i;
-    memcpy(&line[21], &frame[i][0], WIDTH * 3);
+    memcpy(&line[21], &frame_out[i][0], WIDTH * 3);
     /* Send line packet */
     if (sendto(sockfd, line, sizeof(line)/sizeof(line[0]), 0, (struct sockaddr*)&socket_address, sizeof(struct sockaddr_ll)) < 0)
     {
