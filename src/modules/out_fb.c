@@ -26,6 +26,8 @@ static byte* buf;
 #define SLEDFB_BGR 8
 // Planar
 #define SLEDFB_PLANAR 16
+// 16bpp
+#define SLEDFB_P2EN 32
 
 static int fbdev_w, fbdev_h, fbdev_fd;
 static int fbdev_flags;
@@ -112,11 +114,16 @@ static int query_device(char* device) {
 int bpp = 24; //vinfo.bpp;
 #endif
 	if (bpp != 24) {
-		if (bpp != 32) {
-			fprintf(stderr, "FB: Expected 24/32-bit display, got %i\n", bpp);
-			return 1;
+		if (bpp == 32) {
+			fbdev_flags |= SLEDFB_P4EN;
+		} else {
+			if (bpp == 16) {
+				fbdev_flags |= SLEDFB_P2EN;
+			} else {
+				fprintf(stderr, "FB: Expected 16/24/32-bit display, got %i\n", bpp);
+				return 1;
+			}
 		}
-		fbdev_flags |= SLEDFB_P4EN;
 #ifdef __linux__
 		if (ifo.transp.length) {
 			fbdev_flags |= SLEDFB_P4AI;
@@ -150,6 +157,8 @@ int init (int moduleno, char* argstr) {
 		return 2;
 	if (fbdev_flags & SLEDFB_P4EN) {
 		buf = malloc(fbdev_w * fbdev_h * 4);
+	} else if (fbdev_flags & SLEDFB_P2EN) {
+		buf = malloc(fbdev_w * fbdev_h * 2);
 	} else {
 		buf = malloc(fbdev_w * fbdev_h * 3);
 	}
@@ -179,7 +188,15 @@ int set(int _modno, int x, int y, RGB color) {
 	assert(x < fbdev_w);
 	assert(y < fbdev_h);
 
-	if (!(fbdev_flags & SLEDFB_PLANAR)) {
+	if (fbdev_flags & SLEDFB_P2EN) {
+		int i = x + (y * fbdev_w);
+		int r = color.red >> 3;
+		int g = color.green >> 2;
+		int b = color.blue >> 3;
+		int p = (r << 11) | (g << 5) | b;
+		buf[2*i] = p & 0xff;
+		buf[2*i + 1] = p >> 8;
+	} else if (!(fbdev_flags & SLEDFB_PLANAR)) {
 		int i = (x + (y * fbdev_w)) * ((fbdev_flags & SLEDFB_P4EN) ? 4 : 3);
 		if (fbdev_flags & SLEDFB_P4AF)
 			i++;
