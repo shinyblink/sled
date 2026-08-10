@@ -7,6 +7,8 @@
  * moves, rotates and zooms seemingly randomly over that canvas, showing what that "camera" sees.
  */
 
+#include <stdbool.h>
+
 #include <types.h>
 #include <matrix.h>
 #include <timers.h>
@@ -78,9 +80,6 @@ static ball* balls;
 
 
 // mode flags and settings
-typedef char bool;
-static const bool true = 1;
-static const bool false = 0;
 static bool USE_COLOR;
 static bool USE_ADDITIVE_COLOR;
 static bool USE_PERTURBATION;

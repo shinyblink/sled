@@ -15,6 +15,8 @@
 // ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+#include <stdbool.h>
+
 #include <types.h>
 #include <matrix.h>
 #include <timers.h>
@@ -79,9 +81,6 @@ static int maxrange = 32;
 static int mx;
 static int my;
 
-typedef char bool;
-#define true 1
-#define false 0
 static bool USE_ADDITIVE_COLOR = false;
 static bool USE_POTENTIAL = true;
 static bool USE_PULSATION = false;
