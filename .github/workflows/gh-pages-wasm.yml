@@ -12,16 +12,16 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
       
       # we need emsdk, obviously
       - name: Setup emsdk cache
         id: cache-system-libraries
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         with:
           path: ${{env.EM_CACHE_FOLDER}}
           key: emsdk-${{env.EM_VERSION}}-${{ runner.os }}
-      - uses: mymindstorm/setup-emsdk@v11
+      - uses: emscripten-core/setup-emsdk@v16
         with:
           version: ${{env.EM_VERSION}}
           actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
